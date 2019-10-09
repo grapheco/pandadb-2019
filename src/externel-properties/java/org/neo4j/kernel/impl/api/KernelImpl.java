@@ -69,7 +69,7 @@ public class KernelImpl extends LifecycleAdapter implements InwardKernel
         this.hooks = hooks;
 
         //NOTE: register hook
-        if(Settings._hook_enabled())
+        if(Settings._hookEnabled())
             hooks.register(new CustomPropertyNodeStoreHook());
 
         this.health = health;

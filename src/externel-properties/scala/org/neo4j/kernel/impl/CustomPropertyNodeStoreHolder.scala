@@ -1,5 +1,6 @@
 package org.neo4j.kernel.impl
 
+import cn.graiph.util.Logging
 import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 
 /**
@@ -17,33 +18,34 @@ object CustomPropertyNodeStoreHolder {
 }
 
 object Settings {
-  var _hook_enabled = false;
+  var _hookEnabled = false;
+  var _patternMatchFirst = true;
 }
 
-class LoggingPropertiesStore(source: CustomPropertyNodeStore) extends CustomPropertyNodeStore {
+class LoggingPropertiesStore(source: CustomPropertyNodeStore) extends CustomPropertyNodeStore with Logging {
   override def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
-    println(s"deleteNodes: $docsToBeDeleted")
+    logger.debug(s"deleteNodes: $docsToBeDeleted")
     source.deleteNodes(docsToBeDeleted)
   }
 
   override def init(): Unit = {
-    println(s"init()")
+    logger.debug(s"init()")
     source.init()
   }
 
   override def addNodes(docsToAdded: Iterable[CustomPropertyNode]): Unit = {
-    println(s"deleteNodes:$docsToAdded")
+    logger.debug(s"deleteNodes:$docsToAdded")
     source.addNodes(docsToAdded)
   }
 
   override def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode] = {
     val ir = source.filterNodes(expr)
-    println(s"filterNodes(expr=$expr): $ir")
+    logger.debug(s"filterNodes(expr=$expr): $ir")
     ir;
   }
 
   override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
-    println(s"docsToUpdated: $docsToUpdated")
+    logger.debug(s"docsToUpdated: $docsToUpdated")
     source.updateNodes(docsToUpdated)
   }
 }

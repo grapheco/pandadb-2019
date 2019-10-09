@@ -18,20 +18,17 @@
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
             <version>3.5.6</version>
-            <!--
-            <exclusions>
-                <exclusion>
-                    <groupId>org.parboiled</groupId>
-                    <artifactId>parboiled-scala_2.11</artifactId>
-                </exclusion>
-            </exclusions>
-            -->
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.solr/solr-solrj -->
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
             <version>6.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.0</version>
         </dependency>
     </dependencies>
 </project>

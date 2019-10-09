@@ -19,6 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted
 
+import cn.graiph.util.Logging
 import org.neo4j.cypher.internal.ir.v3_5.VarPatternLength
 import org.neo4j.cypher.internal.planner.v3_5.spi.TokenContext
 import org.neo4j.cypher.internal.runtime.ProcedureCallMode
@@ -47,7 +48,7 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
                                   expressionConverters: ExpressionConverters,
                                   rewriteAstExpression: ASTExpression => ASTExpression,
                                   tokenContext: TokenContext)
-                                 (implicit semanticTable: SemanticTable) extends PipeBuilder {
+                                 (implicit semanticTable: SemanticTable) extends PipeBuilder with Logging {
 
   private def getBuildExpression(id: Id) = rewriteAstExpression andThen
     ((e: ASTExpression) => expressionConverters.toCommandExpression(id, e)) andThen
@@ -125,7 +126,7 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
           if (predicate.exprs.size == 1) buildExpression(predicate.exprs.head) else buildExpression(predicate)
 
         //NOTE: push down predicate
-        if (Settings._hook_enabled) {
+        if (Settings._hookEnabled) {
           source match {
             case x: AllNodesScanPipe =>
               x.predicatePushDown(predicateExpression);
@@ -135,7 +136,16 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
         FilterPipe(source, predicateExpression)(id = id)
 
       case Expand(_, fromName, dir, types: Seq[RelTypeName], toName, relName, ExpandAll) =>
-        ExpandAllPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)
+        (Settings._patternMatchFirst, source) match {
+          //NOTE: yes! we use pattern match first!!
+          case (true, FilterPipe(source2, predicate2)) => {
+            logger.debug(s"perform pattern match first!");
+            FilterPipe(ExpandAllPipe(source2, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id), predicate2)(id = source.id)
+          }
+
+          //default behavier: use where predicate first
+          case _ => ExpandAllPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)
+        }
 
       case Expand(_, fromName, dir, types: Seq[RelTypeName], toName, relName, ExpandInto) =>
         ExpandIntoPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)

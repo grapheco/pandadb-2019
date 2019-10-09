@@ -45,13 +45,13 @@ class QueryTest {
 
   @Test
   def test1(): Unit = {
-    Settings._hook_enabled = false;
+    Settings._hookEnabled = false;
     _test();
   }
 
   @Test
   def test2(): Unit = {
-    Settings._hook_enabled = true;
+    Settings._hookEnabled = true;
     CustomPropertyNodeStoreHolder.hold(new LoggingPropertiesStore(new InMemoryPropertyNodeStore()));
     _test();
   }

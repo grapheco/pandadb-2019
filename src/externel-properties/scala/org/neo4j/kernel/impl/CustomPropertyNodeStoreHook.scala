@@ -52,7 +52,7 @@ class CustomPropertyNodeStoreHook extends TransactionHook[TransactionHook.Outcom
         CustomPropertyNodeStoreHolder.get.deleteNodes(docsToBeDeleted)
       }
 
-      //TODO[1]: update modified nodes
+      //TODO-1: update modified nodes
       val mn = state.modifiedNodes();
       //_propertyNodeStore.updateNodes
     }
