@@ -1,17 +1,35 @@
-Rule 1: Make sure your code has no side-effect!!!!
+### Rule 1: Make sure your code has no side-effect
 > do not use `println()`
 
-Rule 2: Logging: use Logging trait
+### Rule 2: Logging: use Logging trait
 >
 > ```
-class YourClass extends cn.graiph.util.Logging {
-  logger.debug(s"hello...")
-}
+> class YourClass extends cn.graiph.util.Logging {
+>   logger.debug(s"hello...")
+> }
 > ```
 > Yes! do not use println()!
 
-Rule 3: Do not keep useless comments!!!
+### Rule 3: Do not keep useless comments!!!
 > wrong comments/validated comments will lead people to a wrong way!
 
-Rule 4: use s"" to format string
+### Rule 4: Use s"" to format string
 > use: `s"hello, $name"`, do not use: `"hello, "+name`
+
+### Rule 5: Camel case naming style
+> use: `nameOfThisMan`, do not use `this_man`, `UglyMan`, etc
+> do not use Pingyin and unfamiliar abbreviations
+
+### Rule 6: Write test cases
+> write JUnit test cases, instead of write a Java program
+> separate test source code with main source code
+
+### Rule 7: NO hard coding
+> NO magic numbers
+> use configurations as possible
+
+### Rule 8: DO not write Scala code in Java style
+> use less `null`, use `Option` instead
+> use more `match` with `case class`
+> prefer immutable objects, avoiding to use mutable one
+> use functions as possible
