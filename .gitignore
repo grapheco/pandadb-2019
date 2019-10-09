@@ -9,6 +9,5 @@ store_lock
 *.tmp
 logs/
 *.log
-**/.idea/
 **/output/
 .DS_Store
