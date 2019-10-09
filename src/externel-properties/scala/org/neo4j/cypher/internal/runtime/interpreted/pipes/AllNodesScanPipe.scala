@@ -25,6 +25,7 @@ case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends P
             CustomPropertyNodeStoreHolder.get.filterNodes(NFGreaterThan(a.propertyKey.name, value)).
               map(_.toNeo4jNodeValue()).iterator
           }
+
           case LessThan(a: Property, b: ParameterExpression) => {
             val value = b.apply(baseContext, state)
             CustomPropertyNodeStoreHolder.get.filterNodes(NFLessThan(a.propertyKey.name, value)).
