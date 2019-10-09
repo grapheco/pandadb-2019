@@ -12,6 +12,7 @@
 
 ### Rule 3: Do not keep useless comments!!!
 > * wrong comments/validated comments will lead people to a wrong way!
+> * please write your comments in English!
 
 ### Rule 4: Use s"" to format string
 > * use: `s"hello, $name"`, do not use: `"hello, "+name`
@@ -34,3 +35,7 @@
 > * use more `match` with `case class`
 > * use immutable objects, avoiding to use mutable one
 > * use functions as possible, for example, `guys.foreach(_.sayHello)`
+
+### Rule 9: Please limit maximum line length
+
+> * Limit all lines to a maximum of 79 characters.
