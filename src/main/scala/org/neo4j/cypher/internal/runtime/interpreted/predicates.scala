@@ -8,8 +8,8 @@ import org.neo4j.values.AnyValue
 trait NodeFieldPredicate {
 }
 
-case class NodeFieldGreaterThan(fieldName: String, value: AnyValue) extends NodeFieldPredicate {
+case class NFGreaterThan(fieldName: String, value: AnyValue) extends NodeFieldPredicate {
 }
 
-case class NodeFieldLessThan(fieldName: String, value: AnyValue) extends NodeFieldPredicate {
+case class NFLessThan(fieldName: String, value: AnyValue) extends NodeFieldPredicate {
 }
