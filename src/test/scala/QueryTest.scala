@@ -11,8 +11,7 @@ import org.neo4j.io.fs.FileUtils
 import org.neo4j.kernel.impl.{CustomPropertyNodeStoreHolder, InMemoryPropertyNodeStore, LoggingPropertiesStore, Settings}
 
 class QueryTest {
-  @Before
-  def setup(): Unit = {
+  def initdb(): Unit = {
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
     val db = new GraphDatabaseFactory().newEmbeddedDatabase(new File("./output/testdb"))
@@ -58,6 +57,8 @@ class QueryTest {
   }
 
   private def _test(): Unit = {
+    initdb();
+
     val db = new GraphDatabaseFactory().newEmbeddedDatabase(new File("./output/testdb"))
 
     val tx = db.beginTx();
