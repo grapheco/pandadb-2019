@@ -1,6 +1,6 @@
 package org.neo4j.kernel.impl
 
-import org.neo4j.cypher.internal.runtime.interpreted.NodeFieldPredicate
+import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 
 /**
   * Created by bluejoe on 2019/10/7.
@@ -36,7 +36,7 @@ class LoggingPropertiesStore(source: CustomPropertyNodeStore) extends CustomProp
     source.addNodes(docsToAdded)
   }
 
-  override def filterNodes(expr: NodeFieldPredicate): Iterable[CustomPropertyNode] = {
+  override def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode] = {
     val ir = source.filterNodes(expr)
     println(s"filterNodes(expr=$expr): $ir")
     ir;

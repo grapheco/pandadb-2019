@@ -1,6 +1,6 @@
 package org.neo4j.kernel.impl
 
-import org.neo4j.cypher.internal.runtime.interpreted.NodeFieldPredicate
+import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 import org.neo4j.values.storable.{Value, Values}
 import org.neo4j.values.virtual.{NodeValue, VirtualValues}
 
@@ -16,7 +16,7 @@ trait CustomPropertyNodeStore {
 
   def init();
 
-  def filterNodes(expr: NodeFieldPredicate): Iterable[CustomPropertyNode];
+  def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode];
 }
 
 case class CustomPropertyNodeModification(

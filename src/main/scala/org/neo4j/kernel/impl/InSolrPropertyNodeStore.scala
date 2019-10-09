@@ -2,7 +2,7 @@ package org.neo4j.kernel.impl
 
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.SolrInputDocument
-import org.neo4j.cypher.internal.runtime.interpreted.NodeFieldPredicate
+import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 
 import scala.collection.JavaConversions._
 
@@ -35,7 +35,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
     _solrClient = Some(_client);
   }
 
-  override def filterNodes(expr: NodeFieldPredicate): Iterable[CustomPropertyNode] = {
+  override def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode] = {
     Array[CustomPropertyNode]()
   }
 

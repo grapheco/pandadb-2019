@@ -1,6 +1,6 @@
 package org.neo4j.kernel.impl
 
-import org.neo4j.cypher.internal.runtime.interpreted.{NFGreaterThan, NFLessThan, NodeFieldPredicate}
+import org.neo4j.cypher.internal.runtime.interpreted.{NFGreaterThan, NFLessThan, NFPredicate}
 import org.neo4j.values.AnyValue
 import org.neo4j.values.storable.NumberValue
 
@@ -12,7 +12,7 @@ import scala.collection.mutable
 class InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   val nodes = mutable.Map[Long, CustomPropertyNode]();
 
-  def filterNodes(expr: NodeFieldPredicate): Iterable[CustomPropertyNode] = {
+  def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode] = {
     expr match {
       case NFGreaterThan(fieldName: String, value: AnyValue) => {
         nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() >
