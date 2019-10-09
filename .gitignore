@@ -1,0 +1,14 @@
+**/target/
+**/bin/
+/tp-graph-test/testdb/
+**/.settings/
+store_lock
+*.lock
+*.bin
+*.temp
+*.tmp
+logs/
+*.log
+**/.idea/
+**/output/
+.DS_Store
