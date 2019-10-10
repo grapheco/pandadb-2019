@@ -10,7 +10,34 @@ import org.neo4j.graphdb.{Label, RelationshipType}
 import org.neo4j.io.fs.FileUtils
 import org.neo4j.kernel.impl.{CustomPropertyNodeStoreHolder, InMemoryPropertyNodeStore, LoggingPropertiesStore, Settings}
 
-class QueryTest {
+class QueryTest extends QueryTestBase {
+  Settings._hookEnabled = false;
+
+  @Test
+  def test1(): Unit = {
+    testQuery("match (m)-[dad]->(n) where 18>m.age return n.name, m");
+  }
+
+  @Test
+  def test2(): Unit = {
+    testQuery("match (m)-[dad]->(x)-[brother]-(n) where m.age<18 and n.age>30 return n.name, m.name, x");
+  }
+}
+
+class QueryWithinSolrTest extends QueryTestBase {
+  Settings._hookEnabled = true;
+  CustomPropertyNodeStoreHolder.hold(new LoggingPropertiesStore(new InMemoryPropertyNodeStore()));
+
+  @Test
+  def test1(): Unit = {
+    testQuery("match (m)-[dad]->(n) where 18>m.age return n.name, m");
+  }
+}
+
+trait QueryTestBase {
+  Settings._hookEnabled = false;
+
+  @Before
   def initdb(): Unit = {
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
@@ -23,7 +50,7 @@ class QueryTest {
     node1.setProperty("name", "bluejoe");
     node1.setProperty("age", 40);
     node1.addLabel(new Label {
-      override def name(): String = "person"
+      override def name(): String = "man"
     })
 
     val node2 = db.createNode();
@@ -31,11 +58,23 @@ class QueryTest {
     //with a blob property
     node2.setProperty("age", 10);
     node2.addLabel(new Label {
-      override def name(): String = "person"
+      override def name(): String = "kid"
+    })
+
+    val node3 = db.createNode();
+
+    node3.setProperty("name", "alan");
+    node3.setProperty("age", 39);
+    node3.addLabel(new Label {
+      override def name(): String = "man"
     })
 
     node2.createRelationshipTo(node1, new RelationshipType {
       override def name(): String = "dad"
+    });
+
+    node3.createRelationshipTo(node1, new RelationshipType {
+      override def name(): String = "brother"
     });
 
     tx.success();
@@ -43,34 +82,11 @@ class QueryTest {
     db.shutdown();
   }
 
-  @Test
-  def test1(): Unit = {
-    Settings._hookEnabled = false;
-    _test();
-  }
-
-  @Test
-  def test2(): Unit = {
-    Settings._hookEnabled = true;
-    CustomPropertyNodeStoreHolder.hold(new LoggingPropertiesStore(new InMemoryPropertyNodeStore()));
-    _test();
-  }
-
-  private def _test(): Unit = {
+  protected def testQuery(query: String): Unit = {
     initdb();
-
     val db = new GraphDatabaseFactory().newEmbeddedDatabase(new File("./output/testdb"))
-
     val tx = db.beginTx();
-    val nodes = db.getAllNodes.iterator();
-    while (nodes.hasNext) {
-      println(nodes.next());
-    }
-    //org.neo4j.cypher.internal.javacompat.ExecutionEngine
-    //org.neo4j.cypher.internal.PreParser
-    //org.neo4j.cypher.internal.MasterCompiler
-    //org.neo4j.cypher.internal.compatibility.v3_5.Cypher35Planner
-    val rs = db.execute("match (m)-[dad]->(n) where 18>m.age return n.name, m");
+    val rs = db.execute(query);
     while (rs.hasNext) {
       val row = rs.next();
       println(row);
@@ -79,5 +95,5 @@ class QueryTest {
     tx.success();
     db.shutdown();
   }
-
 }
+
