@@ -14,7 +14,13 @@ trait NFPredicate extends NFExpression {
 case class NFGreaterThan(propName: String, value: AnyValue) extends NFPredicate {
 }
 
+case class NFGreaterThanOrEqual(propName: String, value: AnyValue) extends NFPredicate {
+}
+
 case class NFLessThan(propName: String, value: AnyValue) extends NFPredicate {
+}
+
+case class NFLessThanOrEqual(propName: String, value: AnyValue) extends NFPredicate {
 }
 
 case class NFEquals(propName: String, value: AnyValue) extends NFPredicate {
