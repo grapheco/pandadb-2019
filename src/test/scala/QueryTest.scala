@@ -10,6 +10,7 @@ import org.neo4j.graphdb.{Label, RelationshipType}
 import org.neo4j.io.fs.FileUtils
 import org.neo4j.kernel.impl.{CustomPropertyNodeStoreHolder, InMemoryPropertyNodeStore, LoggingPropertiesStore, Settings}
 
+
 class QueryTest extends QueryTestBase {
   Settings._hookEnabled = false;
 
