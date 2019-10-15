@@ -11,3 +11,4 @@ logs/
 *.log
 **/output/
 .DS_Store
+.idea
