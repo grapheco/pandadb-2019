@@ -147,10 +147,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
       }
       case expr: NFRegexp => {
 
-        val paramValue = expr.text
-        println(paramValue)
-        val paramKey = expr.propName
-        q = Some(s"$paramKey:*$paramValue*")
+
 
       }
       case _  => q=None
