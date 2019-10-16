@@ -1,9 +1,10 @@
 package org.neo4j.kernel.impl
 
-import org.eclipse.collections.api.block.function.primitive.LongToObjectFunction
+import org.eclipse.collections.api.block.function.primitive.{IntToObjectFunction, LongToObjectFunction}
 import org.neo4j.kernel.api.{KernelTransaction, TransactionHook}
 import org.neo4j.storageengine.api.StorageReader
 import org.neo4j.storageengine.api.txstate.ReadableTransactionState
+import org.neo4j.values.storable.Value
 
 import scala.collection.JavaConversions._
 
