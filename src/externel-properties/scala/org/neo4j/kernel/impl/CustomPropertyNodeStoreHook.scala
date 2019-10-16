@@ -55,6 +55,39 @@ class CustomPropertyNodeStoreHook extends TransactionHook[TransactionHook.Outcom
       //TODO-1: update modified nodes
       val mn = state.modifiedNodes();
       //_propertyNodeStore.updateNodes
+      if (mn.nonEmpty) {
+        val docsToBeUpdated = mn.map(ns => {
+
+          val id = ns.getId
+
+          val fieldsAdded: Map[String, Value] = ns.addedProperties().map(prop => {
+            val key = tokens.propertyKeyName(prop.propertyKeyId())
+            val value = prop.value()
+            key -> value
+          }).toMap
+
+          val fieldsRemoved: Iterable[String] = ns.removedProperties().collect(new IntToObjectFunction[String] {
+            override def valueOf(intParameter: Int): String = tokens.nodeLabelName(intParameter)
+          })
+
+          val fieldsUpdated: Map[String, Value] = ns.changedProperties().map(prop => {
+            val key = tokens.propertyKeyName(prop.propertyKeyId())
+            val value = prop.value()
+            key -> value
+          }).toMap
+
+          val labelsAdded: Iterable[String] = ns.labelDiffSets().getAdded.collect(new LongToObjectFunction[String] {
+            override def valueOf(longParameter: Long): String = tokens.nodeLabelName(longParameter.toInt)
+          })
+
+          val labelsRemoved: Iterable[String] = ns.labelDiffSets().getRemoved.collect(new LongToObjectFunction[String] {
+            override def valueOf(longParameter: Long): String = tokens.nodeLabelName(longParameter.toInt)
+          })
+          CustomPropertyNodeModification(id, fieldsAdded, fieldsRemoved, fieldsUpdated, labelsAdded, labelsRemoved)
+        })
+
+        CustomPropertyNodeStoreHolder.get.updateNodes(docsToBeUpdated)
+      }
     }
 
     new TransactionHook.Outcome {

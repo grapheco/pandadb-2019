@@ -34,7 +34,7 @@ class LoggingPropertiesStore(source: CustomPropertyNodeStore) extends CustomProp
   }
 
   override def addNodes(docsToAdded: Iterable[CustomPropertyNode]): Unit = {
-    logger.debug(s"deleteNodes:$docsToAdded")
+    logger.debug(s"addNodes:$docsToAdded")
     source.addNodes(docsToAdded)
   }
 

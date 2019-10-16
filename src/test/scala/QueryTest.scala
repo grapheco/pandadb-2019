@@ -33,6 +33,11 @@ class QueryWithinSolrTest extends QueryTestBase {
   def test1(): Unit = {
     testQuery("match (m)-[dad]->(n) where 18>m.age return n.name, m");
   }
+
+  // test beforeCommit update nodes
+  @Test
+  def test2(): Unit = {
+    testQuery("match (n) return n.name")
 }
 
 trait QueryTestBase {
@@ -77,6 +82,11 @@ trait QueryTestBase {
     node3.createRelationshipTo(node1, new RelationshipType {
       override def name(): String = "brother"
     });
+
+    // test update properties
+    val node4 = db.createNode()
+    node4.setProperty("name", "test")
+    node4.setProperty("name", "update test name")
 
     tx.success();
     tx.close();
