@@ -1,6 +1,6 @@
 package org.neo4j.kernel.impl
 
-import org.neo4j.cypher.internal.runtime.interpreted.{NFGreaterThan, NFLessThan, NFPredicate}
+import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.values.AnyValue
 import org.neo4j.values.storable.NumberValue
 
@@ -21,6 +21,21 @@ class InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
 
       case NFLessThan(fieldName: String, value: AnyValue) => {
         nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <
+          value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
+      }
+
+      case NFLessThanOrEqual(fieldName: String, value: AnyValue) => {
+        nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <=
+          value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
+      }
+
+      case NFGreaterThanOrEqual(fieldName: String, value: AnyValue) => {
+        nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() >=
+          value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
+      }
+
+      case NFEquals(fieldName: String, value: AnyValue) => {
+        nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() ==
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
       }
     }
