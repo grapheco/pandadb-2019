@@ -30,13 +30,13 @@ class QueryWithinSolrTest extends QueryTestBase {
 
   @Test
   def test1(): Unit = {
-    testQuery("match (m)-[dad]->(n) where 18>m.age return n.name, m");
-	//testQuery("match (m)-[dad]->(n) where m.name=~ /blue.*/ return m.name, m");
+    //testQuery("match (m)-[dad]->(n) where m.name=~ '.*lue.*' return m.name, m");
     //testQuery("match (m)-[dad]->(n) where m.age>18 return n.name, m");
-    //testQuery("match (m) where m.age<=39 return m");
+    //testQuery("match (m) where m.age<>39 return m");
     //testQuery("match (m) where m.name=~ '.*ue.*' return m");
     //testQuery("MATCH (n {name:'bluejoe'}) SET n:professional set n.age=45 SET n.worktime=20 RETURN n");
     //testQuery("MATCH (n {name:'bluejoe'})   SET n={age:20}");
+    //testQuery("match (m) where m.name=~ '(?i)B.*' return m")
   }
 
   // test beforeCommit update nodes
