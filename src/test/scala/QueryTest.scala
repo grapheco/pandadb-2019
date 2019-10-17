@@ -1,6 +1,6 @@
 /**
-  * Created by bluejoe on 2019/9/15.
-  */
+ * Created by bluejoe on 2019/9/15.
+ */
 
 import java.io.File
 
@@ -9,7 +9,6 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.{Label, RelationshipType}
 import org.neo4j.io.fs.FileUtils
 import org.neo4j.kernel.impl.{CustomPropertyNodeStoreHolder, InMemoryPropertyNodeStore, LoggingPropertiesStore, Settings}
-
 
 class QueryTest extends QueryTestBase {
   Settings._hookEnabled = false;
@@ -38,6 +37,7 @@ class QueryWithinSolrTest extends QueryTestBase {
   @Test
   def test2(): Unit = {
     testQuery("match (n) return n.name")
+  }
 }
 
 trait QueryTestBase {
@@ -83,10 +83,10 @@ trait QueryTestBase {
       override def name(): String = "brother"
     });
 
-    // test update properties
+    // test beforeCommit update properties
     val node4 = db.createNode()
-    node4.setProperty("name", "test")
-    node4.setProperty("name", "update test name")
+    node4.setProperty("name", "test1")
+    node4.setProperty("name", "updated test1 name")
 
     tx.success();
     tx.close();
@@ -107,4 +107,3 @@ trait QueryTestBase {
     db.shutdown();
   }
 }
-
