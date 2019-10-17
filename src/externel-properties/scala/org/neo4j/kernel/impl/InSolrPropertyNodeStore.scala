@@ -20,6 +20,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
 
   override def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
     _solrClient.get.deleteById(docsToBeDeleted.map(_.toString).toList);
+    _solrClient.get.commit();
 
   }
 
@@ -27,7 +28,8 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
 
     _solrClient.get.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
-      x.fields.foreach(y => doc.addField(y._1, y._2.asObject()));
+      x.fields.foreach(y =>  doc.addField(y._1, y._2.asObject));
+     
       doc.addField("id",x.id);
       doc.addField("labels",x.labels.mkString(","));
 
@@ -57,23 +59,33 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
     expr match {
       case expr: NFGreaterThan => {
 
-        val str = expr.value.toString
-        val paramValue = str.substring(str.indexOf('(') + 1, str.indexOf(')'))
+        val paramValue = expr.value.asInstanceOf[Value].asObject()
+        val paramKey = expr.propName
+        q = Some(s"$paramKey:{ $paramValue TO * }")
+
+      }
+      case expr: NFGreaterThanOrEqual => {
+
+        val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"$paramKey:[ $paramValue TO * ]")
 
       }
 
       case expr: NFLessThan => {
-        val str = expr.value.toString
-        val paramValue = str.substring(str.indexOf('(') + 1, str.indexOf(')'))
+        val paramValue = expr.value.asInstanceOf[Value].asObject()
+        val paramKey = expr.propName
+        q = Some(s"$paramKey:{ * TO $paramValue}")
+      }
+
+      case expr: NFLessThanOrEqual => {
+        val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"$paramKey:[ * TO $paramValue]")
       }
       case expr: NFEquals => {
 
-        val str = expr.value.toString
-        val paramValue = str.substring(str.indexOf('(') + 1, str.indexOf(')'))
+        val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"$paramKey:$paramValue")
 
@@ -81,8 +93,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
 
       case expr: NFNotEquals => {
 
-        val str = expr.value.toString
-        val paramValue = str.substring(str.indexOf('(') + 1, str.indexOf(')'))
+        val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"-$paramKey:$paramValue")
 
@@ -184,10 +195,14 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
 
     }
 
+
+
+
     _solrClient.get.query(new SolrQuery().setQuery(q.get)).getResults().foreach(
       x => {
         val id = x.get("id")
         val labels = x.get("labels").toString.split(",")
+
         val tik = "id,labels,_version_"
         val fieldsName = x.getFieldNames
         val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(x.get(y).toString))
@@ -208,9 +223,15 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
   def modif2node(node: CustomPropertyNodeModification):CustomPropertyNode={
 
     val doc = getCustomPropertyNodeByid(node.id)
-    val labelsq = doc.get("labels").toString.split(",")
-    var labels = labelsq.toBuffer
-    node.labelsAdded.foreach(label => labels +=label)
+
+
+    val labelsq = doc.get("labels").toString
+
+  
+    val labelsTemp = labelsq.substring(labelsq.indexOf('[')+1,labelsq.indexOf(']'))
+    var labels = labelsTemp.split(",").toBuffer
+
+    node.labelsAdded.foreach(label => if (!labels.contains(label)) labels +=label)
     node.labelsRemoved.foreach(label => labels -=label)
 
     val tik = "id,labels,_version_"
@@ -227,7 +248,10 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
 
   }
   override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
+    docsToUpdated.foreach(node => println(node))
     var docsToAdded = for(doc <- docsToUpdated) yield (modif2node(doc))
+
+
     addNodes(docsToAdded)
 
   }
