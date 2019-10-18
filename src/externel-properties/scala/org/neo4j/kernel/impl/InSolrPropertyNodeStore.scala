@@ -29,7 +29,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
     _solrClient.get.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
       x.fields.foreach(y =>  doc.addField(y._1, y._2.asObject));
-     
+     // x.fields.foreach(y => println(y._2+":"+y._2.asObject().getClass))
       doc.addField("id",x.id);
       doc.addField("labels",x.labels.mkString(","));
 
@@ -116,10 +116,14 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
       case expr: NFTrue => {
 
 
+        q = Some(s"*:*")
+
+
 
       }
       case expr: NFFalse => {
 
+        q = Some(s"-*:*")
 
 
       }
@@ -158,7 +162,11 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
       }
       case expr: NFRegexp => {
 
+        val paramValue = expr.text.replace(".","")
 
+        val paramKey = expr.propName
+
+        q = Some(s"$paramKey:$paramValue")
 
       }
       case _  => q=None
@@ -184,7 +192,10 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
 
       case expr:NFNot => {
         val q1 = predicate2SolrQuery(expr.a)
-        q = Some(s"-$q1")
+
+        q = if (q1.indexOf("-")>=0) Some(s"${q1.substring(q1.indexOf("-") + 1)}") else Some(s"-$q1")
+
+
       }
 
       case _  => {
@@ -227,8 +238,10 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
 
     val labelsq = doc.get("labels").toString
 
-  
+
+
     val labelsTemp = labelsq.substring(labelsq.indexOf('[')+1,labelsq.indexOf(']'))
+
     var labels = labelsTemp.split(",").toBuffer
 
     node.labelsAdded.foreach(label => if (!labels.contains(label)) labels +=label)
@@ -248,7 +261,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
 
   }
   override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
-    docsToUpdated.foreach(node => println(node))
+
     var docsToAdded = for(doc <- docsToUpdated) yield (modif2node(doc))
 
 
