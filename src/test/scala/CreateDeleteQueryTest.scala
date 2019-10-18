@@ -16,6 +16,27 @@ trait CreateDeleteQueryTestBase {
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
     val db = new GraphDatabaseFactory().newEmbeddedDatabase(new File("./output/testdb"))
+    val tx = db.beginTx();
+    //create a node
+    val node1 = db.createNode();
+
+    node1.setProperty("name", "lzx1");
+    node1.setProperty("age", 20);
+    node1.addLabel(new Label {
+      override def name(): String = "Person"
+    })
+
+
+    val node2 = db.createNode();
+    node2.setProperty("name", "lzx2");
+    //with a blob property
+    node2.setProperty("age", 10);
+    node2.addLabel(new Label {
+      override def name(): String = "kid"
+    })
+
+    tx.success();
+    tx.close();
     db.shutdown();
   }
 
@@ -40,18 +61,24 @@ class CreateDeleteNodeQueryTest extends CreateDeleteQueryTestBase {
 
   @Test
   def test1(): Unit = {
-    testQuery("CREATE (n:Person {name:'test01', age:10})");
-    testQuery("CREATE (n:Person {name:'test02', age:20})");
-    testQuery("MATCH (n) WHERE 18>n.age RETURN n");
-    testQuery("MATCH (n) WHERE 20>=n.age RETURN n");
+    testQuery("CREATE (n:Person {name:'test01', age:10}) RETURN n.name");
+    testQuery("CREATE (n:Person {name:'test02', age:20}) RETURN n.name");
+    testQuery("MATCH (n)  RETURN n.name");
   }
 
   @Test
   def test2(): Unit = {
-    testQuery("CREATE (n:Person {name:'test01', age:10})");
-    testQuery("MATCH (n) WHERE 18>n.age RETURN n");
-    testQuery("MATCH (n)  DELETE n");
-    testQuery("MATCH (n) WHERE 18>n.age RETURN n");
+    testQuery("MATCH (n)  RETURN n.name");
+    testQuery("MATCH (n) WHERE 18>n.age  DELETE n RETURN n.name");
+    testQuery("MATCH (n)  RETURN n.name");
+  }
+
+  // test remove labels
+  @Test
+  def test3(): Unit={
+    testQuery("MATCH (n:Person)  RETURN n.name, labels(n)");
+    testQuery("MATCH (n:Person) REMOVE n:Person RETURN n.name,labels(n)");
+    testQuery("MATCH (n:Person)  RETURN  n.name, labels(n)");
   }
 
 }
