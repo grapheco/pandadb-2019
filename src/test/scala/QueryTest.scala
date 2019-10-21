@@ -30,6 +30,9 @@ class QueryWithinSolrTest extends QueryTestBase {
 
   @Test
   def test1(): Unit = {
+<<<<<<< HEAD
+    testQuery("match (m)-[dad]->(n) where 18>m.age return n.name, m");
+=======
     //testQuery("match (m)-[dad]->(n) where m.name=~ '.*lue.*' return m.name, m");
     //testQuery("match (m)-[dad]->(n) where m.age>18 return n.name, m");
     //testQuery("match (m) where m.age<>39 return m");
@@ -43,6 +46,7 @@ class QueryWithinSolrTest extends QueryTestBase {
   @Test
   def test2(): Unit = {
     testQuery("match (n) return n.name")
+>>>>>>> e6526b6062f7fe32d47368b865a4dac3341a100e
   }
 }
 
@@ -89,11 +93,14 @@ trait QueryTestBase {
       override def name(): String = "brother"
     });
 
+<<<<<<< HEAD
+=======
     // test beforeCommit update properties
     val node4 = db.createNode()
     node4.setProperty("name", "test1")
     node4.setProperty("name", "updated test1 name")
 
+>>>>>>> e6526b6062f7fe32d47368b865a4dac3341a100e
     tx.success();
     tx.close();
     db.shutdown();
@@ -112,4 +119,9 @@ trait QueryTestBase {
     tx.success();
     db.shutdown();
   }
+<<<<<<< HEAD
 }
+
+=======
+}
+>>>>>>> e6526b6062f7fe32d47368b865a4dac3341a100e
