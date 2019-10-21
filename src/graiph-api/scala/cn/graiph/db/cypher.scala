@@ -13,7 +13,7 @@ import org.neo4j.cypher.internal.runtime.interpreted.{ExecutionContext, UpdateCo
 import org.neo4j.cypher.internal.v3_5.ast.semantics._
 import org.neo4j.cypher.internal.v3_5.expressions.Expression.SemanticContext
 import org.neo4j.cypher.internal.v3_5.expressions._
-import org.neo4j.cypher.internal.v3_5.parser.{ExprExtensions, Expressions}
+import org.neo4j.cypher.internal.v3_5.parser.Expressions
 import org.neo4j.cypher.internal.v3_5.util.InputPosition
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.cypher.internal.v3_5.util.symbols._
@@ -27,53 +27,6 @@ import org.parboiled.scala._
 /**
   * Created by bluejoe on 2019/7/16.
   */
-object CypherInjection extends Expressions with Logging with Touchable {
-  private def AlgoNameWithThreshold: Rule1[AlgoNameWithThresholdExpr] = rule("an algorithm with threshold") {
-    group(SymbolicNameString ~ optional(operator("/") ~ DoubleLiteral)) ~~>>
-      ((a, b) => AlgoNameWithThresholdExpr(Some(a), b.map(_.value))) |
-      group(DoubleLiteral ~ optional(operator("/") ~ SymbolicNameString)) ~~>>
-        ((a, b) => AlgoNameWithThresholdExpr(b, Some(a.value)))
-  }
-
-  private def AlgoName: Rule1[AlgoNameWithThresholdExpr] = rule("an algorithm with threshold") {
-    group(SymbolicNameString) ~~>>
-      ((a) => AlgoNameWithThresholdExpr(Some(a), None))
-  }
-
-  logger.debug(s"injecting cypher expression extensions...");
-
-  ExprExtensions.extendsExpr2((Expression1: Rule1[org.neo4j.cypher.internal.v3_5.expressions.Expression]) => {
-    operator("->") ~~ (PropertyKeyName ~~>> (CustomPropertyExpr(_: ast.Expression, _))) ////NOTE: cypher plus
-  });
-
-  ExprExtensions.extendsExpr3((Expression2: Rule1[org.neo4j.cypher.internal.v3_5.expressions.Expression]) => {
-    group(operator("~:") ~ optional(AlgoNameWithThreshold) ~~ Expression2) ~~>>
-      ((a: ast.Expression, b, c) =>
-        SemanticLikeExpr(a, b, c)) |
-      group(operator("!:") ~ optional(AlgoNameWithThreshold) ~~ Expression2) ~~>>
-        ((a: ast.Expression, b, c) =>
-          SemanticUnlikeExpr(a, b, c)) |
-      group(operator(":::") ~ optional(AlgoName) ~~ Expression2) ~~>>
-        ((a: ast.Expression, b, c) =>
-          SemanticSetCompareExpr(a, b, c)) |
-      group(operator(">>:") ~ optional(AlgoNameWithThreshold) ~~ Expression2) ~~>>
-        ((a: ast.Expression, b, c) =>
-          SemanticContainSetExpr(a, b, c)) |
-      group(operator("<<:") ~ optional(AlgoNameWithThreshold) ~~ Expression2) ~~>>
-        ((a: ast.Expression, b, c) =>
-          SemanticSetInExpr(a, b, c)) |
-      group(operator("::") ~ optional(AlgoName) ~~ Expression2) ~~>>
-        ((a: ast.Expression, b, c) =>
-          SemanticCompareExpr(a, b, c)) |
-      group(operator(">:") ~ optional(AlgoNameWithThreshold) ~~ Expression2) ~~>>
-        ((a: ast.Expression, b, c) =>
-          SemanticContainExpr(a, b, c)) |
-      group(operator("<:") ~ optional(AlgoNameWithThreshold) ~~ Expression2) ~~>>
-        ((a: ast.Expression, b, c) =>
-          SemanticInExpr(a, b, c))
-  });
-}
-
 case class AlgoNameWithThresholdExpr(algorithm: Option[String], threshold: Option[Double])(val position: InputPosition)
   extends Expression with ExtendedExpr {
 

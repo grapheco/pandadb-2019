@@ -15,7 +15,6 @@ import org.springframework.context.support.FileSystemXmlApplicationContext
   * Created by bluejoe on 2019/7/17.
   */
 object GraiphDB extends Logging with Touchable {
-  CypherInjection.touch;
   SemanticOperatorPluginInjection.touch;
 
   def openDatabase(dbDir: File, propertiesFile: File): GraphDatabaseService = {

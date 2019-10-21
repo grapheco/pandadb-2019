@@ -9,7 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService
   * Created by bluejoe on 2019/4/13.
   */
 trait TestBase {
-  val testDbDir = new File("./testdata/testdb");
+  val testDbDir = new File("./output/testdb");
   val testConfPath = new File("./testdata/neo4j.conf").getPath;
 
   def setupNewDatabase(dbdir: File = testDbDir, conf: String = testConfPath): Unit = {
