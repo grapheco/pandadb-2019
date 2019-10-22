@@ -21,10 +21,10 @@ package org.neo4j.bolt.blob
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import cn.graiph.blob.{BlobId, Blob, BlobEntry}
+import cn.graiph.blob.{BlobIO, BlobId, Blob, BlobEntry}
+import cn.graiph.util.{StreamUtils, ReflectUtils}
 import org.apache.commons.codec.digest.DigestUtils
-import cn.graiph.blob.util.ReflectUtils._
-import cn.graiph.blob.util._
+import ReflectUtils._
 import org.neo4j.kernel.api.KernelTransaction
 import org.neo4j.kernel.api.KernelTransaction.CloseListener
 import org.neo4j.kernel.impl.coreapi.{InternalTransaction, TopLevelTransaction}

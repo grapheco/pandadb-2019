@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import cn.graiph.blob.util.ContextMap;
+import cn.graiph.util.ContextMap;
 import org.neo4j.configuration.ConfigOptions;
 import org.neo4j.configuration.ConfigValue;
 import org.neo4j.configuration.ExternalSettings;

@@ -23,12 +23,12 @@ package cn.graiph.blob
 import java.io._
 import java.net.URL
 
+import cn.graiph.util.StreamUtils
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.io.IOUtils
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
-import cn.graiph.blob.util.StreamUtils
-import cn.graiph.blob.util.StreamUtils._
+import StreamUtils._
 
 trait InputStreamSource {
   /**

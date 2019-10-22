@@ -25,7 +25,7 @@ import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
 import java.util.ArrayList;
 import java.util.List;
 
-import cn.graiph.blob.util.ContextMap;
+import cn.graiph.util.ContextMap;
 import org.neo4j.consistency.report.ConsistencyReport;
 import org.neo4j.consistency.store.RecordAccess;
 import org.neo4j.kernel.impl.InstanceContext;

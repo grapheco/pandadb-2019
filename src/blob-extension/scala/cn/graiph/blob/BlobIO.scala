@@ -17,12 +17,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package cn.graiph.blob.util
+package cn.graiph.blob
 
 import java.io.ByteArrayOutputStream
 
-import cn.graiph.blob.{MimeType, Blob, BlobId, BlobEntry}
-import cn.graiph.blob.util.StreamUtils._
+import cn.graiph.util.StreamUtils
+import cn.graiph.util.StreamUtils._
 
 /**
   * Created by bluejoe on 2019/4/18.

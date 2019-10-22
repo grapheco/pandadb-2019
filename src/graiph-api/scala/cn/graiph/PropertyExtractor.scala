@@ -1,6 +1,6 @@
 package cn.graiph
 
-import cn.graiph.blob.util.Configuration
+import cn.graiph.util.Configuration
 
 /**
   * Created by bluejoe on 2019/7/22.

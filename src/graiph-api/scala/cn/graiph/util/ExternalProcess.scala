@@ -2,7 +2,7 @@ package cn.graiph.util
 
 import java.io.ByteArrayOutputStream
 import cn.graiph.blob.Blob
-import cn.graiph.blob.util.StreamUtils._
+import StreamUtils._
 import org.apache.commons.io.IOUtils
 import scala.util.parsing.json.JSON
 

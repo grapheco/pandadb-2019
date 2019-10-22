@@ -1,8 +1,8 @@
 package cn.aipm.text
 
 import cn.graiph.ValueComparator
+import cn.graiph.util.Configuration
 import info.debatty.java.stringsimilarity.{Cosine, Jaccard, JaroWinkler}
-import cn.graiph.blob.util.Configuration
 
 /**
   * Created by bluejoe on 2019/2/17.

@@ -23,12 +23,11 @@ import java.io.{File, FileInputStream, FileOutputStream, InputStream}
 import java.util.UUID
 
 import cn.graiph.blob.{MimeType, BlobId, Blob, InputStreamSource}
-import cn.graiph.util.Logging
+import cn.graiph.util._
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, IOUtils}
-import cn.graiph.blob.util.StreamUtils._
-import cn.graiph.blob.util.{Configuration, GlobalContext}
-import cn.graiph.blob.util.ConfigUtils._
+import StreamUtils._
+import ConfigUtils._
 import scala.collection.JavaConversions._
 
 trait BlobStorage extends BatchBlobValueStorage {

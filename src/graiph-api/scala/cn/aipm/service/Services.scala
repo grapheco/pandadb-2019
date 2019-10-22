@@ -3,10 +3,10 @@ package cn.aipm.service
 import java.io.InputStream
 
 import cn.graiph.AnyComparator
-import cn.graiph.blob.util.Configuration
+import cn.graiph.util.{ConfigUtils, Configuration}
 import scala.collection.immutable.Map
 import scala.util.parsing.json.JSON
-import cn.graiph.blob.util.ConfigUtils._
+import ConfigUtils._
 
 class Services(private val _aipmHttpHostUrl: String) {
   //TODO: hard coding, try <baseUrl>/service/<algorithm name>

@@ -1,8 +1,7 @@
 package cn.graiph
 
 import cn.graiph.blob.Blob
-import cn.graiph.blob.util.{Configuration}
-import cn.graiph.util.Logging
+import cn.graiph.util.{Configuration, Logging}
 
 import scala.beans.BeanProperty
 import scala.collection.mutable

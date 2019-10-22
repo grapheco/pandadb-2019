@@ -4,7 +4,7 @@ import javax.imageio.ImageIO
 
 import cn.graiph.PropertyExtractor
 import cn.graiph.blob.Blob
-import cn.graiph.blob.util.Configuration
+import cn.graiph.util.Configuration
 
 /**
   * Created by bluejoe on 2019/2/17.

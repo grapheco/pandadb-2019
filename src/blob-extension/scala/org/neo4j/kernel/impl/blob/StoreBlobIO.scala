@@ -22,9 +22,8 @@ package org.neo4j.kernel.impl.blob
 import java.io.InputStream
 import java.nio.ByteBuffer
 
-import cn.graiph.blob.{BlobWithId, BlobId, Blob, InputStreamSource}
-import cn.graiph.blob.util._
-import cn.graiph.util.Logging
+import cn.graiph.blob._
+import cn.graiph.util.{StreamUtils, ContextMap, Logging}
 import org.neo4j.kernel.impl.store.record.{PrimitiveRecord, PropertyBlock, PropertyRecord}
 import org.neo4j.values.storable.{BlobArray, BlobValue}
 

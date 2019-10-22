@@ -1,4 +1,4 @@
-package cn.graiph.blob.util
+package cn.graiph.util
 
 import scala.collection.mutable.{Map => MMap}
 /*
