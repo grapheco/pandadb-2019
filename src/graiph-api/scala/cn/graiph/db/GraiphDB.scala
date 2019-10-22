@@ -39,48 +39,48 @@ trait Touchable {
 
 object SemanticOperatorPluginInjection extends Touchable {
   BlobPropertyStoreServicePlugins.add(new SemanticOperatorPlugin());
-}
 
-class SemanticOperatorPlugin extends BlobPropertyStoreServicePlugin with Logging {
-  override def init(ctx: BlobPropertyStoreServiceContext): Unit = {
-    val configuration = ctx.configuration;
-    val cypherPluginRegistry = configuration.getRaw("blob.plugins.conf").map(x => {
-      val xml = new File(x);
+  class SemanticOperatorPlugin extends BlobPropertyStoreServicePlugin with Logging {
+    override def init(ctx: BlobPropertyStoreServiceContext): Unit = {
+      val configuration = ctx.configuration;
+      val cypherPluginRegistry = configuration.getRaw("blob.plugins.conf").map(x => {
+        val xml = new File(x);
 
-      val path =
-        if (xml.isAbsolute) {
-          xml.getPath
-        }
-        else {
-          val configFilePath = configuration.getRaw("config.file.path")
-          if (configFilePath.isDefined) {
-            new File(new File(configFilePath.get).getParentFile, x).getAbsoluteFile.getCanonicalPath
+        val path =
+          if (xml.isAbsolute) {
+            xml.getPath
           }
           else {
-            xml.getAbsoluteFile.getCanonicalPath
+            val configFilePath = configuration.getRaw("config.file.path")
+            if (configFilePath.isDefined) {
+              new File(new File(configFilePath.get).getParentFile, x).getAbsoluteFile.getCanonicalPath
+            }
+            else {
+              xml.getAbsoluteFile.getCanonicalPath
+            }
           }
-        }
 
-      logger.info(s"loading semantic plugins: $path");
-      val appctx = new FileSystemXmlApplicationContext("file:" + path);
-      appctx.getBean[CypherPluginRegistry](classOf[CypherPluginRegistry]);
-    }).getOrElse {
-      logger.info(s"semantic plugins not loaded: blob.plugins.conf=null");
-      new CypherPluginRegistry()
+        logger.info(s"loading semantic plugins: $path");
+        val appctx = new FileSystemXmlApplicationContext("file:" + path);
+        appctx.getBean[CypherPluginRegistry](classOf[CypherPluginRegistry]);
+      }).getOrElse {
+        logger.info(s"semantic plugins not loaded: blob.plugins.conf=null");
+        new CypherPluginRegistry()
+      }
+
+      val customPropertyProvider = cypherPluginRegistry.createCustomPropertyProvider(configuration);
+      val valueMatcher = cypherPluginRegistry.createValueComparatorRegistry(configuration);
+
+      ctx.instanceContext.put[CustomPropertyProvider](customPropertyProvider);
+      ctx.instanceContext.put[ValueMatcher](valueMatcher);
     }
 
-    val customPropertyProvider = cypherPluginRegistry.createCustomPropertyProvider(configuration);
-    val valueMatcher = cypherPluginRegistry.createValueComparatorRegistry(configuration);
+    override def stop(ctx: BlobPropertyStoreServiceContext): Unit = {
 
-    ctx.instanceContext.put[CustomPropertyProvider](customPropertyProvider);
-    ctx.instanceContext.put[ValueMatcher](valueMatcher);
-  }
+    }
 
-  override def stop(ctx: BlobPropertyStoreServiceContext): Unit = {
+    override def start(ctx: BlobPropertyStoreServiceContext): Unit = {
 
-  }
-
-  override def start(ctx: BlobPropertyStoreServiceContext): Unit = {
-
+    }
   }
 }
