@@ -16,6 +16,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/graiph-api/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/graiph-driver/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/graiph-driver/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/graiph-api/resources" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
