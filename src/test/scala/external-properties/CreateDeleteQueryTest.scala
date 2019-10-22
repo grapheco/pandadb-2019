@@ -1,7 +1,7 @@
 
 import java.io.File
 
-import org.junit.{Before, Test}
+import org.junit.{Assert, Before, Test}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.{Label, RelationshipType}
 import org.neo4j.io.fs.FileUtils
@@ -57,7 +57,8 @@ trait CreateDeleteQueryTestBase {
 
 class CreateDeleteNodeQueryTest extends CreateDeleteQueryTestBase {
   Settings._hookEnabled = true;
-  CustomPropertyNodeStoreHolder.hold(new LoggingPropertiesStore(new InMemoryPropertyNodeStore()));
+  val tmpns = new InMemoryPropertyNodeStore()
+  CustomPropertyNodeStoreHolder.hold(new LoggingPropertiesStore(tmpns));
 
   @Test
   def test1(): Unit = {
@@ -69,7 +70,11 @@ class CreateDeleteNodeQueryTest extends CreateDeleteQueryTestBase {
   @Test
   def test2(): Unit = {
     testQuery("MATCH (n)  RETURN n.name");
+
+    Assert.assertEquals(2, tmpns.nodes.size)
     testQuery("MATCH (n) WHERE 18>n.age  DELETE n RETURN n.name");
+    Assert.assertEquals(1, tmpns.nodes.size)
+
     testQuery("MATCH (n)  RETURN n.name");
   }
 
