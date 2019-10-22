@@ -20,7 +20,7 @@
 
 package org.neo4j.values.storable
 
-import org.neo4j.blob.Blob
+import cn.graiph.blob.Blob
 import org.neo4j.hashing.HashFunction
 import org.neo4j.values.{AnyValue, ValueMapper}
 

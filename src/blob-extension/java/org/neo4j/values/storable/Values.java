@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import org.neo4j.blob.Blob;
+import cn.graiph.blob.Blob;
 import org.neo4j.graphdb.spatial.CRS;
 import org.neo4j.graphdb.spatial.Point;
 

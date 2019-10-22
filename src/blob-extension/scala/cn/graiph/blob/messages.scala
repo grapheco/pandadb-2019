@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.neo4j.blob
+package cn.graiph.blob
 
 object BlobMessageSignature {
   val SIGNATURE_GET_BLOB: Byte = 0x55;

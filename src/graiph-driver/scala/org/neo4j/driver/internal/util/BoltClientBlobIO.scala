@@ -2,9 +2,9 @@ package org.neo4j.driver.internal.util
 
 import java.util
 
-import org.neo4j.blob._
-import org.neo4j.blob.utils.ReflectUtils._
-import org.neo4j.blob.utils._
+import cn.graiph.blob.{InlineBlob, BlobId, Blob}
+import cn.graiph.blob.util.ReflectUtils._
+import cn.graiph.blob.util._
 import org.neo4j.driver.Value
 import org.neo4j.driver.internal.spi.Connection
 import org.neo4j.driver.internal.value.{RemoteBlob, InternalBlobValue}

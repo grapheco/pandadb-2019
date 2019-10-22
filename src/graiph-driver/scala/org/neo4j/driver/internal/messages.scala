@@ -1,9 +1,8 @@
 package org.neo4j.driver.internal
 
 import java.util.concurrent.CompletableFuture
-
-import org.neo4j.blob.BlobMessageSignature
-import org.neo4j.blob.utils.Logging
+import cn.graiph.blob.BlobMessageSignature
+import cn.graiph.util.Logging
 import org.neo4j.driver.Value
 import org.neo4j.driver.internal.messaging.{Message, MessageEncoder, ValuePacker}
 import org.neo4j.driver.internal.spi.ResponseHandler

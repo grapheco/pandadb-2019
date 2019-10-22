@@ -20,8 +20,8 @@
 
 package org.neo4j.kernel.impl
 
-import org.neo4j.blob.utils.{ConfigUtils, Configuration, ContextMap}
-import org.neo4j.blob.utils.ReflectUtils._
+import cn.graiph.blob.util.{ConfigUtils, Configuration, ContextMap}
+import cn.graiph.blob.util.ReflectUtils._
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.factory.GraphDatabaseFacade
 import org.neo4j.kernel.impl.store.id.RenewableBatchIdSequence

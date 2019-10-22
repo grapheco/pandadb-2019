@@ -1,6 +1,6 @@
 package cn.graiph.driver
 
-import org.neo4j.blob.utils.Logging
+import cn.graiph.util.Logging
 
 /**
   * Created by bluejoe on 2019/7/17.

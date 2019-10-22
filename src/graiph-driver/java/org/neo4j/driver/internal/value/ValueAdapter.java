@@ -41,7 +41,7 @@ import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Point;
 import org.neo4j.driver.types.Relationship;
 import org.neo4j.driver.types.Type;
-import org.neo4j.blob.Blob;
+import cn.graiph.blob.Blob;
 
 import java.util.function.Function;
 

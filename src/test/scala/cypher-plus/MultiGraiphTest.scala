@@ -19,8 +19,8 @@
  */
 import java.io.{File, FileInputStream}
 
+import cn.graiph.blob.Blob
 import org.apache.commons.io.IOUtils
-import org.neo4j.blob.{Blob}
 import org.neo4j.graphdb.{GraphDatabaseService, Node, Transaction}
 import org.neo4j.kernel.impl.InstanceContext
 import org.neo4j.kernel.impl.blob.BlobStorage

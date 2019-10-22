@@ -1,7 +1,8 @@
 package cn.graiph
 
-import org.neo4j.blob.utils.{Configuration, Logging}
-import org.neo4j.blob.{Blob}
+import cn.graiph.blob.Blob
+import cn.graiph.blob.util.{Configuration}
+import cn.graiph.util.Logging
 
 import scala.beans.BeanProperty
 import scala.collection.mutable

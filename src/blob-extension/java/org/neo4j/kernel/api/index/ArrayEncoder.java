@@ -26,7 +26,7 @@ import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.Base64;
 
-import org.neo4j.blob.Blob;
+import cn.graiph.blob.Blob;
 import org.neo4j.string.UTF8;
 import org.neo4j.values.storable.BlobValue;
 import org.neo4j.values.storable.CoordinateReferenceSystem;

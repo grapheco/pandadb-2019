@@ -21,8 +21,7 @@ package org.neo4j.cypher.internal.runtime.interpreted
 
 import java.time._
 import java.time.temporal.TemporalAmount
-
-import org.neo4j.blob.Blob
+import cn.graiph.blob.Blob
 import org.neo4j.cypher.internal.v3_5.util.CypherTypeException
 import org.neo4j.graphdb.spatial.Point
 import org.neo4j.values.storable.{ArrayValue, _}

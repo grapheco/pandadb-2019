@@ -3,7 +3,7 @@ package org.neo4j.driver.internal.value
 import java.io.{ByteArrayInputStream, IOException, InputStream}
 import java.util.concurrent.CompletableFuture
 
-import org.neo4j.blob._
+import cn.graiph.blob.{MimeType, Blob, InputStreamSource}
 import org.neo4j.driver.internal._
 import org.neo4j.driver.internal.spi.Connection
 import org.neo4j.driver.internal.types.{TypeConstructor, TypeRepresentation}

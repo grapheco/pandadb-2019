@@ -4,7 +4,7 @@ import java.util.function.Function
 import java.util.stream.Stream
 
 import cn.graiph.driver.CypherService
-import org.neo4j.blob.utils.Logging
+import cn.graiph.util.Logging
 import org.neo4j.driver._
 import org.neo4j.driver.internal.types.InternalMapAccessorWithDefaultValue
 import org.neo4j.driver.internal.value.{NodeValue, RelationshipValue}

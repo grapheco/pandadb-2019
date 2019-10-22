@@ -2,7 +2,7 @@ package cn.aipm.image
 
 import cn.aipm.service.ServiceInitializer
 import cn.graiph.PropertyExtractor
-import org.neo4j.blob.Blob
+import cn.graiph.blob.Blob
 
 class DogOrCatClassifier extends PropertyExtractor with ServiceInitializer {
 

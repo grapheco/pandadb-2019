@@ -1,8 +1,8 @@
 package cn.graiph.db
 
 import cn.graiph.{CustomPropertyProvider, ValueMatcher}
-import org.neo4j.blob.utils.ReflectUtils._
-import org.neo4j.blob.utils.{ContextMap, Logging}
+import cn.graiph.blob.util.ReflectUtils._
+import cn.graiph.blob.util.{ContextMap}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.convert.{ExpressionConverters, ExtendedCommandExpr}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.{Expression => CommandExpression}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.predicates.Predicate

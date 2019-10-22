@@ -1,8 +1,8 @@
 import java.io.File
 
+import cn.graiph.blob.Blob
 import cn.graiph.db.GraiphDB
 import org.apache.commons.io.FileUtils
-import org.neo4j.blob.Blob
 import org.neo4j.graphdb.GraphDatabaseService
 
 /**

@@ -2,7 +2,7 @@ package cn.aipm.audio
 
 import cn.graiph.PropertyExtractor
 import cn.aipm.service.ServiceInitializer
-import org.neo4j.blob.Blob
+import cn.graiph.blob.Blob
 
 
 class AudioRecongnizer extends PropertyExtractor with ServiceInitializer {

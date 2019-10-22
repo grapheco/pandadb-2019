@@ -4,8 +4,8 @@ import java.io.File
 import java.util.Optional
 
 import cn.graiph.db.{GraiphDB, Touchable}
+import cn.graiph.util.Logging
 import org.apache.commons.io.IOUtils
-import org.neo4j.blob.utils.Logging
 import org.neo4j.server.{AbstractNeoServer, CommunityBootstrapper}
 
 import scala.collection.JavaConversions

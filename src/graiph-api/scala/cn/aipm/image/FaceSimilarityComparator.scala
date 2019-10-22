@@ -2,7 +2,7 @@ package cn.aipm.image
 
 import cn.graiph.SetComparator
 import cn.aipm.service.ServiceInitializer
-import org.neo4j.blob.Blob
+import cn.graiph.blob.Blob
 
 
 class FaceSimilarityComparator extends SetComparator with ServiceInitializer {

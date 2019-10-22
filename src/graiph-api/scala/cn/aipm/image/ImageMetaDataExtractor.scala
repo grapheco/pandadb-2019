@@ -3,8 +3,8 @@ package cn.aipm.image
 import javax.imageio.ImageIO
 
 import cn.graiph.PropertyExtractor
-import org.neo4j.blob.Blob
-import org.neo4j.blob.utils.Configuration
+import cn.graiph.blob.Blob
+import cn.graiph.blob.util.Configuration
 
 /**
   * Created by bluejoe on 2019/2/17.

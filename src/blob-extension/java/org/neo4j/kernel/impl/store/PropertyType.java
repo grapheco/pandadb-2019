@@ -22,7 +22,7 @@ package org.neo4j.kernel.impl.store;
 import java.util.Arrays;
 import java.util.List;
 
-import org.neo4j.blob.utils.ContextMap;
+import cn.graiph.blob.util.ContextMap;
 import org.neo4j.kernel.impl.InstanceContext;
 import org.neo4j.kernel.impl.blob.StoreBlobIO;
 import org.neo4j.kernel.impl.store.format.standard.PropertyRecordFormat;

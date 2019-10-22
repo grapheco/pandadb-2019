@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.neo4j.blob
+package cn.graiph.blob
 
 import java.io._
 import java.net.URL
@@ -27,8 +27,8 @@ import org.apache.commons.codec.binary.Hex
 import org.apache.commons.io.IOUtils
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
-import org.neo4j.blob.utils.StreamUtils
-import org.neo4j.blob.utils.StreamUtils._
+import cn.graiph.blob.util.StreamUtils
+import cn.graiph.blob.util.StreamUtils._
 
 trait InputStreamSource {
   /**

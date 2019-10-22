@@ -21,7 +21,7 @@ package org.neo4j.bolt.blob
 
 import java.io.{ByteArrayInputStream, InputStream}
 
-import org.neo4j.blob.{InputStreamSource, MimeType, Blob, BlobMessageSignature}
+import cn.graiph.blob.{MimeType, BlobMessageSignature, Blob, InputStreamSource}
 import org.neo4j.bolt.messaging.Neo4jPack.Unpacker
 import org.neo4j.bolt.messaging.{RequestMessage, RequestMessageDecoder}
 import org.neo4j.bolt.runtime.BoltResult.Visitor

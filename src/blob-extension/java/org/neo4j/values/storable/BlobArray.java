@@ -20,7 +20,7 @@
 package org.neo4j.values.storable;
 
 import org.neo4j.values.AnyValue;
-import org.neo4j.blob.Blob;
+import cn.graiph.blob.Blob;
 import org.neo4j.values.ValueMapper;
 
 public class BlobArray extends NonPrimitiveArray<Blob>

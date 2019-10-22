@@ -1,10 +1,9 @@
 package cn.graiph.util
 
 import java.io.ByteArrayOutputStream
-import org.neo4j.blob.utils.StreamUtils._
+import cn.graiph.blob.Blob
+import cn.graiph.blob.util.StreamUtils._
 import org.apache.commons.io.IOUtils
-import org.neo4j.blob.Blob
-import org.neo4j.blob.utils.Logging
 import scala.util.parsing.json.JSON
 
 /**

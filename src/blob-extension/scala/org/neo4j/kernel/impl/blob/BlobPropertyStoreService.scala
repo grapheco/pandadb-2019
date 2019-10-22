@@ -21,7 +21,8 @@ package org.neo4j.kernel.impl.blob
 
 import java.io.File
 
-import org.neo4j.blob.utils.{Configuration, ContextMap, Logging}
+import cn.graiph.blob.util.{Configuration, ContextMap}
+import cn.graiph.util.Logging
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.Neo4jConfigUtils._

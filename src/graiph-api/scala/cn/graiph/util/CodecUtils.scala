@@ -2,10 +2,10 @@ package cn.graiph.util
 
 import java.io.InputStream
 
+import cn.graiph.blob.InputStreamSource
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.codec.digest.DigestUtils
-import org.neo4j.blob.InputStreamSource
-import org.neo4j.blob.utils.StreamUtils
+import cn.graiph.blob.util.StreamUtils
 
 /**
   * Created by bluejoe on 2018/8/9.

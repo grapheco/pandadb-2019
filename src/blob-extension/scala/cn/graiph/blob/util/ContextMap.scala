@@ -1,4 +1,4 @@
-package org.neo4j.blob.utils
+package cn.graiph.blob.util
 
 import scala.collection.mutable.{Map => MMap}
 /*

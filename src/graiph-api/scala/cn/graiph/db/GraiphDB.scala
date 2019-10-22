@@ -3,12 +3,11 @@ package cn.graiph.db
 import java.io.File
 
 import cn.graiph.driver.CypherService
+import cn.graiph.util.Logging
 import cn.graiph.{CustomPropertyProvider, CypherPluginRegistry, ValueMatcher}
-import org.neo4j.blob.utils.Logging
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.kernel.impl.blob.{BlobPropertyStoreServiceContext, BlobPropertyStoreServicePlugin, BlobPropertyStoreServicePlugins}
-import org.neo4j.kernel.internal.Version
 import org.springframework.context.support.FileSystemXmlApplicationContext
 
 /**

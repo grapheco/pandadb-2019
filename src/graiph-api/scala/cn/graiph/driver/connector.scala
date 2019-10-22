@@ -1,12 +1,11 @@
 package cn.graiph.driver
 
-import org.neo4j.blob.utils.Logging
 import org.neo4j.driver._
 
 import scala.collection.JavaConversions
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
-
+import cn.graiph.util.Logging
 
 class BoltService(url: String, user: String = "", pass: String = "")
   extends Logging with CypherService {

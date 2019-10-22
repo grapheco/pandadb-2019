@@ -33,9 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 
-import org.neo4j.blob.Blob;
-import org.neo4j.blob.BlobWithId;
-import org.neo4j.blob.utils.BlobIO;
+import cn.graiph.blob.Blob;
+import cn.graiph.blob.BlobWithId;
+import cn.graiph.blob.util.BlobIO;
 import org.neo4j.graphdb.Resource;
 import org.neo4j.io.ByteUnit;
 import org.neo4j.kernel.impl.util.collection.Memory;

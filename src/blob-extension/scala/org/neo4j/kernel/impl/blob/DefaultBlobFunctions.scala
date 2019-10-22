@@ -21,8 +21,8 @@ package org.neo4j.kernel.impl.blob
 
 import java.io.{File, FileInputStream}
 
+import cn.graiph.blob.{MimeType, Blob}
 import org.apache.commons.io.IOUtils
-import org.neo4j.blob.{MimeType, Blob}
 import org.neo4j.procedure.{Description, Name, UserFunction}
 
 /**

@@ -21,10 +21,10 @@
 import java.io.{File, FileInputStream}
 import java.net.URL
 
+import cn.graiph.blob.Blob
 import cn.graiph.driver.RemoteGraiph
 import cn.graiph.server.GraiphServer
 import org.apache.commons.io.IOUtils
-import org.neo4j.blob.{Blob}
 import org.neo4j.driver._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 

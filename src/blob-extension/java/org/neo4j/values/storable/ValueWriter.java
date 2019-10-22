@@ -19,7 +19,7 @@
  */
 package org.neo4j.values.storable;
 
-import org.neo4j.blob.Blob;
+import cn.graiph.blob.Blob;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;

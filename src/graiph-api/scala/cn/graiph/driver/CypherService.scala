@@ -1,6 +1,6 @@
 package cn.graiph.driver
 
-import org.neo4j.blob.utils.Logging
+import cn.graiph.util.Logging
 import org.neo4j.driver.{Record, Session, StatementResult}
 
 import scala.reflect.ClassTag

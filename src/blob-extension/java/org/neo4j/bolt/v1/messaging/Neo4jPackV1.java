@@ -28,7 +28,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.neo4j.blob.Blob;
+import cn.graiph.blob.Blob;
 import org.neo4j.bolt.messaging.BoltIOException;
 import org.neo4j.bolt.messaging.Neo4jPack;
 import org.neo4j.bolt.messaging.StructType;

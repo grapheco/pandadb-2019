@@ -18,9 +18,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.neo4j.blob.utils
+package cn.graiph.blob.util
 
 import java.io.File
+
+import cn.graiph.util.Logging
 
 /**
   * Created by bluejoe on 2019/7/23.

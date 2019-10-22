@@ -19,7 +19,7 @@
  */
 package org.neo4j.bolt.v5.request.messaging;
 
-import org.neo4j.blob.Blob;
+import cn.graiph.blob.Blob;
 import org.neo4j.bolt.blob.BoltServerBlobIO;
 import org.neo4j.bolt.v1.packstream.PackInput;
 import org.neo4j.bolt.v1.packstream.PackOutput;

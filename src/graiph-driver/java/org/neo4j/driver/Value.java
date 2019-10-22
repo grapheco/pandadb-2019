@@ -44,7 +44,7 @@ import org.neo4j.driver.types.TypeSystem;
 import org.neo4j.driver.util.Experimental;
 import java.util.function.Function;
 import org.neo4j.driver.util.Immutable;
-import org.neo4j.blob.Blob;
+import cn.graiph.blob.Blob;
 
 /**
  * A unit of data that adheres to the Neo4j type system.

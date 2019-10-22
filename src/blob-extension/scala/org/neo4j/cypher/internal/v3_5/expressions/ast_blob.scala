@@ -19,8 +19,8 @@ package org.neo4j.cypher.internal.v3_5.expressions
 
 import java.io.File
 
+import cn.graiph.blob.Blob
 import org.apache.commons.codec.binary.Base64
-import org.neo4j.blob.Blob
 import org.neo4j.cypher.internal.v3_5.util.InputPosition
 import org.neo4j.cypher.internal.v3_5.{expressions => ast}
 
