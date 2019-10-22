@@ -10,18 +10,19 @@
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/blob-extension/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/blob/scala" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/externel-properties/scala" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/externel-properties/java" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/blob-extension/java" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/blob-extension/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/blob/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/blob/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/scala" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/graiph-api/scala" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/graiph-api/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/graiph-database/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/graiph-database/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/graiph-driver/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/graiph-driver/scala" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/src/graiph-api/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/graiph-database/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/aipm/scala" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
