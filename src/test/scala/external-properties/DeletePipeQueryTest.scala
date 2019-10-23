@@ -8,7 +8,7 @@ import org.neo4j.io.fs.FileUtils
 import org.neo4j.kernel.impl.{CustomPropertyNodeStoreHolder, InMemoryPropertyNodeStore, LoggingPropertiesStore, Settings}
 
 
-trait CreateDeleteQueryTestBase {
+trait DeletePipeQueryTestBase {
   Settings._hookEnabled = false;
 
   @Before
@@ -16,27 +16,25 @@ trait CreateDeleteQueryTestBase {
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
     val db = new GraphDatabaseFactory().newEmbeddedDatabase(new File("./output/testdb"))
+
     val tx = db.beginTx();
     //create a node
     val node1 = db.createNode();
 
-    node1.setProperty("name", "lzx1");
-    node1.setProperty("age", 20);
+    node1.setProperty("name", "test01");
+    node1.setProperty("age", 10);
     node1.addLabel(new Label {
-      override def name(): String = "Person"
+      override def name(): String = "man"
     })
-
 
     val node2 = db.createNode();
-    node2.setProperty("name", "lzx2");
-    //with a blob property
-    node2.setProperty("age", 10);
+    node2.setProperty("name", "test02");
+    node2.setProperty("age", 40);
     node2.addLabel(new Label {
-      override def name(): String = "kid"
+      override def name(): String = "man"
     })
-
-    tx.success();
-    tx.close();
+    tx.success()
+    tx.close()
     db.shutdown();
   }
 
@@ -49,41 +47,25 @@ trait CreateDeleteQueryTestBase {
       val row = rs.next();
       println(row);
     }
-
     tx.success();
+    tx.close()
     db.shutdown();
   }
 }
 
-class CreateDeleteNodeQueryTest extends CreateDeleteQueryTestBase {
+class DeletePipeQueryTest extends DeletePipeQueryTestBase {
   Settings._hookEnabled = true;
   val tmpns = new InMemoryPropertyNodeStore()
   CustomPropertyNodeStoreHolder.hold(new LoggingPropertiesStore(tmpns));
 
-  @Test
-  def test1(): Unit = {
-    testQuery("CREATE (n:Person {name:'test01', age:10}) RETURN n.name");
-    testQuery("CREATE (n:Person {name:'test02', age:20}) RETURN n.name");
-    testQuery("MATCH (n)  RETURN n.name");
-  }
 
   @Test
-  def test2(): Unit = {
-    testQuery("MATCH (n)  RETURN n.name");
+  def test1(): Unit = {
 
     Assert.assertEquals(2, tmpns.nodes.size)
     testQuery("MATCH (n) WHERE 18>n.age  DELETE n RETURN n.name");
     Assert.assertEquals(1, tmpns.nodes.size)
 
-    testQuery("MATCH (n)  RETURN n.name");
-  }
-
-  // test remove labels
-  @Test
-  def test3(): Unit={
-    testQuery("MATCH (n:Person)  RETURN n.name, labels(n)");
-    testQuery("MATCH (n:Person) REMOVE n:Person RETURN n.name,labels(n)");
-    testQuery("MATCH (n:Person)  RETURN  n.name, labels(n)");
   }
 
 }

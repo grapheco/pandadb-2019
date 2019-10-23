@@ -57,7 +57,6 @@ case class DeletePipe(src: Pipe, expression: Expression, forced: Boolean)
   }
 
   private def deleteNode(n: NodeValue, state: QueryState) = if (!state.query.nodeOps.isDeletedInThisTx(n.id())) {
-    // todo: update
     if (forced) CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
     else CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
   }
