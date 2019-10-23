@@ -17,6 +17,8 @@ trait CustomPropertyNodeStore {
   def init();
 
   def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode];
+
+  def getNodesByLabel(label: String): Iterable[CustomPropertyNode];
 }
 
 case class CustomPropertyNodeModification(

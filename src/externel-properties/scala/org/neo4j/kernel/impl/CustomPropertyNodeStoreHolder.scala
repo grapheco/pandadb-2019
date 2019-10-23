@@ -48,4 +48,10 @@ class LoggingPropertiesStore(source: CustomPropertyNodeStore) extends CustomProp
     logger.debug(s"docsToUpdated: $docsToUpdated")
     source.updateNodes(docsToUpdated)
   }
+
+  override def getNodesByLabel(label: String): Iterable[CustomPropertyNode] = {
+    val res = source.getNodesByLabel(label)
+    logger.debug(s"getNodesByLabel: result=> $res")
+    res
+  }
 }

@@ -56,4 +56,14 @@ class InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
 
   }
+
+  override def getNodesByLabel(label: String): Iterable[CustomPropertyNode] = {
+    val res = mutable.ArrayBuffer[CustomPropertyNode]()
+    nodes.map(n=>{
+      if(n._2.labels.toArray.contains(label) )
+        res.append(n._2)
+    })
+    res
+  }
+
 }

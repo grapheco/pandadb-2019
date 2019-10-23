@@ -268,4 +268,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
     addNodes(docsToAdded)
 
   }
+
+  override def getNodesByLabel(label: String): Iterable[CustomPropertyNode] = ???
+
 }
