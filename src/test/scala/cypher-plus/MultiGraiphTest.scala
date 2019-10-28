@@ -30,7 +30,7 @@ import org.scalatest.{BeforeAndAfter, FunSuite}
   * Created by bluejoe on 2019/4/11.
   */
 class MultiGraiphTest extends FunSuite with BeforeAndAfter with TestBase {
-  Predef
+
   before {
     setupNewDatabase();
   }
