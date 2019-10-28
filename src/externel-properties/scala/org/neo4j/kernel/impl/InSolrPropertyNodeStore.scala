@@ -29,7 +29,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
     _solrClient.get.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
       x.fields.foreach(y =>  doc.addField(y._1, y._2.asObject));
-     // x.fields.foreach(y => println(y._2+":"+y._2.asObject().getClass))
+     
       doc.addField("id",x.id);
       doc.addField("labels",x.labels.mkString(","));
 
@@ -217,7 +217,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
         val tik = "id,labels,_version_"
         val fieldsName = x.getFieldNames
         val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(x.get(y).toString))
-        nodeArray += new CustomPropertyNode(id.toString.toLong, fields.toMap, labels)
+        nodeArray +=  CustomPropertyNode(id.toString.toLong, fields.toMap, labels)
       }
 
     )
@@ -256,19 +256,21 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
     node.fieldsUpdated.foreach(fd => fieldMap += fd)
 
 
-    new CustomPropertyNode(node.id, fieldMap, labels)
+    CustomPropertyNode(node.id, fieldMap, labels)
 
 
   }
   override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
 
-    var docsToAdded = for(doc <- docsToUpdated) yield (modif2node(doc))
+    val docsToAdded = for(doc <- docsToUpdated) yield (modif2node(doc))
 
 
     addNodes(docsToAdded)
 
   }
 
-  override def getNodesByLabel(label: String): Iterable[CustomPropertyNode] = ???
-
+  override def getNodesByLabel(label: String): Iterable[CustomPropertyNode] = {
+    val propName = "labels"
+    filterNodes(NFContainsWith(propName,label))
+  }
 }
