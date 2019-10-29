@@ -51,6 +51,8 @@ case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends P
               map(_.toNeo4jNodeValue()).iterator
           }
 
+          case _ => state.query.nodeOps.all
+
         }
 
       case _ => state.query.nodeOps.all
