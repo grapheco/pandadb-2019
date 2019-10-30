@@ -21,11 +21,10 @@ package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
-import org.neo4j.driver.internal.value.NodeValue
 
 import scala.collection.mutable
 import org.neo4j.kernel.impl.CustomPropertyNodeStoreHolder
-import org.neo4j.values.virtual.{NodeValue => VirtualNodeValue}
+import org.neo4j.values.virtual.NodeValue
 
 case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
                               (val id: Id = Id.INVALID_ID) extends Pipe  {
@@ -48,7 +47,7 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
       case Some(labelId) =>
         //val nodes = state.query.getNodesByLabel(labelId.id)
         val customPropertyNodes = CustomPropertyNodeStoreHolder.get.getNodesByLabel(label.name)
-        val nodesArray = mutable.ArrayBuffer[VirtualNodeValue]()
+        val nodesArray = mutable.ArrayBuffer[NodeValue]()
         customPropertyNodes.foreach(v=>{
           nodesArray.append(v.toNeo4jNodeValue())
         })
