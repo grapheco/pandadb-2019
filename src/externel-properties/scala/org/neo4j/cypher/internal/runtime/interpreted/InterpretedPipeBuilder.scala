@@ -130,6 +130,7 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
           source match {
             case x: AllNodesScanPipe =>
               x.predicatePushDown(predicateExpression);
+            case _ => logger.debug("push down predicate: Pipe no match")
           }
         }
 
