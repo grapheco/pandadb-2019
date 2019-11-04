@@ -33,7 +33,7 @@ class RemoteGraiphTest extends FunSuite with BeforeAndAfter with TestBase {
   var server: GraiphServer = _;
 
   before {
-    setupNewDatabase(new File("./testdata/testdb/data/databases/graph.db"));
+    setupNewDatabase(new File("./output/testdb/data/databases/graph.db"));
     server = GraiphServer.startServer(testDbDir, new File(testConfPath));
   }
 
