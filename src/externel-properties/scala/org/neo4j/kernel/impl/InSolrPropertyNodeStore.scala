@@ -29,7 +29,7 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
     _solrClient.get.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
       x.fields.foreach(y =>  doc.addField(y._1, y._2.asObject));
-     
+
       doc.addField("id",x.id);
       doc.addField("labels",x.labels.mkString(","));
 
@@ -236,15 +236,13 @@ class InSolrPropertyNodeStore extends CustomPropertyNodeStore {
     val doc = getCustomPropertyNodeByid(node.id)
 
 
-    val labelsq = doc.get("labels").toString
-
-
-
-    val labelsTemp = labelsq.substring(labelsq.indexOf('[')+1,labelsq.indexOf(']'))
-
-    var labels = labelsTemp.split(",").toBuffer
-
+    val labels = if (doc.get("labels") == null) ArrayBuffer[String]() else {
+      val labelsq = doc.get("labels").toString
+      val labelsTemp = labelsq.substring(labelsq.indexOf('[') + 1, labelsq.indexOf(']'))
+      labelsTemp.split(",").toBuffer
+    }
     node.labelsAdded.foreach(label => if (!labels.contains(label)) labels +=label)
+
     node.labelsRemoved.foreach(label => labels -=label)
 
     val tik = "id,labels,_version_"
