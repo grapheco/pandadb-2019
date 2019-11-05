@@ -43,6 +43,14 @@ class DispatchedStatementProcessor(source: StatementProcessor, selector: GNodeSe
     Bookmark.fromParamsOrNull(null);
   }
 
+  class ForwardedBoltResult extends BoltResult{
+    override def fieldNames(): Array[String] = ???
+
+    override def accept(visitor: Visitor): Unit = ???
+
+    override def close(): Unit = ???
+  }
+
   override def hasOpenStatement: Boolean = source.hasOpenStatement
 
   override def rollbackTransaction(): Unit = source.rollbackTransaction()
@@ -56,12 +64,4 @@ class DispatchedStatementProcessor(source: StatementProcessor, selector: GNodeSe
   override def beginTransaction(bookmark: Bookmark): Unit = source.beginTransaction(bookmark)
 
   override def beginTransaction(bookmark: Bookmark, txTimeout: Duration, txMetadata: util.Map[String, AnyRef]): Unit = source.beginTransaction(bookmark, txTimeout, txMetadata)
-}
-
-class ForwardedBoltResult extends BoltResult{
-  override def fieldNames(): Array[String] = ???
-
-  override def accept(visitor: Visitor): Unit = ???
-
-  override def close(): Unit = ???
 }
