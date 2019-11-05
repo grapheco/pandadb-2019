@@ -33,8 +33,10 @@ class PooledGNodeSelector extends GNodeSelector with GNodeListListener {
     }
   }
 
+
   def createDriver(address: NodeAddress): Driver = {
-    val url = "";
+    //get url(ip:port) from the address
+    val url = address.getUrl();
     val driver = GraphDatabase.driver(url, AuthTokens.basic("", ""));
     driver;
   }
