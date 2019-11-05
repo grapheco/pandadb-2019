@@ -3,6 +3,8 @@ package cn.graiph.cnode
 import java.io.FileInputStream
 import java.util.Properties
 
+import org.neo4j.driver.Driver
+
 
 /**
   * Created by bluejoe on 2019/11/4.
@@ -59,9 +61,9 @@ trait GNodeList {
 }
 
 trait GNodeSelector {
-  def chooseReadNode(): NodeAddress;
+  def chooseReadNode(): Driver;
 
-  def chooseWriteNode(): NodeAddress;
+  def chooseWriteNode(): Driver;
 }
 
 

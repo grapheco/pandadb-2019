@@ -61,19 +61,3 @@ class ZKGNodeList extends GNodeList {
   }
 
 }
-
-//TO DO: implement fully functioned selector
-class ZKGNodeSelector extends GNodeSelector{
-  val zkGNodeList = new ZKGNodeList;
-
-  override def chooseReadNode(): NodeAddress = {
-    val readNodeList = zkGNodeList.getReadNodes()
-    readNodeList(0)
-  }
-
-  override def chooseWriteNode(): NodeAddress = {
-    val writeNodeList = zkGNodeList.getWriteNodes()
-    writeNodeList(1)
-  }
-
-}
