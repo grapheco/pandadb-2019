@@ -46,7 +46,7 @@ public class BoltAuthenticationHelper {
             StatementProcessor statementProcessor = new TransactionStateMachine(boltSpi.transactionSpi(), authResult, context.clock());
             //NOTE: dispatcher node or gnode?
             if (IS_DISPATCHER_NODE) {
-                statementProcessor = new DispatchedStatementProcessor(statementProcessor, SELECTOR);
+                statementProcessor = new DispatchedStatementProcessor(statementProcessor, boltSpi.transactionSpi(), SELECTOR);
             }
 
             context.connectionState().setStatementProcessor(statementProcessor);
