@@ -6,16 +6,6 @@ import cn.graiph.cnode.{NodeAddress, ZKServiceRegistry}
 import org.junit.{Assert, Test}
 class GNodeListTest {
 
-
-
-//  @Test
-//  def testNodeAddress(): Unit ={
-//    val ip = "10.0.88.99"
-//    val port = 1234
-//    val gnode = NodeAddress(ip,port)
-//    Assert.assertEquals("10.0.88.99:1234",gnode.getNodeAddress())
-//  }
-
   @Test
   def testProperties(): Unit = {
     val path = Thread.currentThread().getContextClassLoader.getResource("gNode.properties").getPath;
@@ -41,13 +31,12 @@ class GNodeListTest {
 
   @Test
   def testGetReadList(): Unit ={
-    registerAsNode()
+    registerAsReadNode()
   }
 
-  def registerAsNode(): Unit ={
+  def registerAsReadNode(): Unit ={
     val register = new ZKServiceRegistry()
     register.registry("read","10.0.88.99:1111")
   }
-
 
 }
