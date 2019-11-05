@@ -28,9 +28,8 @@ class ZKGNodeList extends GNodeList {
   val readNodePath = ZKConstants.registryPath + "/" + "read"
   val writeNodePath = ZKConstants.registryPath + "/" + "write"
 
-  val listenerList: List[GNodeListListener];
+  var listenerList: List[GNodeListListener] = List[GNodeListListener]();
 
-  //TO DO: How to implement?
   def updataServers() {
 
     val updatedReadNodeSet = getReadNodes()
@@ -71,8 +70,6 @@ class ZKGNodeList extends GNodeList {
     // update the cached Nodes
     cachedReadNodeSet = updatedReadNodeSet
     cachedWriteNodeSet = updatedWriteNodeSet
-
-
   }
 
 
@@ -88,7 +85,7 @@ class ZKGNodeList extends GNodeList {
 
 
   override def addListener(listener: GNodeListListener): Unit = {
-    listenerList :+ listener
+    listenerList = listener :: listenerList
   }
 
   def getReadNodes(): Set[NodeAddress] = {
