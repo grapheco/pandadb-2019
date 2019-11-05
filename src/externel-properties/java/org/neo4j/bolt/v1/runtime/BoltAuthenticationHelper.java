@@ -19,8 +19,8 @@
  */
 package org.neo4j.bolt.v1.runtime;
 
-import java.util.Map;
-
+import cn.graiph.cnode.GNodeSelector;
+import cn.graiph.cnode.PooledGNodeSelector;
 import org.neo4j.bolt.runtime.BoltConnectionFatality;
 import org.neo4j.bolt.runtime.BoltStateMachineSPI;
 import org.neo4j.bolt.runtime.StateMachineContext;
@@ -28,40 +28,38 @@ import org.neo4j.bolt.runtime.StatementProcessor;
 import org.neo4j.bolt.security.auth.AuthenticationResult;
 import org.neo4j.values.storable.Values;
 
-public class BoltAuthenticationHelper
-{
+import java.util.Map;
+
+public class BoltAuthenticationHelper {
     public static boolean IS_DISPATCHER_NODE = true;
 
-    public static boolean processAuthentication( String userAgent, Map<String,Object> authToken, StateMachineContext context ) throws BoltConnectionFatality
-    {
-        try
-        {
+    public static GNodeSelector SELECTOR = new PooledGNodeSelector();
+
+    public static boolean processAuthentication(String userAgent, Map<String, Object> authToken, StateMachineContext context) throws BoltConnectionFatality {
+        try {
             BoltStateMachineSPI boltSpi = context.boltSpi();
 
-            AuthenticationResult authResult = boltSpi.authenticate( authToken );
+            AuthenticationResult authResult = boltSpi.authenticate(authToken);
             String username = authResult.getLoginContext().subject().username();
-            context.authenticatedAsUser( username, userAgent );
+            context.authenticatedAsUser(username, userAgent);
 
-            StatementProcessor statementProcessor = new TransactionStateMachine( boltSpi.transactionSpi(), authResult, context.clock() );
+            StatementProcessor statementProcessor = new TransactionStateMachine(boltSpi.transactionSpi(), authResult, context.clock());
             //NOTE: dispatcher node or gnode?
-            if(IS_DISPATCHER_NODE) {
-                statementProcessor = new DispatchedStatementProcessor(statementProcessor, null);
+            if (IS_DISPATCHER_NODE) {
+                statementProcessor = new DispatchedStatementProcessor(statementProcessor, SELECTOR);
             }
 
-            context.connectionState().setStatementProcessor( statementProcessor );
+            context.connectionState().setStatementProcessor(statementProcessor);
 
-            if ( authResult.credentialsExpired() )
-            {
-                context.connectionState().onMetadata( "credentials_expired", Values.TRUE );
+            if (authResult.credentialsExpired()) {
+                context.connectionState().onMetadata("credentials_expired", Values.TRUE);
             }
-            context.connectionState().onMetadata( "server", Values.stringValue( boltSpi.version() ) );
-            boltSpi.udcRegisterClient( userAgent );
+            context.connectionState().onMetadata("server", Values.stringValue(boltSpi.version()));
+            boltSpi.udcRegisterClient(userAgent);
 
             return true;
-        }
-        catch ( Throwable t )
-        {
-            context.handleFailure( t, true );
+        } catch (Throwable t) {
+            context.handleFailure(t, true);
             return false;
         }
     }
