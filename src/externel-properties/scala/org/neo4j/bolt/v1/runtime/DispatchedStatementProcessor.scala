@@ -28,9 +28,7 @@ class DispatchedStatementProcessor(source: StatementProcessor, selector: GNodeSe
 
   override def run(statement: String, params: MapValue, bookmark: Bookmark, txTimeout: Duration, txMetaData: util.Map[String, AnyRef]): StatementMetadata = {
     //pickup a runnable node
-    val node = selector.chooseReadNode();
-    val url = "";
-    val driver = GraphDatabase.driver(url, AuthTokens.basic("", ""));
+    val driver = selector.chooseReadNode();
     val s = driver.session();
     _currentStatementResult = s.run(statement, params.asInstanceOf[Value]);
     //extract metadata from _currentStatementResult.
