@@ -5,6 +5,7 @@ import java.time.{Clock, Duration}
 import java.util
 
 import cn.graiph.cnode.GNodeSelector
+import org.neo4j.bolt.runtime.BoltResult.Visitor
 import org.neo4j.bolt.runtime.{BoltResult, StatementMetadata, StatementProcessor}
 import org.neo4j.bolt.v1.runtime.bookmarking.Bookmark
 import org.neo4j.cypher.result.QueryResult
@@ -36,7 +37,8 @@ class DispatchedStatementProcessor(source: StatementProcessor, selector: GNodeSe
   }
 
   override def streamResult(resultConsumer: ThrowingConsumer[BoltResult, Exception]): Bookmark = {
-    resultConsumer.accept(new CypherAdapterStream(new QueryResultAdapter(_currentStatementResult), Clock.systemUTC()));
+    //resultConsumer.accept(new CypherAdapterStream(new QueryResultAdapter(_currentStatementResult), Clock.systemUTC()));
+    resultConsumer.accept(new ForwardedBoltResult());
     //return bookmark
     Bookmark.fromParamsOrNull(null);
   }
@@ -56,19 +58,10 @@ class DispatchedStatementProcessor(source: StatementProcessor, selector: GNodeSe
   override def beginTransaction(bookmark: Bookmark, txTimeout: Duration, txMetadata: util.Map[String, AnyRef]): Unit = source.beginTransaction(bookmark, txTimeout, txMetadata)
 }
 
-
-class QueryResultAdapter(result: StatementResult) extends QueryResult {
-  override def getNotifications: Iterable[Notification] = ???
-
-  override def executionType(): QueryExecutionType = ???
-
-  override def queryStatistics(): QueryStatistics = ???
-
+class ForwardedBoltResult extends BoltResult{
   override def fieldNames(): Array[String] = ???
 
-  override def accept[E <: Exception](queryResultVisitor: QueryResultVisitor[E]): Unit = ???
-
-  override def executionPlanDescription(): ExecutionPlanDescription = ???
+  override def accept(visitor: Visitor): Unit = ???
 
   override def close(): Unit = ???
 }
