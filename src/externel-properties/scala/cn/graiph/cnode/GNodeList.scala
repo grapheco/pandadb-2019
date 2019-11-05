@@ -12,8 +12,8 @@ case class NodeAddress(host: String, port: Int) {
 }
 
 object NodeAddress {
-  def fromString(url: String, separtor: String = ":" ): NodeAddress = {
-    val pair = url.split(separtor)
+  def fromString(url: String, seperator: String = ":"): NodeAddress = {
+    val pair = url.split(seperator)
     NodeAddress(pair(0), pair(1).toInt)
   }
 }
@@ -30,10 +30,32 @@ object ZKConstants {
   val registryPath = prop.getProperty("registryPath")
 }
 
-trait GNodeList {
-  def getReadNodes(): Array[NodeAddress];
+trait GNodeListListener {
+  def onEvent(event: GNodeListEvent);
+}
 
-  def getWriteNodes(): Array[NodeAddress];
+trait GNodeListEvent {
+
+}
+
+case class ReadGNodeConnected(address: NodeAddress) extends GNodeListEvent {
+
+}
+
+case class ReadGNodeDisconnected(address: NodeAddress) extends GNodeListEvent {
+
+}
+
+case class WriteGNodeConnected(address: NodeAddress) extends GNodeListEvent {
+
+}
+
+case class WriteGNodeDisconnected(address: NodeAddress) extends GNodeListEvent {
+
+}
+
+trait GNodeList {
+  def addListener(listener: GNodeListListener);
 }
 
 trait GNodeSelector {
