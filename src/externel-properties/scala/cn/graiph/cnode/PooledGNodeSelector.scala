@@ -24,12 +24,19 @@ class PooledGNodeSelector extends GNodeSelector with GNodeListListener {
     event match {
       case ReadGNodeConnected(address) =>
         cachedReadDrivers += address -> createDriver(address);
+
       case WriteGNodeConnected(address) =>
         cachedWriteDrivers += address -> createDriver(address);
-      case ReadGNodeDisconnected(address) =>
-        cachedReadDrivers -= address;
-      case WriteGNodeDisconnected(address) =>
-        cachedWriteDrivers -= address;
+
+      case ReadGNodeDisconnected(address) => {
+        cachedReadDrivers(address).close()
+        cachedReadDrivers -= address
+      }
+
+      case WriteGNodeDisconnected(address) => {
+        cachedWriteDrivers(address).close()
+        cachedWriteDrivers -= address
+      }
     }
   }
 
