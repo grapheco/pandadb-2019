@@ -10,7 +10,9 @@ import org.neo4j.driver.Driver
   * Created by bluejoe on 2019/11/4.
   */
 case class NodeAddress(host: String, port: Int) {
-
+  def getUrl(): String ={
+    return host + s":" + port.toString
+  }
 }
 
 object NodeAddress {
@@ -32,10 +34,12 @@ object ZKConstants {
   val registryPath = prop.getProperty("registryPath")
 }
 
+// implemented
 trait GNodeListListener {
   def onEvent(event: GNodeListEvent);
 }
 
+// implemented
 trait GNodeListEvent {
 
 }
