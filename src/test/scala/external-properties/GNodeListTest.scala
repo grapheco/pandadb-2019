@@ -39,4 +39,5 @@ class GNodeListTest {
     register.registry("read","10.0.88.99:1111")
   }
 
+
 }
