@@ -24,6 +24,7 @@
 ### Rule 6: Write test cases
 > * write JUnit test cases, instead of write a Java program
 > * separate test source code with main source code
+> * Use `Assert`, don't judge manually. 
 
 ### Rule 7: NO hard coding
 > * NO magic numbers
