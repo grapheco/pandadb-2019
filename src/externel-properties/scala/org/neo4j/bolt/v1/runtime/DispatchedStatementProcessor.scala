@@ -1,7 +1,6 @@
 package org.neo4j.bolt.v1.runtime
 
-import java.lang.Iterable
-import java.time.{Clock, Duration}
+import java.time.Duration
 import java.util
 
 import cn.graiph.cnode.GNodeSelector
@@ -9,11 +8,12 @@ import org.neo4j.bolt.runtime.BoltResult.Visitor
 import org.neo4j.bolt.runtime.{BoltResult, StatementMetadata, StatementProcessor}
 import org.neo4j.bolt.v1.runtime.bookmarking.Bookmark
 import org.neo4j.cypher.result.QueryResult
-import org.neo4j.cypher.result.QueryResult.QueryResultVisitor
 import org.neo4j.driver._
 import org.neo4j.function.ThrowingConsumer
-import org.neo4j.graphdb.{ExecutionPlanDescription, Notification, QueryExecutionType, QueryStatistics}
+import org.neo4j.values.AnyValue
 import org.neo4j.values.virtual.MapValue
+
+import scala.collection.JavaConversions
 
 /**
   * Created by bluejoe on 2019/11/4.
@@ -27,28 +27,50 @@ class DispatchedStatementProcessor(source: StatementProcessor, selector: GNodeSe
 
   override def run(statement: String, params: MapValue): StatementMetadata = source.run(statement, params)
 
+  var _currentTransaction: Transaction = _
+
   override def run(statement: String, params: MapValue, bookmark: Bookmark, txTimeout: Duration, txMetaData: util.Map[String, AnyRef]): StatementMetadata = {
     //pickup a runnable node
     val driver = selector.chooseReadNode();
-    val s = driver.session();
-    _currentStatementResult = s.run(statement, params.asInstanceOf[Value]);
+    val session = driver.session();
+    _currentTransaction = session.beginTransaction();
+    _currentStatementResult = session.run(statement, params.asInstanceOf[Value]);
     //extract metadata from _currentStatementResult.
-    null
+    new MyStatementMetadata(_currentStatementResult)
   }
 
   override def streamResult(resultConsumer: ThrowingConsumer[BoltResult, Exception]): Bookmark = {
-    //resultConsumer.accept(new CypherAdapterStream(new QueryResultAdapter(_currentStatementResult), Clock.systemUTC()));
-    resultConsumer.accept(new ForwardedBoltResult());
+    resultConsumer.accept(new MyBoltResult(_currentStatementResult));
     //return bookmark
-    Bookmark.fromParamsOrNull(null);
+    new Bookmark(-1);
   }
 
-  class ForwardedBoltResult extends BoltResult{
-    override def fieldNames(): Array[String] = ???
+  class MyBoltResult(result: StatementResult) extends BoltResult {
+    override def fieldNames(): Array[String] = JavaConversions.collectionAsScalaIterable(result.keys()).toArray
 
-    override def accept(visitor: Visitor): Unit = ???
+    override def accept(visitor: Visitor): Unit = {
+      //visitor.addMetadata();
+      val it = result.stream().iterator();
+      while (it.hasNext) {
+        val record = it.next();
+        visitor.visit(new MyRecord(record));
+      }
+    }
 
-    override def close(): Unit = ???
+    override def close(): Unit = _currentTransaction.close()
+  }
+
+  class MyRecord(record: Record) extends QueryResult.Record {
+    override def fields(): Array[AnyValue] = {
+      JavaConversions.collectionAsScalaIterable(record.values()).map {
+        value: Value =>
+          Values.value(value.asObject()).asInstanceOf[AnyValue]
+      }.toArray
+    }
+  }
+
+  class MyStatementMetadata(result: StatementResult) extends StatementMetadata {
+    override def fieldNames(): Array[String] = JavaConversions.collectionAsScalaIterable(result.keys()).toArray
   }
 
   override def hasOpenStatement: Boolean = source.hasOpenStatement
