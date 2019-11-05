@@ -5,7 +5,7 @@ import java.util
 
 import cn.graiph.cnode.GNodeSelector
 import org.neo4j.bolt.runtime.BoltResult.Visitor
-import org.neo4j.bolt.runtime.{BoltResult, StatementMetadata, StatementProcessor}
+import org.neo4j.bolt.runtime.{BoltResult, StatementMetadata, StatementProcessor, TransactionStateMachineSPI}
 import org.neo4j.bolt.v1.runtime.bookmarking.Bookmark
 import org.neo4j.cypher.result.QueryResult
 import org.neo4j.driver._
@@ -18,7 +18,7 @@ import scala.collection.JavaConversions
 /**
   * Created by bluejoe on 2019/11/4.
   */
-class DispatchedStatementProcessor(source: StatementProcessor, selector: GNodeSelector) extends StatementProcessor {
+class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionStateMachineSPI, selector: GNodeSelector) extends StatementProcessor {
   var _currentStatementResult: StatementResult = _;
 
   override def markCurrentTransactionForTermination(): Unit = source.markCurrentTransactionForTermination()
@@ -42,7 +42,7 @@ class DispatchedStatementProcessor(source: StatementProcessor, selector: GNodeSe
   override def streamResult(resultConsumer: ThrowingConsumer[BoltResult, Exception]): Bookmark = {
     resultConsumer.accept(new MyBoltResult(_currentStatementResult));
     //return bookmark
-    new Bookmark(-1);
+    new Bookmark(spi.newestEncounteredTxId());
   }
 
   class MyBoltResult(result: StatementResult) extends BoltResult {
