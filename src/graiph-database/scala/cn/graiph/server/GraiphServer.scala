@@ -15,7 +15,7 @@ import scala.collection.JavaConversions
   */
 object GraiphServer extends Logging with Touchable {
   val logo = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("logo.txt"), "utf-8");
-  AbstractNeoServer.NEO4J_IS_STARTING_MESSAGE = "======== Graiph (based on Neo4j-3.5.6) ======== "+"\r\n"+logo;
+  AbstractNeoServer.NEO4J_IS_STARTING_MESSAGE = "======== Graiph (based on Neo4j-3.5.6) ======== " + "\r\n" + logo;
   GraiphDB.touch;
 
   def startServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map()): GraiphServer = {

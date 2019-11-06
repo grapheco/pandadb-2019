@@ -20,8 +20,8 @@
 
 package org.neo4j.kernel.impl
 
-import cn.graiph.util.{ContextMap, ConfigUtils, Configuration, ReflectUtils}
-import ReflectUtils._
+import cn.graiph.util.ReflectUtils._
+import cn.graiph.util.{ConfigUtils, Configuration, ContextMap, ReflectUtils}
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.factory.GraphDatabaseFacade
 import org.neo4j.kernel.impl.store.id.RenewableBatchIdSequence
@@ -40,27 +40,37 @@ object InstanceContext {
 
   def of(o: AnyRef, path: String): ContextMap = of(o._get(path));
 
+  def of(x: NeoStores): ContextMap = x._get("config").asInstanceOf[Config].getInstanceContext;
+
+  def of(x: Config): ContextMap = x.getInstanceContext;
+
+  def of(x: CommonAbstractStore[_, _]): ContextMap = x._get("configuration").asInstanceOf[Config].getInstanceContext;
+
+  def of(x: RecordAccess[PropertyRecord, PrimitiveRecord]): ContextMap = x._get("loader.val$store.configuration").asInstanceOf[Config].getInstanceContext;
+
+  def of(x: GraphDatabaseFacade): ContextMap = x._get("config").asInstanceOf[Config].getInstanceContext;
+
   def of(o: AnyRef): ContextMap = o match {
     case x: StandardDynamicRecordAllocator =>
       of(x._get("idGenerator"));
 
     case x: NeoStores =>
-      x._get("config").asInstanceOf[Config].getInstanceContext;
+      of(x);
 
     case x: Config =>
-      x.getInstanceContext;
+      of(x);
 
     case x: CommonAbstractStore[_, _] =>
-      x._get("configuration").asInstanceOf[Config].getInstanceContext;
+      of(x);
 
     case x: RecordAccess[PropertyRecord, PrimitiveRecord] =>
-      x._get("loader.val$store.configuration").asInstanceOf[Config].getInstanceContext;
+      of(x);
 
     case x: RenewableBatchIdSequence =>
       of(x._get("source"));
 
     case x: GraphDatabaseFacade =>
-      x._get("config").asInstanceOf[Config].getInstanceContext;
+      of(x);
 
     case _ =>
       throw new FaileToGetInstanceContextException(o);
