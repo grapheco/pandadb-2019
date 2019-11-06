@@ -23,8 +23,6 @@ object NodeAddress {
 }
 
 class ZKConstants(path: String) {
-  //val path = Thread.currentThread().getContextClassLoader.getResource("gNode.properties").getPath;
-  //val path = s"./testdata/gnode1.conf"
 
   val prop = new Properties()
   prop.load(new FileInputStream(path))

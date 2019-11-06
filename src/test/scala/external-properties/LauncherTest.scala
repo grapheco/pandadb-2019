@@ -12,7 +12,7 @@ object LauncherTest {
     //launchAsReadNode(1)
 
     // change the serialNum from 3 to 4 in different IDEA
-    launchAsWriteNode(3)
+    // launchAsWriteNode(3)
   }
 
   // for easy test only: valid serialNum value is 1,2,3,4
