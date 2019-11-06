@@ -24,24 +24,19 @@ class PooledGNodeSelector extends GNodeSelector with GNodeListListener {
     event match {
       case ReadGNodeConnected(address) =>
         cachedReadDrivers += address -> createDriver(address);
-
       case WriteGNodeConnected(address) =>
         cachedWriteDrivers += address -> createDriver(address);
-
-      case ReadGNodeDisconnected(address) => {
-        cachedReadDrivers(address).close()
-        cachedReadDrivers -= address
-      }
-
-      case WriteGNodeDisconnected(address) => {
-        cachedWriteDrivers(address).close()
-        cachedWriteDrivers -= address
-      }
+      case ReadGNodeDisconnected(address) =>
+        cachedReadDrivers -= address;
+      case WriteGNodeDisconnected(address) =>
+        cachedWriteDrivers -= address;
     }
   }
 
+
   def createDriver(address: NodeAddress): Driver = {
-    val url = s"bolt://${address.host}:${address.port}";
+    //get url(ip:port) from the address
+    val url = address.getUrl();
     val driver = GraphDatabase.driver(url, AuthTokens.basic("", ""));
     driver;
   }
