@@ -22,12 +22,13 @@ object NodeAddress {
   }
 }
 
+class ZKConstants(path: String) {
+  //val path = Thread.currentThread().getContextClassLoader.getResource("gNode.properties").getPath;
+  //val path = s"./testdata/gnode1.conf"
 
-object ZKConstants {
-  val path = Thread.currentThread().getContextClassLoader.getResource("gNode.properties").getPath;
   val prop = new Properties()
   prop.load(new FileInputStream(path))
-  val localServiceAddress = prop.getProperty("localhostServiceAdress")
+  val localServiceAddress = prop.getProperty("serviceAddress")
   val zkServerAddress = prop.getProperty("zkServerAddress")
   val sessionTimeout = prop.getProperty("sessionTimeout").toInt
   val connectionTimeout = prop.getProperty("connectionTimeout")

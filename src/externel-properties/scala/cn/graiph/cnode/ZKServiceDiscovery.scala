@@ -5,10 +5,11 @@ import org.apache.zookeeper.Watcher.Event.EventType
 import org.apache.zookeeper.{WatchedEvent, Watcher, ZooKeeper}
 import scala.collection.mutable.ArrayBuffer
 
-class ZKGNodeList extends GNodeList {
 
-  val zkServerAddress = ZKConstants.zkServerAddress
-  val zkClient = new ZooKeeper(zkServerAddress, ZKConstants.sessionTimeout, new Watcher(){
+class ZKGNodeList(zkConstants: ZKConstants) extends GNodeList {
+
+  val zkServerAddress = zkConstants.zkServerAddress
+  val zkClient = new ZooKeeper(zkServerAddress, zkConstants.sessionTimeout, new Watcher(){
     override def process(watchedEvent: WatchedEvent): Unit = {
       if(watchedEvent.getType == EventType.None)
         return
@@ -25,8 +26,8 @@ class ZKGNodeList extends GNodeList {
   var cachedReadNodeSet: Set[NodeAddress] = Set();
   var cachedWriteNodeSet: Set[NodeAddress] = Set();
 
-  val readNodePath = ZKConstants.registryPath + "/" + "read"
-  val writeNodePath = ZKConstants.registryPath + "/" + "write"
+  val readNodePath = zkConstants.registryPath + "/" + "read"
+  val writeNodePath = zkConstants.registryPath + "/" + "write"
 
   var listenerList: List[GNodeListListener] = List[GNodeListListener]();
 

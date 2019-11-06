@@ -6,12 +6,12 @@ import cn.graiph.server.GraiphServer
 
 trait Launcher {
 
-
 }
 
 
 class GNodeLauncher(dbPath: String, confPath:String) extends Launcher {
 
+  val zkConstants: ZKConstants = new ZKConstants(confPath)
   val serviceAddress = {
     val prop = new Properties()
     prop.load(new FileInputStream(confPath))
@@ -23,18 +23,21 @@ class GNodeLauncher(dbPath: String, confPath:String) extends Launcher {
   }
 
   def registerAsReadNode(): Unit = {
-    new ZKServiceRegistry().registry("read", serviceAddress)
+    new ZKServiceRegistry(zkConstants).registry("read")
   }
 
   def registerAsWriteNode(): Unit = {
-    new ZKServiceRegistry().registry("write", serviceAddress)
+    new ZKServiceRegistry(zkConstants).registry("write")
   }
 
 }
 
-class CoordinatorLauncher(dbPath: String, confPath: String){
+class CNodeLauncher(dbPath: String, confPath: String){
+
+  val zkConstants: ZKConstants = new ZKConstants(confPath)
 
   def startServer(dbPath: String, confPath: String): Unit ={
     GraiphServer.startServer(new File(dbPath), new File(confPath))
   }
+
 }
