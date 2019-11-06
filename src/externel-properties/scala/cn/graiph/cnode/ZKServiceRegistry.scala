@@ -4,22 +4,23 @@ import org.apache.zookeeper.{CreateMode, WatchedEvent, Watcher, ZooKeeper}
 import org.apache.zookeeper.ZooDefs.Ids
 
 trait ServiceRegistry {
-  def registry(serviceName: String, serviceAddress: String);
+  def registry(serviceName: String);
 }
 
-class ZKServiceRegistry extends ServiceRegistry{
 
-  val localhostServiceAddress = ZKConstants.localServiceAddress
-  val zkServerAddress = ZKConstants.zkServerAddress
+class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry{
+
+  val localhostServiceAddress = zkConstants.localServiceAddress
+  val zkServerAddress = zkConstants.zkServerAddress
 
   //error if the watcher is set null
-  val zkClient = new ZooKeeper(zkServerAddress,ZKConstants.sessionTimeout,new Watcher {
+  val zkClient = new ZooKeeper(zkServerAddress,zkConstants.sessionTimeout,new Watcher {
     override def process(watchedEvent: WatchedEvent): Unit = {
     }
   })
 
-  override def registry(serviceName: String, serviceAddress: String): Unit = {
-    val registryPath = ZKConstants.registryPath
+  override def registry(serviceName: String): Unit = {
+    val registryPath = zkConstants.registryPath
 
     /*    node mode in zk：
     *         gnode
@@ -31,7 +32,7 @@ class ZKServiceRegistry extends ServiceRegistry{
      */
     // Create registry node (persistent)
     if(zkClient.exists(registryPath, false) == null){
-      zkClient.create(ZKConstants.registryPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      zkClient.create(zkConstants.registryPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
     }
 
     // Create service node (persistent)
@@ -43,17 +44,18 @@ class ZKServiceRegistry extends ServiceRegistry{
     // Create address node (temp)
     val serviceAddress = servicePath +"/" + localhostServiceAddress
     if(zkClient.exists(serviceAddress,false) == null){
-      zkClient.create(serviceAddress, null, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL)
+      // set CreateMode to EPHEMERAL (don't be EPHEMERAL_SEQUENTIAL)
+      zkClient.create(serviceAddress, null, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL)
     }
 
   }
 
   def registerAsReadNode(serviceAddress: String): Unit ={
-    registry(s"read", serviceAddress)
+    registry(s"read")
   }
 
   def registerAsWriteNode(serviceAddress: String): Unit ={
-    registry(s"write", serviceAddress)
+    registry(s"write")
   }
 
 }

@@ -2,7 +2,7 @@ import java.io.FileInputStream
 import java.net.InetAddress
 import java.util.Properties
 
-import cn.graiph.cnode.{NodeAddress, ZKServiceRegistry}
+import cn.graiph.cnode.{NodeAddress, ZKConstants, ZKServiceRegistry}
 import org.junit.{Assert, Test}
 class GNodeListTest {
 
@@ -30,13 +30,13 @@ class GNodeListTest {
   }
 
   @Test
-  def testGetReadList(): Unit ={
-    registerAsReadNode()
+  def testGetReadList(zkConstants: ZKConstants): Unit ={
+    registerAsReadNode(zkConstants)
   }
 
-  def registerAsReadNode(): Unit ={
-    val register = new ZKServiceRegistry()
-    register.registry("read","10.0.88.99:1111")
+  def registerAsReadNode(zkConstants: ZKConstants): Unit ={
+    val register = new ZKServiceRegistry(zkConstants)
+    register.registry("read")
   }
 
 
