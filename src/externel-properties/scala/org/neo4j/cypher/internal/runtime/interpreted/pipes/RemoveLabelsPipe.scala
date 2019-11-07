@@ -43,10 +43,13 @@ case class RemoveLabelsPipe(src: Pipe, variable: String, labels: Seq[LazyLabel])
   private def removeLabels(context: ExecutionContext, state: QueryState, nodeId: Long) = {
     //val labelIds = labels.flatMap(_.getOptId(state.query)).map(_.id)
     // state.query.removeLabelsFromNode(nodeId, labelIds.iterator)
+
+    // NOTE: graiph
     val labelNames = labels.map(x=>x.name)
     CustomPropertyNodeStoreHolder.get.updateNodes(Some(
       new CustomPropertyNodeModification(nodeId,null,null,null,null,labelNames)
     ))
+    // END-NOTE
 
   }
 }
