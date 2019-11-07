@@ -3,11 +3,11 @@ import java.io.{File, FileInputStream}
 import java.util.Properties
 
 import cn.graiph.server.GraiphServer
+import org.neo4j.bolt.v1.runtime.BoltAuthenticationHelper
 
 trait Launcher {
 
 }
-
 
 class GNodeLauncher(dbPath: String, confPath:String) extends Launcher {
 
@@ -32,12 +32,15 @@ class GNodeLauncher(dbPath: String, confPath:String) extends Launcher {
 
 }
 
+
 class CNodeLauncher(dbPath: String, confPath: String){
 
   val zkConstants: ZKConstants = new ZKConstants(confPath)
+  val zkNodeList = new ZKGNodeList(new ZKConstants(confPath))
 
-  def startServer(dbPath: String, confPath: String): Unit ={
+  def startServer(): Unit ={
     GraiphServer.startServer(new File(dbPath), new File(confPath))
+    zkNodeList.addListener(new PooledGNodeSelector)
   }
 
 }
