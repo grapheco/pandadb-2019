@@ -42,7 +42,7 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
         Iterator.empty
     }
     */
-    // todo: optimize
+    // NOTE: graiph
     label.getOptId(state.query) match {
       case Some(labelId) =>
         //val nodes = state.query.getNodesByLabel(labelId.id)
@@ -57,6 +57,7 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
       case None =>
         Iterator.empty
     }
+    // END-NOTE
   }
 
 }

@@ -57,8 +57,14 @@ case class DeletePipe(src: Pipe, expression: Expression, forced: Boolean)
   }
 
   private def deleteNode(n: NodeValue, state: QueryState) = if (!state.query.nodeOps.isDeletedInThisTx(n.id())) {
+    /*
+    if (forced) state.query.detachDeleteNode(n.id())
+    else state.query.nodeOps.delete(n.id())
+    */
+    // NOTE: graiph
     if (forced) CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
     else CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
+    // END-NOTE
   }
 
   private def deleteRelationship(r: RelationshipValue, state: QueryState) =

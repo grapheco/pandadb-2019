@@ -10,11 +10,14 @@ import org.neo4j.values.virtual.NodeValue
 
 case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends Pipe {
 
+  // NOTE: graiph
   var _optPredicate: Option[Expression] = None;
 
   def predicatePushDown(predicate: Expression): Unit = {
     _optPredicate = Some(predicate);
   }
+  // END-NOTE
+
 
   protected def internalCreateResults(state: QueryState): Iterator[ExecutionContext] = {
     val baseContext = state.newExecutionContext(executionContextFactory)
