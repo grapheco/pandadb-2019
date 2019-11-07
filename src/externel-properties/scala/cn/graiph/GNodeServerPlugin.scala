@@ -1,6 +1,6 @@
 package cn.graiph
 
-import org.neo4j.kernel.impl.blob.{CustomDatabaseLifecyclePluginContext, CustomDatabaseLifecyclePlugin}
+import org.neo4j.kernel.impl.{CustomDatabaseLifecyclePluginContext, CustomDatabaseLifecyclePlugin}
 
 /**
   * Created by bluejoe on 2019/11/7.

@@ -4,7 +4,7 @@ import java.io.File
 
 import cn.graiph.{ValueMatcher, CustomPropertyProvider, CypherPluginRegistry}
 import cn.graiph.util.Logging
-import org.neo4j.kernel.impl.blob.{CustomDatabaseLifecyclePluginContext, CustomDatabaseLifecyclePlugin}
+import org.neo4j.kernel.impl.{CustomDatabaseLifecyclePluginContext, CustomDatabaseLifecyclePlugin}
 import org.springframework.context.support.FileSystemXmlApplicationContext
 
 /**
