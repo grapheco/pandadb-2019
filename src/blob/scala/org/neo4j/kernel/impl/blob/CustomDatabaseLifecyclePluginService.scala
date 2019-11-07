@@ -39,6 +39,9 @@ trait CustomDatabaseLifecyclePlugin {
   def stop(ctx: CustomDatabaseLifecyclePluginContext): Unit;
 }
 
+/**
+  * CustomDatabaseLifecyclePlugins records all plugins which will be maintained/active in whole life cycle of current database instance
+  */
 object CustomDatabaseLifecyclePlugins extends Logging {
   val plugins = ArrayBuffer[CustomDatabaseLifecyclePlugin](
     new BlobStoragePlugin(),
