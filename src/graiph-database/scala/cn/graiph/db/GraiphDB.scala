@@ -7,7 +7,7 @@ import cn.graiph.util.Logging
 import cn.graiph.{CustomPropertyProvider, CypherPluginRegistry, ValueMatcher}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.kernel.impl.blob.{BlobPropertyStoreServiceContext, BlobPropertyStoreServicePlugin, BlobPropertyStoreServicePlugins}
+import org.neo4j.kernel.impl.blob.{CustomDatabasePluginContext, CustomDatabasePlugin, CustomDatabasePlugins}
 import org.springframework.context.support.FileSystemXmlApplicationContext
 
 /**
@@ -37,10 +37,10 @@ trait Touchable {
 }
 
 object SemanticOperatorPluginInjection extends Touchable {
-  BlobPropertyStoreServicePlugins.add(new SemanticOperatorPlugin());
+  CustomDatabasePlugins.register(new SemanticOperatorPlugin());
 
-  class SemanticOperatorPlugin extends BlobPropertyStoreServicePlugin with Logging {
-    override def init(ctx: BlobPropertyStoreServiceContext): Unit = {
+  class SemanticOperatorPlugin extends CustomDatabasePlugin with Logging {
+    override def init(ctx: CustomDatabasePluginContext): Unit = {
       val configuration = ctx.configuration;
       val cypherPluginRegistry = configuration.getRaw("blob.plugins.conf").map(x => {
         val xml = new File(x);
@@ -74,11 +74,11 @@ object SemanticOperatorPluginInjection extends Touchable {
       ctx.instanceContext.put[ValueMatcher](valueMatcher);
     }
 
-    override def stop(ctx: BlobPropertyStoreServiceContext): Unit = {
+    override def stop(ctx: CustomDatabasePluginContext): Unit = {
 
     }
 
-    override def start(ctx: BlobPropertyStoreServiceContext): Unit = {
+    override def start(ctx: CustomDatabasePluginContext): Unit = {
 
     }
   }
