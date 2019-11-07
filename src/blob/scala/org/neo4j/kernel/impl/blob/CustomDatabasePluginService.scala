@@ -21,7 +21,7 @@ package org.neo4j.kernel.impl.blob
 
 import java.io.File
 
-import cn.graiph.util.{ContextMap, Configuration, Logging}
+import cn.graiph.util.{Configuration, ContextMap, Logging}
 import org.neo4j.graphdb.factory.GraphDatabaseSettings
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.Neo4jConfigUtils._
@@ -31,64 +31,64 @@ import org.neo4j.kernel.lifecycle.Lifecycle
 
 import scala.collection.mutable.ArrayBuffer
 
-trait BlobPropertyStoreServicePlugin {
-  def init(ctx: BlobPropertyStoreServiceContext): Unit;
+trait CustomDatabasePlugin {
+  def init(ctx: CustomDatabasePluginContext): Unit;
 
-  def start(ctx: BlobPropertyStoreServiceContext): Unit;
+  def start(ctx: CustomDatabasePluginContext): Unit;
 
-  def stop(ctx: BlobPropertyStoreServiceContext): Unit;
+  def stop(ctx: CustomDatabasePluginContext): Unit;
 }
 
-object BlobPropertyStoreServicePlugins extends Logging {
-  val plugins = ArrayBuffer[BlobPropertyStoreServicePlugin](
+object CustomDatabasePlugins extends Logging {
+  val plugins = ArrayBuffer[CustomDatabasePlugin](
     new BlobStoragePlugin(),
     new DefaultBlobFunctionsPlugin()
   );
 
-  def add(plugin: BlobPropertyStoreServicePlugin) = plugins += plugin;
+  def register(plugin: CustomDatabasePlugin) = plugins += plugin;
 
-  def init(ctx: BlobPropertyStoreServiceContext): Unit = {
+  def init(ctx: CustomDatabasePluginContext): Unit = {
     plugins.foreach { x =>
       x.init(ctx)
       logger.debug(s"plugin initialized: $x");
     }
   }
 
-  def start(ctx: BlobPropertyStoreServiceContext): Unit = {
+  def start(ctx: CustomDatabasePluginContext): Unit = {
     plugins.foreach {
       _.start(ctx)
     }
   }
 
-  def stop(ctx: BlobPropertyStoreServiceContext): Unit = {
+  def stop(ctx: CustomDatabasePluginContext): Unit = {
     plugins.foreach {
       _.stop(ctx)
     }
   }
 }
 
-class BlobStoragePlugin extends BlobPropertyStoreServicePlugin with Logging {
+class BlobStoragePlugin extends CustomDatabasePlugin with Logging {
   var blobStorage: BlobStorage = _;
 
-  override def init(ctx: BlobPropertyStoreServiceContext): Unit = {
+  override def init(ctx: CustomDatabasePluginContext): Unit = {
     blobStorage = BlobStorage.create(ctx.configuration);
     ctx.instanceContext.put[BlobStorage](blobStorage);
   }
 
-  override def stop(ctx: BlobPropertyStoreServiceContext): Unit = {
+  override def stop(ctx: CustomDatabasePluginContext): Unit = {
     blobStorage.disconnect();
     logger.info(s"blob storage disconnected: $blobStorage");
   }
 
-  override def start(ctx: BlobPropertyStoreServiceContext): Unit = {
+  override def start(ctx: CustomDatabasePluginContext): Unit = {
     blobStorage.initialize(new File(ctx.storeDir,
       ctx.neo4jConf.get(GraphDatabaseSettings.active_database)),
       ctx.configuration);
   }
 }
 
-class DefaultBlobFunctionsPlugin extends BlobPropertyStoreServicePlugin with Logging {
-  override def init(ctx: BlobPropertyStoreServiceContext): Unit = {
+class DefaultBlobFunctionsPlugin extends CustomDatabasePlugin with Logging {
+  override def init(ctx: CustomDatabasePluginContext): Unit = {
     registerProcedure(ctx.proceduresService, classOf[DefaultBlobFunctions]);
   }
 
@@ -99,38 +99,38 @@ class DefaultBlobFunctionsPlugin extends BlobPropertyStoreServicePlugin with Log
     }
   }
 
-  override def stop(ctx: BlobPropertyStoreServiceContext): Unit = {
+  override def stop(ctx: CustomDatabasePluginContext): Unit = {
   }
 
-  override def start(ctx: BlobPropertyStoreServiceContext): Unit = {
+  override def start(ctx: CustomDatabasePluginContext): Unit = {
   }
 }
 
-case class BlobPropertyStoreServiceContext(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo, configuration: Configuration, instanceContext: ContextMap) {
+case class CustomDatabasePluginContext(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo, configuration: Configuration, instanceContext: ContextMap) {
 
 }
 
-class BlobPropertyStoreService(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo)
+class CustomDatabasePluginService(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo)
   extends Lifecycle with Logging {
 
   val configuration: Configuration = neo4jConf;
-  val ctx = new BlobPropertyStoreServiceContext(proceduresService, storeDir, neo4jConf, databaseInfo, configuration, neo4jConf.getInstanceContext);
+  val ctx = new CustomDatabasePluginContext(proceduresService, storeDir, neo4jConf, databaseInfo, configuration, neo4jConf.getInstanceContext);
 
   /////binds context
-  neo4jConf.getInstanceContext.put[BlobPropertyStoreService](this);
+  neo4jConf.getInstanceContext.put[CustomDatabasePluginService](this);
 
   override def shutdown(): Unit = {
   }
 
   override def init(): Unit = {
-    BlobPropertyStoreServicePlugins.init(ctx);
+    CustomDatabasePlugins.init(ctx);
   }
 
   override def stop(): Unit = {
-    BlobPropertyStoreServicePlugins.stop(ctx);
+    CustomDatabasePlugins.stop(ctx);
   }
 
   override def start(): Unit = {
-    BlobPropertyStoreServicePlugins.start(ctx);
+    CustomDatabasePlugins.start(ctx);
   }
 }
