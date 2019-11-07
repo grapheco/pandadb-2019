@@ -30,6 +30,8 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 
+import cn.graiph.blob.Blob;
+import org.neo4j.bolt.blob.BoltServerBlobIO;
 import org.neo4j.bolt.messaging.BoltIOException;
 import org.neo4j.bolt.messaging.Neo4jPack;
 import org.neo4j.bolt.messaging.StructType;
@@ -109,7 +111,11 @@ public class Neo4jPackV2 extends Neo4jPackV1
 
     protected static class PackerV2 extends Neo4jPackV1.PackerV1
     {
-        protected PackerV2( PackOutput output )
+        @Override
+        public void writeBlob( Blob blob ) throws IOException
+        {
+            BoltServerBlobIO.packBlob( blob, out );
+        }        protected PackerV2( PackOutput output )
         {
             super( output );
         }
