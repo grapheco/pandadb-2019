@@ -31,64 +31,64 @@ import org.neo4j.kernel.lifecycle.Lifecycle
 
 import scala.collection.mutable.ArrayBuffer
 
-trait CustomDatabasePlugin {
-  def init(ctx: CustomDatabasePluginContext): Unit;
+trait CustomDatabaseLifecyclePlugin {
+  def init(ctx: CustomDatabaseLifecyclePluginContext): Unit;
 
-  def start(ctx: CustomDatabasePluginContext): Unit;
+  def start(ctx: CustomDatabaseLifecyclePluginContext): Unit;
 
-  def stop(ctx: CustomDatabasePluginContext): Unit;
+  def stop(ctx: CustomDatabaseLifecyclePluginContext): Unit;
 }
 
-object CustomDatabasePlugins extends Logging {
-  val plugins = ArrayBuffer[CustomDatabasePlugin](
+object CustomDatabaseLifecyclePlugins extends Logging {
+  val plugins = ArrayBuffer[CustomDatabaseLifecyclePlugin](
     new BlobStoragePlugin(),
     new DefaultBlobFunctionsPlugin()
   );
 
-  def register(plugin: CustomDatabasePlugin) = plugins += plugin;
+  def register(plugin: CustomDatabaseLifecyclePlugin) = plugins += plugin;
 
-  def init(ctx: CustomDatabasePluginContext): Unit = {
+  def init(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
     plugins.foreach { x =>
       x.init(ctx)
       logger.debug(s"plugin initialized: $x");
     }
   }
 
-  def start(ctx: CustomDatabasePluginContext): Unit = {
+  def start(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
     plugins.foreach {
       _.start(ctx)
     }
   }
 
-  def stop(ctx: CustomDatabasePluginContext): Unit = {
+  def stop(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
     plugins.foreach {
       _.stop(ctx)
     }
   }
 }
 
-class BlobStoragePlugin extends CustomDatabasePlugin with Logging {
+class BlobStoragePlugin extends CustomDatabaseLifecyclePlugin with Logging {
   var blobStorage: BlobStorage = _;
 
-  override def init(ctx: CustomDatabasePluginContext): Unit = {
+  override def init(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
     blobStorage = BlobStorage.create(ctx.configuration);
     ctx.instanceContext.put[BlobStorage](blobStorage);
   }
 
-  override def stop(ctx: CustomDatabasePluginContext): Unit = {
+  override def stop(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
     blobStorage.disconnect();
     logger.info(s"blob storage disconnected: $blobStorage");
   }
 
-  override def start(ctx: CustomDatabasePluginContext): Unit = {
+  override def start(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
     blobStorage.initialize(new File(ctx.storeDir,
       ctx.neo4jConf.get(GraphDatabaseSettings.active_database)),
       ctx.configuration);
   }
 }
 
-class DefaultBlobFunctionsPlugin extends CustomDatabasePlugin with Logging {
-  override def init(ctx: CustomDatabasePluginContext): Unit = {
+class DefaultBlobFunctionsPlugin extends CustomDatabaseLifecyclePlugin with Logging {
+  override def init(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
     registerProcedure(ctx.proceduresService, classOf[DefaultBlobFunctions]);
   }
 
@@ -99,38 +99,38 @@ class DefaultBlobFunctionsPlugin extends CustomDatabasePlugin with Logging {
     }
   }
 
-  override def stop(ctx: CustomDatabasePluginContext): Unit = {
+  override def stop(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
   }
 
-  override def start(ctx: CustomDatabasePluginContext): Unit = {
+  override def start(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
   }
 }
 
-case class CustomDatabasePluginContext(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo, configuration: Configuration, instanceContext: ContextMap) {
+case class CustomDatabaseLifecyclePluginContext(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo, configuration: Configuration, instanceContext: ContextMap) {
 
 }
 
-class CustomDatabasePluginService(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo)
+class CustomDatabaseLifecyclePluginService(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo)
   extends Lifecycle with Logging {
 
   val configuration: Configuration = neo4jConf;
-  val ctx = new CustomDatabasePluginContext(proceduresService, storeDir, neo4jConf, databaseInfo, configuration, neo4jConf.getInstanceContext);
+  val ctx = new CustomDatabaseLifecyclePluginContext(proceduresService, storeDir, neo4jConf, databaseInfo, configuration, neo4jConf.getInstanceContext);
 
   /////binds context
-  neo4jConf.getInstanceContext.put[CustomDatabasePluginService](this);
+  neo4jConf.getInstanceContext.put[CustomDatabaseLifecyclePluginService](this);
 
   override def shutdown(): Unit = {
   }
 
   override def init(): Unit = {
-    CustomDatabasePlugins.init(ctx);
+    CustomDatabaseLifecyclePlugins.init(ctx);
   }
 
   override def stop(): Unit = {
-    CustomDatabasePlugins.stop(ctx);
+    CustomDatabaseLifecyclePlugins.stop(ctx);
   }
 
   override def start(): Unit = {
-    CustomDatabasePlugins.start(ctx);
+    CustomDatabaseLifecyclePlugins.start(ctx);
   }
 }
