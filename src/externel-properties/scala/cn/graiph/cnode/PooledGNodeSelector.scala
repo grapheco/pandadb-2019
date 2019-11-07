@@ -12,6 +12,7 @@ import scala.util.Random
 class PooledGNodeSelector extends GNodeSelector with GNodeListListener {
   val rand = new Random();
 
+  // TO DO： Fix the selection method (workload balance or so on).
   override def chooseReadNode(): Driver = cachedReadDrivers.values.toSeq.apply(rand.nextInt(cachedReadDrivers.size))
 
   override def chooseWriteNode(): Driver = cachedWriteDrivers.values.toSeq.apply(rand.nextInt(cachedWriteDrivers.size))
@@ -35,7 +36,7 @@ class PooledGNodeSelector extends GNodeSelector with GNodeListListener {
 
 
   def createDriver(address: NodeAddress): Driver = {
-    //get url(ip:port) from the address
+    //get url(bolt://ip:port) from the address
     val url = address.getUrl();
     val driver = GraphDatabase.driver(url, AuthTokens.basic("", ""));
     driver;
