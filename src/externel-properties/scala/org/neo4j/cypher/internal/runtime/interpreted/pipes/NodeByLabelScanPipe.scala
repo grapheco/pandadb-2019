@@ -43,19 +43,32 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
     }
     */
     // NOTE: graiph
-    label.getOptId(state.query) match {
-      case Some(labelId) =>
-        //val nodes = state.query.getNodesByLabel(labelId.id)
-        val customPropertyNodes = CustomPropertyNodeStoreHolder.get.getNodesByLabel(label.name)
-        val nodesArray = mutable.ArrayBuffer[NodeValue]()
-        customPropertyNodes.foreach(v=>{
-          nodesArray.append(v.toNeo4jNodeValue())
-        })
-        val nodes = nodesArray.toIterator
-        val baseContext = state.newExecutionContext(executionContextFactory)
-        nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
-      case None =>
-        Iterator.empty
+    if(!CustomPropertyNodeStoreHolder.isDefined) {
+      label.getOptId(state.query) match {
+        case Some(labelId) =>
+          val nodes = state.query.getNodesByLabel(labelId.id)
+          nodes.foreach(n=>println(n.id()))
+          val baseContext = state.newExecutionContext(executionContextFactory)
+          nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
+        case None =>
+          Iterator.empty
+      }
+    }
+    else{
+      label.getOptId(state.query) match {
+        case Some(labelId) =>
+          //val nodes = state.query.getNodesByLabel(labelId.id)
+          val customPropertyNodes = CustomPropertyNodeStoreHolder.get.getNodesByLabel(label.name)
+          val nodesArray = mutable.ArrayBuffer[NodeValue]()
+          customPropertyNodes.foreach(v=>{
+            nodesArray.append(v.toNeo4jNodeValue())
+          })
+          val nodes = nodesArray.toIterator
+          val baseContext = state.newExecutionContext(executionContextFactory)
+          nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
+        case None =>
+          Iterator.empty
+      }
     }
     // END-NOTE
   }

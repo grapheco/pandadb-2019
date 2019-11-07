@@ -95,23 +95,26 @@ abstract class EntityCreatePipe(src: Pipe) extends BaseCreatePipe(src) {
     val labelIds = data.labels.map(_.getOrCreateId(state.query).id).toArray
     val node = state.query.createNode(labelIds)
     // data.properties.foreach(setProperties(context, state, node.id(), _, state.query.nodeOps))
-
     // NOTE: graiph
-    val customProperties = scala.collection.mutable.Map[String,Value]()
-     data.properties.foreach(properties => properties(context, state) match {
-      case _: NodeValue | _: RelationshipValue =>
-        throw new CypherTypeException("Parameter provided for node creation is not a Map")
-      case IsMap(map) =>
-        map(state.query).foreach(new ThrowingBiConsumer[String, AnyValue, RuntimeException] {
-          override def accept(k: String, v: AnyValue): Unit =  {customProperties(k) = v.asInstanceOf[Value]}
-        })
-      case _ =>
-        throw new CypherTypeException("Parameter provided for node creation is not a Map")
-    })
-    CustomPropertyNodeStoreHolder.get.addNodes(Some(
-      new CustomPropertyNode(node.id(), customProperties.toMap, data.labels.map(_.name))))
+    if(!CustomPropertyNodeStoreHolder.isDefined){
+      data.properties.foreach(setProperties(context, state, node.id(), _, state.query.nodeOps))
+    }
+    else{
+      val customProperties = scala.collection.mutable.Map[String,Value]()
+      data.properties.foreach(properties => properties(context, state) match {
+        case _: NodeValue | _: RelationshipValue =>
+          throw new CypherTypeException("Parameter provided for node creation is not a Map")
+        case IsMap(map) =>
+          map(state.query).foreach(new ThrowingBiConsumer[String, AnyValue, RuntimeException] {
+            override def accept(k: String, v: AnyValue): Unit =  {customProperties(k) = v.asInstanceOf[Value]}
+          })
+        case _ =>
+          throw new CypherTypeException("Parameter provided for node creation is not a Map")
+      })
+      CustomPropertyNodeStoreHolder.get.addNodes(Some(
+        new CustomPropertyNode(node.id(), customProperties.toMap, data.labels.map(_.name))))
+    }
     // END-NOTE
-
     data.idName -> node
   }
 

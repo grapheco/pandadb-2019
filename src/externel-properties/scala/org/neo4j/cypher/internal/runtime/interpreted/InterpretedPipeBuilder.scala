@@ -35,9 +35,11 @@ import org.neo4j.cypher.internal.v3_5.logical.plans
 import org.neo4j.cypher.internal.v3_5.logical.plans.{ColumnOrder, Limit => LimitPlan, LoadCSV => LoadCSVPlan, Skip => SkipPlan, _}
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.cypher.internal.v3_5.util.{Eagerly, InternalException}
+
 import org.neo4j.kernel.impl.Settings
 import org.neo4j.values.AnyValue
 import org.neo4j.values.virtual.{NodeValue, RelationshipValue}
+import org.neo4j.kernel.impl.CustomPropertyNodeStoreHolder
 
 /**
   * Responsible for turning a logical plan with argument pipes into a new pipe.
@@ -124,29 +126,40 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
       case Selection(predicate, _) =>
         val predicateExpression =
           if (predicate.exprs.size == 1) buildExpression(predicate.exprs.head) else buildExpression(predicate)
-
+        // NOTE: graiph
         //NOTE: push down predicate
-        if (Settings._hookEnabled) {
+        //if (Settings._hookEnabled) {
+        if(CustomPropertyNodeStoreHolder.isDefined){
           source match {
             case x: AllNodesScanPipe =>
               x.predicatePushDown(predicateExpression);
             case _ => logger.debug("push down predicate: Pipe no match")
           }
         }
+        // END-NOTE
 
         FilterPipe(source, predicateExpression)(id = id)
 
       case Expand(_, fromName, dir, types: Seq[RelTypeName], toName, relName, ExpandAll) =>
-        (Settings._patternMatchFirst, source) match {
-          //NOTE: yes! we use pattern match first!!
-          case (true, FilterPipe(source2, predicate2)) => {
-            logger.debug(s"perform pattern match first!");
-            FilterPipe(ExpandAllPipe(source2, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id), predicate2)(id = source.id)
-          }
+        // NOTE: graiph
+        if(CustomPropertyNodeStoreHolder.isDefined){
+          (Settings._patternMatchFirst, source) match {
+            //NOTE: yes! we use pattern match first!!
+            case (true, FilterPipe(source2, predicate2)) => {
+              logger.debug(s"perform pattern match first!");
+              FilterPipe(ExpandAllPipe(source2, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id), predicate2)(id = source.id)
+            }
 
-          //default behavier: use where predicate first
-          case _ => ExpandAllPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)
+            //default behavier: use where predicate first
+            case _ => ExpandAllPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)
+          }
         }
+        else{
+          ExpandAllPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)
+        }
+        // END-NOTE
+        // ExpandAllPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)
+
 
       case Expand(_, fromName, dir, types: Seq[RelTypeName], toName, relName, ExpandInto) =>
         ExpandIntoPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)

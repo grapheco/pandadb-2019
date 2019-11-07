@@ -21,46 +21,54 @@ case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends P
 
   protected def internalCreateResults(state: QueryState): Iterator[ExecutionContext] = {
     val baseContext = state.newExecutionContext(executionContextFactory)
-    val nodes: Iterator[NodeValue] = _optPredicate match {
-      case Some(predicate) =>
-        predicate match {
-          case GreaterThan(a: Property, b: ParameterExpression) => {
-            val value = b.apply(baseContext, state)
-            CustomPropertyNodeStoreHolder.get.filterNodes(NFGreaterThan(a.propertyKey.name, value)).
-              map(_.toNeo4jNodeValue()).iterator
-          }
-
-          case GreaterThanOrEqual(a: Property, b: ParameterExpression) => {
-            val value = b.apply(baseContext, state)
-            CustomPropertyNodeStoreHolder.get.filterNodes(NFGreaterThanOrEqual(a.propertyKey.name, value)).
-              map(_.toNeo4jNodeValue()).iterator
-          }
-
-          case LessThan(a: Property, b: ParameterExpression) => {
-            val value = b.apply(baseContext, state)
-            CustomPropertyNodeStoreHolder.get.filterNodes(NFLessThan(a.propertyKey.name, value)).
-              map(_.toNeo4jNodeValue()).iterator
-          }
-
-          case LessThanOrEqual(a: Property, b: ParameterExpression) => {
-            val value = b.apply(baseContext, state)
-            CustomPropertyNodeStoreHolder.get.filterNodes(NFLessThanOrEqual(a.propertyKey.name, value)).
-              map(_.toNeo4jNodeValue()).iterator
-          }
-
-          case Equals(a: Property, b: ParameterExpression) => {
-            val value = b.apply(baseContext, state)
-            CustomPropertyNodeStoreHolder.get.filterNodes(NFEquals(a.propertyKey.name, value)).
-              map(_.toNeo4jNodeValue()).iterator
-          }
-
-          case _ => state.query.nodeOps.all
-
-        }
-
-      case _ => state.query.nodeOps.all
+    //state.query.nodeOps.all.map(n => executionContextFactory.copyWith(baseContext, ident, n))
+    // NOTE: graiph
+    if(!CustomPropertyNodeStoreHolder.isDefined) {
+      state.query.nodeOps.all.map(n => executionContextFactory.copyWith(baseContext, ident, n))
     }
+    else {
+      val nodes: Iterator[NodeValue] = _optPredicate match {
+        case Some(predicate) =>
+          predicate match {
+            case GreaterThan(a: Property, b: ParameterExpression) => {
+              val value = b.apply(baseContext, state)
+              CustomPropertyNodeStoreHolder.get.filterNodes(NFGreaterThan(a.propertyKey.name, value)).
+                map(_.toNeo4jNodeValue()).iterator
+            }
 
-    nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
+            case GreaterThanOrEqual(a: Property, b: ParameterExpression) => {
+              val value = b.apply(baseContext, state)
+              CustomPropertyNodeStoreHolder.get.filterNodes(NFGreaterThanOrEqual(a.propertyKey.name, value)).
+                map(_.toNeo4jNodeValue()).iterator
+            }
+
+            case LessThan(a: Property, b: ParameterExpression) => {
+              val value = b.apply(baseContext, state)
+              CustomPropertyNodeStoreHolder.get.filterNodes(NFLessThan(a.propertyKey.name, value)).
+                map(_.toNeo4jNodeValue()).iterator
+            }
+
+            case LessThanOrEqual(a: Property, b: ParameterExpression) => {
+              val value = b.apply(baseContext, state)
+              CustomPropertyNodeStoreHolder.get.filterNodes(NFLessThanOrEqual(a.propertyKey.name, value)).
+                map(_.toNeo4jNodeValue()).iterator
+            }
+
+            case Equals(a: Property, b: ParameterExpression) => {
+              val value = b.apply(baseContext, state)
+              CustomPropertyNodeStoreHolder.get.filterNodes(NFEquals(a.propertyKey.name, value)).
+                map(_.toNeo4jNodeValue()).iterator
+            }
+
+            case _ => state.query.nodeOps.all
+
+          }
+
+        case _ => state.query.nodeOps.all
+      }
+
+      nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
+    }
+    // END-NOTE
   }
 }
