@@ -2,16 +2,14 @@ package cn.graiph.cnode
 
 import java.io.FileInputStream
 import java.util.Properties
-
 import org.neo4j.driver.Driver
-
 
 /**
   * Created by bluejoe on 2019/11/4.
   */
 case class NodeAddress(host: String, port: Int) {
   def getUrl(): String ={
-    return host + s":" + port.toString
+    return s"bolt://"+host + s":" + port.toString
   }
 }
 
@@ -33,12 +31,10 @@ class ZKConstants(path: String) {
   val registryPath = prop.getProperty("registryPath")
 }
 
-// implemented
 trait GNodeListListener {
   def onEvent(event: GNodeListEvent);
 }
 
-// implemented
 trait GNodeListEvent {
 
 }
@@ -68,5 +64,3 @@ trait GNodeSelector {
 
   def chooseWriteNode(): Driver;
 }
-
-

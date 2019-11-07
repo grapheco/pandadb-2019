@@ -14,7 +14,7 @@ class ZKGNodeList(zkConstants: ZKConstants) extends GNodeList {
       if(watchedEvent.getType == EventType.None)
         return
       try {
-        updataServers();
+        updateServers();
       } catch {
         case ex: Exception =>{
           ex.printStackTrace()
@@ -30,8 +30,9 @@ class ZKGNodeList(zkConstants: ZKConstants) extends GNodeList {
   val writeNodePath = zkConstants.registryPath + "/" + "write"
 
   var listenerList: List[GNodeListListener] = List[GNodeListListener]();
+  //var selectorList: List[GNodeSelector] = List[PooledGNodeSelector]();
 
-  def updataServers() {
+  def updateServers() {
 
     val updatedReadNodeSet = getReadNodes()
     val updatedWriteNodeSet = getWriteNodes()
@@ -87,7 +88,11 @@ class ZKGNodeList(zkConstants: ZKConstants) extends GNodeList {
 
   override def addListener(listener: GNodeListListener): Unit = {
     listenerList = listener :: listenerList
+    updateServers()
   }
+//  def addSelector(selector: GNodeSelector): Unit ={
+//    selectorList = selector :: selectorList
+//  }
 
   def getReadNodes(): Set[NodeAddress] = {
     val children = zkClient.getChildren(readNodePath,true)
