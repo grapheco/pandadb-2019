@@ -62,8 +62,14 @@ case class DeletePipe(src: Pipe, expression: Expression, forced: Boolean)
     else state.query.nodeOps.delete(n.id())
     */
     // NOTE: graiph
-    if (forced) CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
-    else CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
+    if(!CustomPropertyNodeStoreHolder.isDefined) {
+      if (forced) state.query.detachDeleteNode(n.id())
+      else state.query.nodeOps.delete(n.id())
+    }
+    else{
+      if (forced) CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
+      else CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
+    }
     // END-NOTE
   }
 

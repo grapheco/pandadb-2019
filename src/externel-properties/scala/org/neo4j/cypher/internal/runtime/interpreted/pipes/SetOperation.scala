@@ -144,34 +144,39 @@ case class SetNodePropertyOperation(nodeName: String, propertyKey: LazyPropertyK
 
   // NOTE: graiph
   override def set(executionContext: ExecutionContext, state: QueryState) = {
-    val item = executionContext.get(nodeName).get
-    if (item != Values.NO_VALUE) {
-      val itemId = id(item)
+    if(!CustomPropertyNodeStoreHolder.isDefined) {
+      super.set(executionContext, state)
+    }
+    else{
+      val item = executionContext.get(nodeName).get
+      if (item != Values.NO_VALUE) {
+        val itemId = id(item)
 
-      val ops = operations(state.query)
-      if (needsExclusiveLock) ops.acquireExclusiveLock(itemId)
+        val ops = operations(state.query)
+        if (needsExclusiveLock) ops.acquireExclusiveLock(itemId)
 
-      invalidateCachedProperties(executionContext, itemId)
+        invalidateCachedProperties(executionContext, itemId)
 
-      try {
-        val queryContext = state.query
-        val propertyName: String = propertyKey.name
-        val value: Value = makeValueNeoSafe(expression(executionContext, state))
+        try {
+          val queryContext = state.query
+          val propertyName: String = propertyKey.name
+          val value: Value = makeValueNeoSafe(expression(executionContext, state))
 
-        if (value == Values.NO_VALUE) {
-          CustomPropertyNodeStoreHolder.get.updateNodes(Some(
-            new CustomPropertyNodeModification(itemId,null,Some(propertyName),null,null,  null)
-          ))
-        }
-        else{
-          val field2Update = scala.collection.immutable.Map(propertyName->value)
-          println(field2Update, item)
-          CustomPropertyNodeStoreHolder.get.updateNodes(Some(
-            new CustomPropertyNodeModification(itemId,null,null,field2Update,null,  null)
-          ))
-        }
+          if (value == Values.NO_VALUE) {
+            CustomPropertyNodeStoreHolder.get.updateNodes(Some(
+              new CustomPropertyNodeModification(itemId,null,Some(propertyName),null,null,  null)
+            ))
+          }
+          else{
+            val field2Update = scala.collection.immutable.Map(propertyName->value)
+            println(field2Update, item)
+            CustomPropertyNodeStoreHolder.get.updateNodes(Some(
+              new CustomPropertyNodeModification(itemId,null,null,field2Update,null,  null)
+            ))
+          }
 
-      } finally if (needsExclusiveLock) ops.releaseExclusiveLock(itemId)
+        } finally if (needsExclusiveLock) ops.releaseExclusiveLock(itemId)
+      }
     }
   }
   // END-NOTE
