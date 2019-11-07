@@ -25,11 +25,12 @@ import cn.graiph.blob.Blob
 import cn.graiph.driver.RemoteGraiph
 import cn.graiph.server.GraiphServer
 import org.apache.commons.io.IOUtils
+import org.neo4j.bolt.v1.runtime.BoltAuthenticationHelper
 import org.neo4j.driver._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 class RemoteGraiphTest extends FunSuite with BeforeAndAfter with TestBase {
-
+  BoltAuthenticationHelper.IS_DISPATCHER_NODE = false;
   var server: GraiphServer = _;
 
   before {

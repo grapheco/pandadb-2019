@@ -14,6 +14,7 @@ object CustomPropertyNodeStoreHolder {
     propertyNodeStore.init();
   }
 
+  def isDefined = _propertyNodeStore.isDefined;
   def get: CustomPropertyNodeStore = _propertyNodeStore.get;
 }
 

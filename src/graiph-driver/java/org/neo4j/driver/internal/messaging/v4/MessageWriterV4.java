@@ -60,10 +60,6 @@ public class MessageWriterV4 extends AbstractMessageWriter
         result.put( GoodbyeMessage.SIGNATURE, new GoodbyeMessageEncoder() );
         result.put( RunWithMetadataMessage.SIGNATURE, new RunWithMetadataMessageEncoder() );
 
-        //NOTE: GetBlobMessageEncoder
-        result.put(BlobMessageSignature.SIGNATURE_GET_BLOB(), new GetBlobMessageEncoder() ); // new
-        //NOTE
-
         result.put( DiscardMessage.SIGNATURE, new DiscardMessageEncoder() ); // new
         result.put( PullMessage.SIGNATURE, new PullMessageEncoder() ); // new
 
