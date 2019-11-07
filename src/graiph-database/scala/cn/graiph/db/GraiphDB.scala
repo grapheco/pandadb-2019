@@ -7,7 +7,7 @@ import cn.graiph.util.Logging
 import cn.graiph.{CustomPropertyProvider, CypherPluginRegistry, ValueMatcher}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.kernel.impl.blob.{CustomDatabaseLifecyclePlugin, CustomDatabaseLifecyclePluginContext, CustomDatabaseLifecyclePlugins}
+import org.neo4j.kernel.impl.CustomDatabaseLifecyclePlugins
 import org.springframework.context.support.FileSystemXmlApplicationContext
 
 /**
