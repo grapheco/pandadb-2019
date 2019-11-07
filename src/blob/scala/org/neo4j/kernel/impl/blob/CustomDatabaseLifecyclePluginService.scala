@@ -45,7 +45,17 @@ object CustomDatabaseLifecyclePlugins extends Logging {
     new DefaultBlobFunctionsPlugin()
   );
 
-  def register(plugin: CustomDatabaseLifecyclePlugin) = plugins += plugin;
+  def register[T <: CustomDatabaseLifecyclePlugin](implicit manifest: Manifest[T]): CustomDatabaseLifecyclePlugin = {
+    register(manifest.runtimeClass.newInstance().asInstanceOf[CustomDatabaseLifecyclePlugin])
+  }
+
+  def register(plugin: CustomDatabaseLifecyclePlugin): CustomDatabaseLifecyclePlugin = {
+    if (plugins.exists(_.getClass == plugin.getClass))
+      throw new RuntimeException(s"duplicate plugin: ${plugin.getClass}")
+
+    plugins += plugin
+    plugin
+  }
 
   def init(ctx: CustomDatabaseLifecyclePluginContext): Unit = {
     plugins.foreach { x =>
