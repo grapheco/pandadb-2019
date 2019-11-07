@@ -32,6 +32,7 @@ import org.neo4j.driver.internal.InternalPoint3D;
 import org.neo4j.driver.internal.messaging.v1.ValuePackerV1;
 import org.neo4j.driver.internal.packstream.PackOutput;
 import org.neo4j.driver.internal.types.TypeConstructor;
+import org.neo4j.driver.internal.util.BoltClientBlobIO;
 import org.neo4j.driver.internal.value.InternalValue;
 import org.neo4j.driver.types.IsoDuration;
 import org.neo4j.driver.types.Point;
@@ -66,6 +67,14 @@ public class ValuePackerV2 extends ValuePackerV1
     protected void packInternalValue( InternalValue value ) throws IOException
     {
         TypeConstructor typeConstructor = value.typeConstructor();
+
+        //NOTE: blob
+        if (TypeConstructor.BLOB == typeConstructor) {
+            BoltClientBlobIO.packBlob(value.asBlob(), packer);
+            return;
+        }
+        //NOTE
+
         switch ( typeConstructor )
         {
         case DATE:

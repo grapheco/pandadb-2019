@@ -32,6 +32,7 @@ import org.neo4j.driver.internal.messaging.v1.ValueUnpackerV1;
 import org.neo4j.driver.internal.packstream.PackInput;
 import org.neo4j.driver.internal.types.TypeConstructor;
 import org.neo4j.driver.Value;
+import org.neo4j.driver.internal.util.BoltClientBlobIO;
 
 import static java.time.ZoneOffset.UTC;
 import static org.neo4j.driver.internal.messaging.v2.MessageFormatV2.DATE;
@@ -60,6 +61,17 @@ public class ValueUnpackerV2 extends ValueUnpackerV1
     public ValueUnpackerV2( PackInput input )
     {
         super( input );
+    }
+
+    protected Value unpack() throws IOException
+    {
+        //NOTE: blob support
+        Value blobValue = BoltClientBlobIO.unpackBlob(unpacker);
+        if (blobValue != null)
+            return blobValue;
+        //NOTE
+
+        return super.unpack();
     }
 
     @Override

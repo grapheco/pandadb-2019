@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.graiph.blob.Blob;
+import org.neo4j.bolt.blob.BoltServerBlobIO;
 import org.neo4j.bolt.messaging.BoltIOException;
 import org.neo4j.bolt.messaging.Neo4jPack;
 import org.neo4j.bolt.messaging.StructType;
@@ -458,6 +459,12 @@ public class Neo4jPackV1 implements Neo4jPack
         @Override
         public AnyValue unpack() throws IOException
         {
+            AnyValue blobValue = BoltServerBlobIO.unpackBlob( this );
+            if ( blobValue != null )
+            {
+                return blobValue;
+            }
+
             PackType valType = peekNextType();
             switch ( valType )
             {

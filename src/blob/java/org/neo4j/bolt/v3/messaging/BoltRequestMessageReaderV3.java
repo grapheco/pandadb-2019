@@ -17,7 +17,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.neo4j.bolt.v5.request;
+package org.neo4j.bolt.v3.messaging;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.neo4j.bolt.blob.GetBlobMessageDecoder;
 import org.neo4j.bolt.messaging.BoltRequestMessageReader;
@@ -30,7 +33,6 @@ import org.neo4j.bolt.v1.messaging.ResultHandler;
 import org.neo4j.bolt.v1.messaging.decoder.DiscardAllMessageDecoder;
 import org.neo4j.bolt.v1.messaging.decoder.PullAllMessageDecoder;
 import org.neo4j.bolt.v1.messaging.decoder.ResetMessageDecoder;
-import org.neo4j.bolt.v3.messaging.BoltRequestMessageReaderV3;
 import org.neo4j.bolt.v3.messaging.decoder.BeginMessageDecoder;
 import org.neo4j.bolt.v3.messaging.decoder.CommitMessageDecoder;
 import org.neo4j.bolt.v3.messaging.decoder.GoodbyeMessageDecoder;
@@ -40,33 +42,29 @@ import org.neo4j.bolt.v3.messaging.decoder.RunMessageDecoder;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
 
-import java.util.Arrays;
-import java.util.List;
-
-public class BoltRequestMessageReaderV5 extends BoltRequestMessageReader
+public class BoltRequestMessageReaderV3 extends BoltRequestMessageReader
 {
-    public BoltRequestMessageReaderV5( BoltConnection connection, BoltResponseMessageWriter responseMessageWriter,
-                                      LogService logService )
+    public BoltRequestMessageReaderV3( BoltConnection connection, BoltResponseMessageWriter responseMessageWriter,
+                                       LogService logService )
     {
         super( connection, newSimpleResponseHandler( responseMessageWriter, connection, logService ),
                 buildDecoders( connection, responseMessageWriter, logService ) );
     }
 
     private static List<RequestMessageDecoder> buildDecoders( BoltConnection connection, BoltResponseMessageWriter responseMessageWriter,
-                                                             LogService logService )
+                                                              LogService logService )
     {
         BoltResponseHandler resultHandler = new ResultHandler( responseMessageWriter, connection, internalLog( logService ) );
         BoltResponseHandler defaultHandler = newSimpleResponseHandler( responseMessageWriter, connection, logService );
 
         return Arrays.asList(
+                //NOTE: add blob
+                new GetBlobMessageDecoder( resultHandler ),
+                //NOTE
                 new HelloMessageDecoder( defaultHandler ),
                 new RunMessageDecoder( defaultHandler ),
                 new DiscardAllMessageDecoder( resultHandler ),
                 new PullAllMessageDecoder( resultHandler ),
-
-                //add blob
-                new GetBlobMessageDecoder( resultHandler ),
-
                 new BeginMessageDecoder( defaultHandler ),
                 new CommitMessageDecoder( resultHandler ),
                 new RollbackMessageDecoder( resultHandler ),
@@ -76,7 +74,7 @@ public class BoltRequestMessageReaderV5 extends BoltRequestMessageReader
     }
 
     private static BoltResponseHandler newSimpleResponseHandler( BoltResponseMessageWriter responseMessageWriter, BoltConnection connection,
-                                                                LogService logService )
+                                                                 LogService logService )
     {
         return new MessageProcessingHandler( responseMessageWriter, connection, internalLog( logService ) );
     }

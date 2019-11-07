@@ -30,7 +30,6 @@ import org.neo4j.driver.internal.messaging.v1.BoltProtocolV1;
 import org.neo4j.driver.internal.messaging.v2.BoltProtocolV2;
 import org.neo4j.driver.internal.messaging.v3.BoltProtocolV3;
 import org.neo4j.driver.internal.messaging.v4.BoltProtocolV4;
-import org.neo4j.driver.internal.messaging.v5.BoltProtocolV5;
 import org.neo4j.driver.internal.spi.Connection;
 
 import java.util.Map;
@@ -152,8 +151,6 @@ public interface BoltProtocol {
                 return BoltProtocolV3.INSTANCE;
             case BoltProtocolV4.VERSION:
                 return BoltProtocolV4.INSTANCE;
-            case BoltProtocolV5.VERSION:
-                return BoltProtocolV5.INSTANCE;
             default:
                 throw new ClientException("Unknown protocol version: " + version);
         }
