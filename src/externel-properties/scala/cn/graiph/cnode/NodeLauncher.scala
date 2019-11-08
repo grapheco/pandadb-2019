@@ -40,7 +40,8 @@ class CNodeLauncher(dbPath: String, confPath: String){
 
   def startServer(): Unit ={
     GraiphServer.startServer(new File(dbPath), new File(confPath))
-    zkNodeList.addListener(new PooledGNodeSelector)
+    //zkNodeList.addListener(new PooledGNodeSelector)
+    zkNodeList.addListener(BoltAuthenticationHelper.SELECTOR.asInstanceOf[PooledGNodeSelector])
   }
 
 }
