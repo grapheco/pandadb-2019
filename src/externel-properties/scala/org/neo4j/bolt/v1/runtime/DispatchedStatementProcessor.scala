@@ -18,6 +18,7 @@ import org.neo4j.values.AnyValue
 import org.neo4j.values.storable.{BlobValue, DoubleValue}
 import org.neo4j.values.virtual.{ListValue, MapValue}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.collection.{JavaConversions, mutable}
 
 /**
@@ -33,16 +34,16 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
   override def run(statement: String, params: MapValue): StatementMetadata = source.run(statement, params)
 
   var _currentTransaction: Transaction = _
-  
+
   override def run(statement: String, params: MapValue, bookmark: Bookmark, txTimeout: Duration, txMetaData: util.Map[String, AnyRef]): StatementMetadata = {
 
     // param transformation, contribute by codeBabyLin
-    val paramMap = new mutable.HashMap[String,AnyRef]()
-    val myConsumer = new ThrowingBiConsumer[String,AnyValue,Exception](){
-      override def accept(var1:String,var2:AnyValue) : Unit={
+    val paramMap = new mutable.HashMap[String, AnyRef]()
+    val myConsumer = new ThrowingBiConsumer[String, AnyValue, Exception]() {
+      override def accept(var1: String, var2: AnyValue): Unit = {
         val key = var1
         val value = ValueUtils.asValue(var2).asObject()
-        paramMap.update(key,value)
+        paramMap.update(key, value)
       }
     }
     params.foreach(myConsumer)
@@ -51,21 +52,32 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
     //pickup a runnable node
     val tempStatement = statement.toLowerCase()
     if (tempStatement.contains("create") || tempStatement.contains("merge") ||
-      tempStatement.contains("set") || tempStatement.contains("delete"))
-    {
-      val driver = selector.chooseWriteNode();
-      val session = driver.session();
-      _currentTransaction = session.beginTransaction();
-      _currentStatementResult =  _currentTransaction.run(statement, mapTrans);
-      _currentTransaction.success();
-      _currentTransaction.close();
+      tempStatement.contains("set") || tempStatement.contains("delete")) {
+      //      val driver = selector.chooseWriteNode();
+      //      val session = driver.session();
+      //      _currentTransaction = session.beginTransaction();
+      //      _currentStatementResult =  _currentTransaction.run(statement, mapTrans);
+      //      _currentTransaction.success();
+      //      _currentTransaction.close();
+
+      val driverList: List[Driver] = selector.chooseAllNodes()
+      val closeList: ArrayBuffer[(Session, Transaction)] = _
+      driverList.foreach(driver => {
+        val session = driver.session()
+        val tx = session.beginTransaction()
+        tx.run(statement, mapTrans)
+        closeList += Tuple2(session, tx)
+      })
+      closeList.foreach(sessionAndTx => {
+        sessionAndTx._2.success()
+        sessionAndTx._1.close()
+      })
     }
-    else
-    {
+    else {
       val driver = selector.chooseReadNode();
       val session = driver.session();
       _currentTransaction = session.beginTransaction();
-      _currentStatementResult = _currentTransaction.run(statement,mapTrans);
+      _currentStatementResult = _currentTransaction.run(statement, mapTrans);
     }
 
     //extract metadata from _currentStatementResult.
@@ -98,8 +110,8 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
       JavaConversions.collectionAsScalaIterable(record.values()).map {
         value: Value =>
           value match {
-              //TODO: check different types of XxxValue, unpack and use ValueUtils to transform
-            case nodeValue:NodeValue => ValueUtils.asAnyValue(new MyDriverNodeToDbNode(nodeValue))
+            //TODO: check different types of XxxValue, unpack and use ValueUtils to transform
+            case nodeValue: NodeValue => ValueUtils.asAnyValue(new MyDriverNodeToDbNode(nodeValue))
             case intValue: IntegerValue => ValueUtils.asAnyValue(intValue.asInt())
             case floatValue: FloatValue => ValueUtils.asAnyValue(floatValue.asFloat())
             case _ => ValueUtils.asAnyValue(value.asObject())
@@ -127,7 +139,7 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
   override def beginTransaction(bookmark: Bookmark, txTimeout: Duration, txMetadata: util.Map[String, AnyRef]): Unit = source.beginTransaction(bookmark, txTimeout, txMetadata)
 
   // class for driver node type transform to DB's node type
-  class MyDriverNodeToDbNode(driverNode:NodeValue) extends Node{
+  class MyDriverNodeToDbNode(driverNode: NodeValue) extends Node {
 
     override def getId: Long = driverNode.asEntity().id()
 
@@ -175,7 +187,7 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
 
     override def getLabels: lang.Iterable[Label] = {
       val itor = JavaConversions.asScalaIterator(driverNode.asNode().labels().iterator())
-      val iter = itor.map(label =>  Label.label(label))
+      val iter = itor.map(label => Label.label(label))
       JavaConversions.asJavaIterable(iter.toIterable)
     }
 
