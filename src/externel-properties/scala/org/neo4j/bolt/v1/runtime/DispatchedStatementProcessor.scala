@@ -61,9 +61,9 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
       //      _currentTransaction.close();
 
       val driverList: List[Driver] = selector.chooseAllNodes()
-      val closeList: ArrayBuffer[(Session, Transaction)] = _
-      var tempResult:StatementResult = _
-      var tempTransaction:Transaction = _
+      val closeList: ArrayBuffer[(Session, Transaction)] = new ArrayBuffer[(Session, Transaction)]()
+      var tempResult:StatementResult = null
+      var tempTransaction:Transaction = null
       driverList.foreach(driver => {
         val session = driver.session()
         val tx = session.beginTransaction()

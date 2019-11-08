@@ -39,5 +39,20 @@ class ClientTest {
     println(record)
   }
 
+  @Test
+  def consistencyTest(): Unit ={
+    val writeDriver = connectCoordinator(coorUrl)
+    val writeSession = writeDriver.session()
+    val writeTX = writeSession.beginTransaction()
+    writeTX.run(s"Create(n:TEST{time:'11:15', isClever:false})")
+    writeTX.success()
+    writeSession.close()
+
+    val readDriver = connectCoordinator(coorUrl)
+    val readSession = readDriver.session()
+    val result = readSession.run("match(n) Where n.time='11:15' return n.time, n.isClever")
+    println(result.next())
+  }
+
 
 }
