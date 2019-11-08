@@ -14,9 +14,19 @@ class ClientTest {
   @Test
   def create(): Unit ={
     val driver = connectCoordinator(coorUrl)
-    driver.session().run(s"Create(n:TEST{name:'gouhsheng'})")
-    driver.session().close()
-    val result = driver.session().run("match(n), return n.name")
-    Assert.assertEquals("true",result.hasNext)
+    val session = driver.session()
+    val writeTX = session.beginTransaction()
+    writeTX.run(s"Create(n:TEST{name:'gouhsheng'})")
+    writeTX.success()
+    session.close()
+  }
+
+  @Test
+  def matchAll(): Unit ={
+    val driver = connectCoordinator(coorUrl)
+    val session = driver.session()
+    val resultSet = session.run(s"match (n) return n.name, n.age, n.isClever")
+    val record = resultSet.next()
+    println(record)
   }
 }
