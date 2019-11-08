@@ -29,4 +29,15 @@ class ClientTest {
     val record = resultSet.next()
     println(record)
   }
+
+  @Test
+  def sickBlobTest(): Unit ={
+    val driver = connectCoordinator(coorUrl)
+    val session = driver.session()
+    val resultSet = session.run(s"return <https://avatars0.githubusercontent.com/u/2328905?s=460&v=4>")
+    val record = resultSet.next()
+    println(record)
+  }
+
+
 }
