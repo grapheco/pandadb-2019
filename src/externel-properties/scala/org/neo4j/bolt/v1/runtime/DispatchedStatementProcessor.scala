@@ -64,19 +64,30 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
       val closeList: ArrayBuffer[(Session, Transaction)] = new ArrayBuffer[(Session, Transaction)]()
       var tempResult:StatementResult = null
       var tempTransaction:Transaction = null
-      driverList.foreach(driver => {
-        val session = driver.session()
-        val tx = session.beginTransaction()
-        tempTransaction = tx
-        tempResult = tx.run(statement, mapTrans)
-        closeList += Tuple2(session, tx)
-      })
-      closeList.foreach(sessionAndTx => {
-        sessionAndTx._2.success()
-        sessionAndTx._1.close()
-      })
-      _currentTransaction = tempTransaction
-      _currentStatementResult = tempResult
+      try{
+        driverList.foreach(driver => {
+          val session = driver.session()
+          val tx = session.beginTransaction()
+          tempTransaction = tx
+          tempResult = tx.run(statement, mapTrans)
+          closeList += Tuple2(session, tx)
+        })
+        closeList.foreach(sessionAndTx => {
+          sessionAndTx._2.success()
+          sessionAndTx._1.close()
+        })
+        _currentTransaction = tempTransaction
+        _currentStatementResult = tempResult
+      }catch {
+        case e:Exception =>{
+          closeList.foreach(sessionAndTx =>{
+            sessionAndTx._2.failure()
+            sessionAndTx._1.close()
+          })
+          _currentTransaction = null
+          _currentStatementResult = null
+        }
+      }
     }
     else {
       val driver = selector.chooseReadNode();
