@@ -25,6 +25,7 @@ import org.neo4j.bolt.runtime.BoltStateMachineState;
 import org.neo4j.bolt.runtime.StateMachineContext;
 import org.neo4j.bolt.runtime.StatementMetadata;
 import org.neo4j.bolt.runtime.StatementProcessor;
+import org.neo4j.bolt.v1.runtime.BoltAuthenticationHelper;
 import org.neo4j.bolt.v1.runtime.bookmarking.Bookmark;
 import org.neo4j.bolt.v3.messaging.request.CommitMessage;
 import org.neo4j.bolt.v3.messaging.request.RollbackMessage;
@@ -88,7 +89,13 @@ public class TransactionReadyState extends FailSafeBoltStateMachineState
     {
         long start = context.clock().millis();
         StatementProcessor statementProcessor = context.connectionState().getStatementProcessor();
-        StatementMetadata statementMetadata = statementProcessor.run( message.statement(), message.params() );
+        // NOTE:
+        StatementMetadata statementMetadata;
+        if (BoltAuthenticationHelper.IS_DISPATCHER_NODE){
+             statementMetadata = statementProcessor.run( message.statement(), message.params(), null, null, null );
+        }else{
+             statementMetadata = statementProcessor.run( message.statement(), message.params() );
+        }
         long end = context.clock().millis();
 
         context.connectionState().onMetadata( FIELDS_KEY, stringArray( statementMetadata.fieldNames() ) );

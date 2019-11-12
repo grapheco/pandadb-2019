@@ -17,6 +17,8 @@ class PooledGNodeSelector extends GNodeSelector with GNodeListListener {
 
   override def chooseWriteNode(): Driver = cachedWriteDrivers.values.toSeq.apply(rand.nextInt(cachedWriteDrivers.size))
 
+  override def chooseAllNodes(): List[Driver] = cachedReadDrivers.values.toList ++: cachedWriteDrivers.values.toList
+
   val cachedReadDrivers = mutable.Map[NodeAddress, Driver]();
 
   val cachedWriteDrivers = mutable.Map[NodeAddress, Driver]();

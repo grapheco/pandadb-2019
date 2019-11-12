@@ -63,4 +63,7 @@ trait GNodeSelector {
   def chooseReadNode(): Driver;
 
   def chooseWriteNode(): Driver;
+
+  // silly func to keep consistency
+  def chooseAllNodes(): List[Driver];
 }
