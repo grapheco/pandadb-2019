@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>graiphdb-parent</artifactId>
+        <groupId>cn.graiph</groupId>
+        <version>${graiph.version}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.graiph</groupId>
+    <artifactId>graiph-server</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>graiph-commons</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>neo4j-hacking</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>graiph-blob-feature</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>external-properties</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>graiph-driver</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j.app</groupId>
+            <artifactId>neo4j-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-parser-combinators_2.11</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+    </dependencies>
+</project>

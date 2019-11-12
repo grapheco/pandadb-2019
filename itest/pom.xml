@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>graiphdb-parent</artifactId>
+        <groupId>cn.graiph</groupId>
+        <version>${graiph.version}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.graiph</groupId>
+    <artifactId>itest</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-parser-combinators_2.11</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>neo4j-hacking</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>graiph-blob-feature</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>external-properties</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>graiph-server</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>graiph-driver</artifactId>
+            <version>${graiph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_${scala.compat.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>cn.graiph</groupId>
+            <artifactId>aipm-library</artifactId>
+            <version>${graiph.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+</project>
