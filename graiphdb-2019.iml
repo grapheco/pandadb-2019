@@ -23,6 +23,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/graiph-driver/scala" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/graiph-database/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/aipm/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/graiph-java-driver/src/main/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/graiph-java-driver/src/main/java" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/src/graiph-driver" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
