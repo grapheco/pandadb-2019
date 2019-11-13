@@ -36,4 +36,5 @@
             <artifactId>java-string-similarity</artifactId>
         </dependency>
     </dependencies>
+
 </project>
