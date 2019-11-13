@@ -7,7 +7,7 @@
     <groupId>cn.graiph</groupId>
     <artifactId>graiphdb-parent</artifactId>
     <packaging>pom</packaging>
-    <version>${graiph.version}</version>
+    <version>0.0.2</version>
     <modules>
         <module>graiph-driver</module>
         <module>graiph-blob-commons</module>
@@ -18,6 +18,7 @@
         <module>itest</module>
         <module>graiph-commons</module>
         <module>neo4j-hacking</module>
+        <module>graiph-java-driver</module>
     </modules>
 
     <properties>
@@ -140,11 +141,6 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpmime</artifactId>
                 <version>4.5.7</version>
-            </dependency>
-            <dependency>
-                <groupId>org.neo4j.driver</groupId>
-                <artifactId>neo4j-java-driver</artifactId>
-                <version>2.0.0-alpha03</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
