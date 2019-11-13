@@ -6,6 +6,7 @@
         <groupId>cn.graiph</groupId>
         <artifactId>graiphdb-parent</artifactId>
         <version>0.0.2</version>
+        <relativePath>../</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
