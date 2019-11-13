@@ -10,22 +10,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.graiph</groupId>
-    <artifactId>neo4j-hacking</artifactId>
-    <description>plugins, configuration...</description>
+    <artifactId>graiph-java-driver</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j</artifactId>
-        </dependency>
-        <dependency>
             <groupId>cn.graiph</groupId>
-            <artifactId>graiph-commons</artifactId>
+            <artifactId>blob-commons</artifactId>
             <version>${graiph.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.neo4j.driver/neo4j-java-driver -->
+        <dependency>
+            <groupId>org.neo4j.driver</groupId>
+            <artifactId>neo4j-java-driver</artifactId>
+            <version>1.7.5</version>
         </dependency>
     </dependencies>
 </project>

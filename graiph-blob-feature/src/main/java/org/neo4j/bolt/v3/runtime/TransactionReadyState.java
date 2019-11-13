@@ -91,7 +91,8 @@ public class TransactionReadyState extends FailSafeBoltStateMachineState
         StatementProcessor statementProcessor = context.connectionState().getStatementProcessor();
         // NOTE:
         StatementMetadata statementMetadata;
-        if (BoltAuthenticationHelper.IS_DISPATCHER_NODE){
+        //if (BoltAuthenticationHelper.IS_DISPATCHER_NODE){
+        if(true){
              statementMetadata = statementProcessor.run( message.statement(), message.params(), null, null, null );
         }else{
              statementMetadata = statementProcessor.run( message.statement(), message.params() );
