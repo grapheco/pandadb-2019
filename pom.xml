@@ -9,7 +9,7 @@
     <packaging>pom</packaging>
     <version>0.0.2</version>
     <modules>
-        <module>graiph-driver</module>
+        <module>graiph-java-driver</module>
         <module>graiph-blob-commons</module>
         <module>graiph-blob-feature</module>
         <module>graiph-aipm</module>

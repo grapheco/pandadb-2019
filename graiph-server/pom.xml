@@ -36,7 +36,7 @@
         </dependency>
         <dependency>
             <groupId>cn.graiph</groupId>
-            <artifactId>graiph-driver</artifactId>
+            <artifactId>graiph-java-driver</artifactId>
             <version>${graiph.version}</version>
         </dependency>
         <dependency>

@@ -2,7 +2,7 @@ package cn.graiph.cnode
 
 import java.io.FileInputStream
 import java.util.Properties
-import org.neo4j.driver.Driver
+import org.neo4j.driver.v1.Driver
 
 /**
   * Created by bluejoe on 2019/11/4.
