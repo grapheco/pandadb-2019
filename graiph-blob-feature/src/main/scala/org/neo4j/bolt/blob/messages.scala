@@ -86,7 +86,6 @@ class GetBlobMessage(val blobId: String) extends RequestMessage with RequestMess
 
         override def close(): Unit = {
           //TODO
-          println("server side: CLOSE!!!!!!!!");
         }
       }, true);
     }

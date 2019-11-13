@@ -18,17 +18,17 @@
  */
 package org.neo4j.driver.internal.async.inbound;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.DecoderException;
+import org.neo4j.driver.internal.shaded.io.netty.buffer.ByteBuf;
+import org.neo4j.driver.internal.shaded.io.netty.channel.ChannelHandlerContext;
+import org.neo4j.driver.internal.shaded.io.netty.channel.SimpleChannelInboundHandler;
+import org.neo4j.driver.internal.shaded.io.netty.handler.codec.DecoderException;
 
 import org.neo4j.driver.internal.logging.ChannelActivityLogger;
 import org.neo4j.driver.internal.messaging.MessageFormat;
 import org.neo4j.driver.Logger;
 import org.neo4j.driver.Logging;
 
-import static io.netty.buffer.ByteBufUtil.hexDump;
+import static org.neo4j.driver.internal.shaded.io.netty.buffer.ByteBufUtil.hexDump;
 import static java.util.Objects.requireNonNull;
 import static org.neo4j.driver.internal.async.connection.ChannelAttributes.messageDispatcher;
 

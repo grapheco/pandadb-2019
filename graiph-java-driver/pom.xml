@@ -15,11 +15,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-handler</artifactId>
-            <version>4.1.22.Final</version>
-        </dependency>
-        <dependency>
             <groupId>cn.graiph</groupId>
             <artifactId>blob-commons</artifactId>
             <version>${graiph.version}</version>

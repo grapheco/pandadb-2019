@@ -18,7 +18,7 @@
  */
 package org.neo4j.driver.internal.async.inbound;
 
-import io.netty.buffer.ByteBuf;
+import org.neo4j.driver.internal.shaded.io.netty.buffer.ByteBuf;
 
 import org.neo4j.driver.internal.packstream.PackInput;
 
