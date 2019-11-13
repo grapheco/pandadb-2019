@@ -17,7 +17,7 @@ object LauncherTest {
      */
 
     // 1. change the serialNum from 1 to 2 in different IDEA
-    //launchAsReadNode(1)
+    launchAsReadNode(1)
 
     // 2. change the serialNum from 3 to 4 in different IDEA
     // launchAsWriteNode(3)

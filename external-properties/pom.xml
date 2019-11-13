@@ -33,4 +33,5 @@
             <artifactId>solr-solrj</artifactId>
         </dependency>
     </dependencies>
+
 </project>
