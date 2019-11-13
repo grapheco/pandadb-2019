@@ -25,7 +25,6 @@ import cn.graiph.blob.Blob
 import cn.graiph.driver.RemoteGraiph
 import cn.graiph.server.GraiphServer
 import org.apache.commons.io.IOUtils
-import org.neo4j.bolt.v1.runtime.BoltAuthenticationHelper
 import org.neo4j.driver._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
@@ -183,9 +182,16 @@ class RemoteGraiphTest extends FunSuite with BeforeAndAfter with TestBase {
     });
 
     //test http
+    conn.querySingleObject("return <https://www.baidu.com/img/baidu_jgylogo3.gif>", (result: Record) => {
+      val blob2 = result.get(0).asBlob
+      assert(IOUtils.toByteArray(new URL("https://www.baidu.com/img/baidu_jgylogo3.gif")) ===
+        blob2.toBytes());
+    });
+
+    //test large files
     conn.querySingleObject("return <http://img.zcool.cn/community/049f6b5674911500000130b7f00a87.jpg>", (result: Record) => {
       val blob2 = result.get(0).asBlob
-
+      assert(blob2.length > 10240)
       assert(IOUtils.toByteArray(new URL("http://img.zcool.cn/community/049f6b5674911500000130b7f00a87.jpg")) ===
         blob2.toBytes());
     });
