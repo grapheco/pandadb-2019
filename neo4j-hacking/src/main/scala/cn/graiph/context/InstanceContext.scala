@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cn.graiph.db
+package cn.graiph.context
 
 import cn.graiph.util.ReflectUtils._
 import cn.graiph.util.{ConfigUtils, Configuration, ContextMap}

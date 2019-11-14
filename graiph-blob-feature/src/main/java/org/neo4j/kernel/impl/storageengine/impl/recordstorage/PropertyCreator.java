@@ -19,7 +19,7 @@
  */
 package org.neo4j.kernel.impl.storageengine.impl.recordstorage;
 
-import cn.graiph.db.InstanceContext;
+import cn.graiph.context.InstanceContext;
 import org.neo4j.kernel.impl.store.DynamicRecordAllocator;
 import org.neo4j.kernel.impl.store.PropertyStore;
 import org.neo4j.kernel.impl.store.PropertyType;

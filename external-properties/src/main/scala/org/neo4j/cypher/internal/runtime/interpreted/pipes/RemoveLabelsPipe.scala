@@ -19,13 +19,14 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
+import cn.graiph.context.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.runtime.interpreted.CastSupport
 import org.neo4j.cypher.internal.runtime.interpreted.GraphElementPropertyFunctions
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.values.storable.Values
 import org.neo4j.values.virtual.VirtualNodeValue
-import org.neo4j.kernel.impl.{CustomPropertyNodeStoreHolder,CustomPropertyNodeModification}
+import org.neo4j.kernel.impl.{CustomPropertyNodeStore, CustomPropertyNodeModification}
 
 case class RemoveLabelsPipe(src: Pipe, variable: String, labels: Seq[LazyLabel])
                            (val id: Id = Id.INVALID_ID)
@@ -45,13 +46,15 @@ case class RemoveLabelsPipe(src: Pipe, variable: String, labels: Seq[LazyLabel])
     // state.query.removeLabelsFromNode(nodeId, labelIds.iterator)
 
     // NOTE: graiph
-    if(!CustomPropertyNodeStoreHolder.isDefined) {
+    val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+
+    if(!maybeStore.isDefined) {
       val labelIds = labels.flatMap(_.getOptId(state.query)).map(_.id)
       state.query.removeLabelsFromNode(nodeId, labelIds.iterator)
     }
     else{
       val labelNames = labels.map(x=>x.name)
-      CustomPropertyNodeStoreHolder.get.updateNodes(Some(
+      maybeStore.get.updateNodes(Some(
         new CustomPropertyNodeModification(nodeId,null,null,null,null,labelNames)
       ))
     }

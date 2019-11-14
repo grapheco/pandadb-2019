@@ -3,15 +3,16 @@ package cn.graiph.cypherplus
 import java.io.File
 
 import cn.graiph.blob.CypherPluginRegistry
-import cn.graiph.db.{CustomDatabaseLifecycleService, CustomDatabaseLifecycleServiceContext, CustomDatabaseLifecycleServiceFactory}
+import cn.graiph.context.InstanceBoundService
+import cn.graiph.context.{InstanceBoundServiceContext, InstanceBoundServiceFactory}
 import cn.graiph.util.Logging
 import org.springframework.context.support.FileSystemXmlApplicationContext
 
 /**
   * Created by bluejoe on 2019/11/7.
   */
-class SemanticOperatorServiceFactory extends CustomDatabaseLifecycleServiceFactory with Logging {
-  def create(ctx: CustomDatabaseLifecycleServiceContext): Option[CustomDatabaseLifecycleService] = {
+class SemanticOperatorServiceFactory extends InstanceBoundServiceFactory with Logging {
+  def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {
     val configuration = ctx.configuration;
     val cypherPluginRegistry = configuration.getRaw("blob.plugins.conf").map(x => {
       val xml = new File(x);

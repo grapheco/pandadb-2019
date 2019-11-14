@@ -19,6 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted
 
+import cn.graiph.context.InstanceContext
 import cn.graiph.util.Logging
 import org.neo4j.cypher.internal.ir.v3_5.VarPatternLength
 import org.neo4j.cypher.internal.planner.v3_5.spi.TokenContext
@@ -36,10 +37,9 @@ import org.neo4j.cypher.internal.v3_5.logical.plans.{ColumnOrder, Limit => Limit
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.cypher.internal.v3_5.util.{Eagerly, InternalException}
 
-import org.neo4j.kernel.impl.Settings
+import org.neo4j.kernel.impl.{CustomPropertyNodeStore, Settings}
 import org.neo4j.values.AnyValue
 import org.neo4j.values.virtual.{NodeValue, RelationshipValue}
-import org.neo4j.kernel.impl.CustomPropertyNodeStoreHolder
 
 /**
   * Responsible for turning a logical plan with argument pipes into a new pipe.
@@ -129,7 +129,8 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
         // NOTE: graiph
         //NOTE: push down predicate
         //if (Settings._hookEnabled) {
-        if(CustomPropertyNodeStoreHolder.isDefined){
+        val maybeStore = InstanceContext.of(plan).getOption[CustomPropertyNodeStore]();
+        if(maybeStore.isDefined){
           source match {
             case x: AllNodesScanPipe =>
               x.predicatePushDown(predicateExpression);
@@ -142,7 +143,8 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
 
       case Expand(_, fromName, dir, types: Seq[RelTypeName], toName, relName, ExpandAll) =>
         // NOTE: graiph
-        if(CustomPropertyNodeStoreHolder.isDefined){
+        val maybeStore = InstanceContext.of(plan).getOption[CustomPropertyNodeStore]();
+        if(maybeStore.isDefined){
           (Settings._patternMatchFirst, source) match {
             //NOTE: yes! we use pattern match first!!
             case (true, FilterPipe(source2, predicate2)) => {

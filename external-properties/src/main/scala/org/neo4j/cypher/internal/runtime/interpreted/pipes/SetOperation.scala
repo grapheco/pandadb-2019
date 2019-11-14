@@ -19,6 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
+import cn.graiph.context.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.Expression
 import org.neo4j.cypher.internal.runtime.{Operations, QueryContext}
@@ -30,7 +31,7 @@ import org.neo4j.values.virtual._
 
 import scala.collection.Map
 import scala.collection.mutable.ArrayBuffer
-import org.neo4j.kernel.impl.{CustomPropertyNodeModification, CustomPropertyNodeStoreHolder}
+import org.neo4j.kernel.impl.{CustomPropertyNodeStore, CustomPropertyNodeModification}
 import org.neo4j.values.storable.{TextValue, Value}
 
 
@@ -144,7 +145,9 @@ case class SetNodePropertyOperation(nodeName: String, propertyKey: LazyPropertyK
 
   // NOTE: graiph
   override def set(executionContext: ExecutionContext, state: QueryState) = {
-    if(!CustomPropertyNodeStoreHolder.isDefined) {
+    val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+
+    if(!maybeStore.isDefined) {
       super.set(executionContext, state)
     }
     else{
@@ -163,14 +166,14 @@ case class SetNodePropertyOperation(nodeName: String, propertyKey: LazyPropertyK
           val value: Value = makeValueNeoSafe(expression(executionContext, state))
 
           if (value == Values.NO_VALUE) {
-            CustomPropertyNodeStoreHolder.get.updateNodes(Some(
+            maybeStore.get.updateNodes(Some(
               new CustomPropertyNodeModification(itemId,null,Some(propertyName),null,null,  null)
             ))
           }
           else{
             val field2Update = scala.collection.immutable.Map(propertyName->value)
             println(field2Update, item)
-            CustomPropertyNodeStoreHolder.get.updateNodes(Some(
+            maybeStore.get.updateNodes(Some(
               new CustomPropertyNodeModification(itemId,null,null,field2Update,null,  null)
             ))
           }

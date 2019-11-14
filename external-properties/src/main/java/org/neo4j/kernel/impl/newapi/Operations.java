@@ -19,6 +19,7 @@
  */
 package org.neo4j.kernel.impl.newapi;
 
+import cn.graiph.context.InstanceContext;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -79,6 +80,7 @@ import org.neo4j.kernel.api.schema.constraints.UniquenessConstraintDescriptor;
 import org.neo4j.kernel.api.txstate.ExplicitIndexTransactionState;
 import org.neo4j.kernel.api.txstate.TransactionState;
 import org.neo4j.kernel.configuration.Config;
+import org.neo4j.kernel.impl.CustomPropertyNodeStore;
 import org.neo4j.kernel.impl.api.KernelTransactionImplementation;
 import org.neo4j.kernel.impl.api.index.IndexingService;
 import org.neo4j.kernel.impl.api.state.ConstraintIndexCreator;
@@ -92,7 +94,7 @@ import org.neo4j.storageengine.api.schema.IndexDescriptor;
 import org.neo4j.storageengine.api.schema.IndexDescriptorFactory;
 import org.neo4j.values.storable.Value;
 import org.neo4j.values.storable.Values;
-import org.neo4j.kernel.impl.CustomPropertyNodeStoreHolder;
+import scala.Option;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -584,7 +586,9 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             autoIndexing.nodes().propertyAdded( this, node, propertyKey, value );
             // NOTE: graiph
             // ktx.txState().nodeDoAddProperty( node, propertyKey, value );
-            if(!CustomPropertyNodeStoreHolder.isDefined()){
+            Option<CustomPropertyNodeStore> maybeStore = InstanceContext.of(config).getOption(CustomPropertyNodeStore.class.getName());
+
+            if(!maybeStore.isDefined()){
                 ktx.txState().nodeDoAddProperty( node, propertyKey, value );
             }
             // END-NOTE
@@ -603,7 +607,9 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
                 //the value has changed to a new value
                 // NOTE: graiph
                 // ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
-                if(!CustomPropertyNodeStoreHolder.isDefined()){
+                Option<CustomPropertyNodeStore> maybeStore = InstanceContext.of(config).getOption(CustomPropertyNodeStore.class.getName());
+
+                if(!maybeStore.isDefined()){
                     ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
                 }
                 // END-NOTE

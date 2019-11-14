@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.function.ToIntFunction;
 
 import cn.graiph.blob.Blob;
-import cn.graiph.db.InstanceContext;
+import cn.graiph.context.InstanceContext;
 import cn.graiph.util.ContextMap;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;

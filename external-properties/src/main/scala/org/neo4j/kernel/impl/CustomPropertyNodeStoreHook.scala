@@ -1,5 +1,6 @@
 package org.neo4j.kernel.impl
 
+import cn.graiph.context.InstanceContext
 import org.eclipse.collections.api.block.function.primitive.{IntToObjectFunction, LongToObjectFunction}
 import org.neo4j.kernel.api.{KernelTransaction, TransactionHook}
 import org.neo4j.storageengine.api.StorageReader
@@ -39,8 +40,10 @@ class CustomPropertyNodeStoreHook extends TransactionHook[TransactionHook.Outcom
         }
       }).toList
 
+      val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+
       if (!docsToBeAdded.isEmpty) {
-        CustomPropertyNodeStoreHolder.get.addNodes(docsToBeAdded);
+        maybeStore.get.addNodes(docsToBeAdded);
       }
 
       //delete removed nodes
@@ -50,7 +53,7 @@ class CustomPropertyNodeStoreHook extends TransactionHook[TransactionHook.Outcom
       }).toList
 
       if (!docsToBeDeleted.isEmpty) {
-        CustomPropertyNodeStoreHolder.get.deleteNodes(docsToBeDeleted)
+        maybeStore.get.deleteNodes(docsToBeDeleted)
       }
 
       //TODO-1: update modified nodes
@@ -87,7 +90,7 @@ class CustomPropertyNodeStoreHook extends TransactionHook[TransactionHook.Outcom
           CustomPropertyNodeModification(id, fieldsAdded, fieldsRemoved, fieldsUpdated, labelsAdded, labelsRemoved)
         })
 
-        CustomPropertyNodeStoreHolder.get.updateNodes(docsToBeUpdated)
+        maybeStore.get.updateNodes(docsToBeUpdated)
       }
     }
 

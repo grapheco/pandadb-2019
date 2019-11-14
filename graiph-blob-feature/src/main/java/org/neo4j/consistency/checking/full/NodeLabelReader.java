@@ -19,7 +19,7 @@
  */
 package org.neo4j.consistency.checking.full;
 
-import cn.graiph.db.InstanceContext;
+import cn.graiph.context.InstanceContext;
 import org.eclipse.collections.api.set.primitive.MutableLongSet;
 import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet;
 

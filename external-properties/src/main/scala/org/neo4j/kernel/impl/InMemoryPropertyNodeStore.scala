@@ -1,5 +1,6 @@
 package org.neo4j.kernel.impl
 
+import cn.graiph.context.InstanceBoundServiceContext
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.values.AnyValue
 import org.neo4j.values.storable.NumberValue
@@ -9,7 +10,14 @@ import scala.collection.mutable
 /**
   * Created by bluejoe on 2019/10/7.
   */
-class InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
+class InMemoryPropertyNodeStoreFactory extends PropertyStoreFactory {
+  override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore = InMemoryPropertyNodeStore;
+}
+
+/**
+  * used for unit test
+  */
+object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   val nodes = mutable.Map[Long, CustomPropertyNode]();
 
   def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode] = {
@@ -41,7 +49,6 @@ class InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     }
   }
 
-
   override def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
     nodes --= docsToBeDeleted
   }
@@ -50,20 +57,24 @@ class InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     nodes ++= docsToAdded.map(x => x.id -> x)
   }
 
-  override def init(): Unit = {
-  }
-
   override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
 
   }
 
   override def getNodesByLabel(label: String): Iterable[CustomPropertyNode] = {
     val res = mutable.ArrayBuffer[CustomPropertyNode]()
-    nodes.map(n=>{
-      if(n._2.labels.toArray.contains(label) )
+    nodes.map(n => {
+      if (n._2.labels.toArray.contains(label))
         res.append(n._2)
     })
     res
   }
 
+  override def start(ctx: InstanceBoundServiceContext): Unit = {
+    nodes.clear()
+  }
+
+  override def stop(ctx: InstanceBoundServiceContext): Unit = {
+    nodes.clear()
+  }
 }

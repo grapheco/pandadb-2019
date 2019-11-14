@@ -21,7 +21,7 @@ package org.neo4j.kernel.impl.storageengine.impl.recordstorage;
 
 import java.nio.ByteBuffer;
 
-import cn.graiph.db.InstanceContext;
+import cn.graiph.context.InstanceContext;
 import org.neo4j.io.pagecache.PageCursor;
 import org.neo4j.kernel.impl.blob.StoreBlobIO;
 import org.neo4j.kernel.impl.store.GeometryType;
