@@ -2,7 +2,7 @@ package cn.graiph.cnode
 import java.io.{File, FileInputStream}
 import java.util.Properties
 
-import cn.graiph.server.GraiphServer
+import cn.graiph.server.GNodeServer
 import org.neo4j.bolt.v1.runtime.BoltAuthenticationHelper
 
 trait Launcher {
@@ -19,7 +19,7 @@ class GNodeLauncher(dbPath: String, confPath:String) extends Launcher {
   }
 
   def startServer(): Unit ={
-    GraiphServer.startServer(new File(dbPath), new File(confPath))
+    GNodeServer.startServer(new File(dbPath), new File(confPath))
   }
 
   def registerAsReadNode(): Unit = {
@@ -39,7 +39,7 @@ class CNodeLauncher(dbPath: String, confPath: String){
   val zkNodeList = new ZKGNodeList(new ZKConstants(confPath))
 
   def startServer(): Unit ={
-    GraiphServer.startServer(new File(dbPath), new File(confPath))
+    GNodeServer.startServer(new File(dbPath), new File(confPath))
     //zkNodeList.addListener(new PooledGNodeSelector)
     zkNodeList.addListener(BoltAuthenticationHelper.SELECTOR.asInstanceOf[PooledGNodeSelector])
   }

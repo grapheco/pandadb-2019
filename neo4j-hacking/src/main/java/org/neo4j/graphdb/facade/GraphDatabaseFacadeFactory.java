@@ -19,7 +19,7 @@
  */
 package org.neo4j.graphdb.facade;
 
-import cn.graiph.db.CustomDatabaseLifecycleServiceFactoryRegistryStarter;
+import cn.graiph.context.InstanceBoundServiceFactoryRegistryHolder;
 import org.neo4j.bolt.BoltServer;
 import org.neo4j.dbms.database.DatabaseManager;
 import org.neo4j.graphdb.DependencyResolver;
@@ -180,7 +180,7 @@ public class GraphDatabaseFacadeFactory
         platform.dependencies.satisfyDependency( new NonTransactionalDbmsOperations( procedures ) );
 
         //blob support
-        platform.life.add( new CustomDatabaseLifecycleServiceFactoryRegistryStarter( procedures, storeDir, config, databaseInfo ) );
+        platform.life.add( new InstanceBoundServiceFactoryRegistryHolder( procedures, storeDir, config, databaseInfo ) );
 
         Logger msgLog = platform.logging.getInternalLog( getClass() ).infoLogger();
         DatabaseManager databaseManager = edition.createDatabaseManager( graphDatabaseFacade, platform, edition, procedures, msgLog );

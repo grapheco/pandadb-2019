@@ -23,17 +23,17 @@ import java.net.URL
 
 import cn.graiph.blob.Blob
 import cn.graiph.driver.RemoteGraiph
-import cn.graiph.server.GraiphServer
+import cn.graiph.server.GNodeServer
 import org.apache.commons.io.IOUtils
 import org.neo4j.driver._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 class RemoteGraiphTest extends FunSuite with BeforeAndAfter with TestBase {
-  var server: GraiphServer = _;
+  var server: GNodeServer = _;
 
   before {
     setupNewDatabase(new File("./output/testdb/data/databases/graph.db"));
-    server = GraiphServer.startServer(testDbDir, new File(testConfPath));
+    server = GNodeServer.startServer(testDbDir, new File(testConfPath));
   }
 
   after {
@@ -189,13 +189,13 @@ class RemoteGraiphTest extends FunSuite with BeforeAndAfter with TestBase {
     });
 
     //test large files
-    conn.querySingleObject("return <http://img.zcool.cn/community/049f6b5674911500000130b7f00a87.jpg>", (result: Record) => {
+    conn.querySingleObject("return <http://img.mp.itc.cn/upload/20160512/5a4ccef302664806bb679a29c82209c5.jpg>", (result: Record) => {
       val blob2 = result.get(0).asBlob
       assert(blob2.length > 10240)
       val bs = blob2.toBytes()
       assert(blob2.length === bs.length)
 
-      val bs2 = IOUtils.toByteArray(new URL("http://img.zcool.cn/community/049f6b5674911500000130b7f00a87.jpg"))
+      val bs2 = IOUtils.toByteArray(new URL("http://img.mp.itc.cn/upload/20160512/5a4ccef302664806bb679a29c82209c5.jpg"))
       println(bs2.toList)
       println(bs.toList)
 

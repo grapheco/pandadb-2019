@@ -1,5 +1,6 @@
 package org.neo4j.kernel.impl
 
+import cn.graiph.context.{InstanceBoundService, InstanceBoundServiceContext}
 import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 import org.neo4j.values.storable.{Value, Values}
 import org.neo4j.values.virtual.{NodeValue, VirtualValues}
@@ -7,14 +8,16 @@ import org.neo4j.values.virtual.{NodeValue, VirtualValues}
 /**
   * Created by bluejoe on 2019/10/7.
   */
-trait CustomPropertyNodeStore {
+trait PropertyStoreFactory {
+  def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore;
+}
+
+trait CustomPropertyNodeStore extends InstanceBoundService {
   def deleteNodes(docsToBeDeleted: Iterable[Long]);
 
   def addNodes(docsToAdded: Iterable[CustomPropertyNode]);
 
   def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]);
-
-  def init();
 
   def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode];
 

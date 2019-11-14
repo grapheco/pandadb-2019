@@ -19,7 +19,7 @@
  */
 package org.neo4j.kernel.impl.store;
 
-import cn.graiph.db.InstanceContext;
+import cn.graiph.context.InstanceContext;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.impl.store.allocator.ReusableRecordsCompositeAllocator;

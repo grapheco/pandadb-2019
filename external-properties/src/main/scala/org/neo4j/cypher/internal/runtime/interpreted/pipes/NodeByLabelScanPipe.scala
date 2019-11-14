@@ -19,11 +19,12 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
+import cn.graiph.context.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 
 import scala.collection.mutable
-import org.neo4j.kernel.impl.CustomPropertyNodeStoreHolder
+import org.neo4j.kernel.impl.{CustomPropertyNodeStore}
 import org.neo4j.values.virtual.NodeValue
 
 case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
@@ -43,7 +44,9 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
     }
     */
     // NOTE: graiph
-    if(!CustomPropertyNodeStoreHolder.isDefined) {
+    val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+
+    if(!maybeStore.isDefined) {
       label.getOptId(state.query) match {
         case Some(labelId) =>
           val nodes = state.query.getNodesByLabel(labelId.id)
@@ -58,7 +61,7 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
       label.getOptId(state.query) match {
         case Some(labelId) =>
           //val nodes = state.query.getNodesByLabel(labelId.id)
-          val customPropertyNodes = CustomPropertyNodeStoreHolder.get.getNodesByLabel(label.name)
+          val customPropertyNodes = maybeStore.get.getNodesByLabel(label.name)
           val nodesArray = mutable.ArrayBuffer[NodeValue]()
           customPropertyNodes.foreach(v=>{
             nodesArray.append(v.toNeo4jNodeValue())

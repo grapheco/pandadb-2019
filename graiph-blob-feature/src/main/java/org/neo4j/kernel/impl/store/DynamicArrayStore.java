@@ -31,7 +31,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 
 import cn.graiph.blob.Blob;
-import cn.graiph.db.InstanceContext;
+import cn.graiph.context.InstanceContext;
 import cn.graiph.util.ContextMap;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.io.pagecache.PageCache;

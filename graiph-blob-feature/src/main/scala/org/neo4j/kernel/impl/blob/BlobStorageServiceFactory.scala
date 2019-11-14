@@ -19,36 +19,21 @@
  */
 package org.neo4j.kernel.impl.blob
 
-import java.io.File
-
-import cn.graiph.db.{CustomDatabaseLifecycleService, CustomDatabaseLifecycleServiceContext, CustomDatabaseLifecycleServiceFactory}
+import cn.graiph.context.InstanceBoundService
+import cn.graiph.context.{InstanceBoundServiceContext, InstanceBoundServiceFactory}
 import cn.graiph.util.Logging
-import org.neo4j.graphdb.factory.GraphDatabaseSettings
 import org.neo4j.kernel.impl.proc.Procedures
 
-class BlobStorageServiceFactory extends CustomDatabaseLifecycleServiceFactory with Logging {
-  override def create(ctx: CustomDatabaseLifecycleServiceContext): Option[CustomDatabaseLifecycleService] = Some(new BlobStorageService(ctx))
-
-  class BlobStorageService(ctx: CustomDatabaseLifecycleServiceContext) extends CustomDatabaseLifecycleService {
+class BlobStorageServiceFactory extends InstanceBoundServiceFactory with Logging {
+  override def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {
     val blobStorage = BlobStorage.create(ctx.configuration);
     ctx.instanceContext.put[BlobStorage](blobStorage);
-
-    override def stop(ctx: CustomDatabaseLifecycleServiceContext): Unit = {
-      blobStorage.disconnect();
-      logger.info(s"blob storage disconnected: $blobStorage");
-    }
-
-    override def start(ctx: CustomDatabaseLifecycleServiceContext): Unit = {
-      blobStorage.initialize(new File(ctx.storeDir,
-        ctx.neo4jConf.get(GraphDatabaseSettings.active_database)),
-        ctx.configuration);
-    }
+    Some(blobStorage)
   }
-
 }
 
-class DefaultBlobFunctionsServiceFactory extends CustomDatabaseLifecycleServiceFactory with Logging {
-  override def create(ctx: CustomDatabaseLifecycleServiceContext): Option[CustomDatabaseLifecycleService] = {
+class DefaultBlobFunctionsServiceFactory extends InstanceBoundServiceFactory with Logging {
+  override def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {
     registerProcedure(ctx.proceduresService, classOf[DefaultBlobFunctions]);
     None
   }

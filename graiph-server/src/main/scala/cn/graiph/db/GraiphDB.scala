@@ -2,6 +2,7 @@ package cn.graiph.db
 
 import java.io.File
 
+import cn.graiph.context.InstanceBoundServiceFactoryRegistry
 import cn.graiph.cypherplus.SemanticOperatorServiceFactory
 import cn.graiph.driver.CypherService
 import cn.graiph.util.Logging
@@ -11,11 +12,13 @@ import org.neo4j.kernel.impl.blob.{DefaultBlobFunctionsServiceFactory, BlobStora
 
 /**
   * Created by bluejoe on 2019/7/17.
+ *
+  * @deprecated
   */
 object GraiphDB extends Logging with Touchable {
-  CustomDatabaseLifecycleServiceFactoryRegistry.register[BlobStorageServiceFactory];
-  CustomDatabaseLifecycleServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
-  CustomDatabaseLifecycleServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
+  InstanceBoundServiceFactoryRegistry.register[BlobStorageServiceFactory];
+  InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
+  InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
 
   def openDatabase(dbDir: File, propertiesFile: File): GraphDatabaseService = {
     val builder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbDir);

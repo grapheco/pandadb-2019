@@ -22,12 +22,15 @@ package org.neo4j.kernel.impl.blob
 import java.io.{File, FileInputStream, FileOutputStream, InputStream}
 import java.util.UUID
 
-import cn.graiph.blob.{MimeType, BlobId, Blob, InputStreamSource}
+import cn.graiph.blob.{Blob, BlobId, InputStreamSource, MimeType}
+import cn.graiph.context.InstanceBoundService
+import cn.graiph.context.InstanceBoundServiceContext
+import cn.graiph.util.ConfigUtils._
+import cn.graiph.util.StreamUtils._
 import cn.graiph.util._
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, IOUtils}
-import StreamUtils._
-import ConfigUtils._
+
 import scala.collection.JavaConversions._
 
 trait BlobStorage extends BatchBlobValueStorage {
@@ -38,7 +41,7 @@ trait BlobStorage extends BatchBlobValueStorage {
   def delete(id: BlobId): Unit;
 }
 
-trait BatchBlobValueStorage extends Closable {
+trait BatchBlobValueStorage extends InstanceBoundService {
   def saveBatch(blobs: Iterable[Blob]): Iterable[BlobId];
 
   def loadBatch(ids: Iterable[BlobId]): Iterable[Option[Blob]];
@@ -46,12 +49,6 @@ trait BatchBlobValueStorage extends Closable {
   def deleteBatch(ids: Iterable[BlobId]): Unit;
 
   def iterator(): Iterator[(BlobId, Blob)];
-}
-
-trait Closable {
-  def initialize(storeDir: File, conf: Configuration): Unit;
-
-  def disconnect(): Unit;
 }
 
 object BlobStorage extends Logging {
@@ -83,11 +80,11 @@ object BlobStorage extends Logging {
 
       override def loadBatch(ids: Iterable[BlobId]): Iterable[Option[Blob]] = bbvs.loadBatch(ids)
 
-      override def disconnect(): Unit = bbvs.disconnect()
-
-      override def initialize(storeDir: File, conf: Configuration): Unit = bbvs.initialize(storeDir, conf)
-
       override def iterator(): Iterator[(BlobId, Blob)] = bbvs.iterator();
+
+      override def start(ctx: InstanceBoundServiceContext): Unit = bbvs.start(ctx)
+
+      override def stop(ctx: InstanceBoundServiceContext): Unit = bbvs.stop(ctx)
     };
   }
 
@@ -164,14 +161,15 @@ object BlobStorage extends Logging {
       (blobId, blob);
     }
 
-    override def initialize(storeDir: File, conf: Configuration): Unit = {
-      val baseDir: File = storeDir; //new File(conf.getRaw("unsupported.dbms.directories.neo4j_home").get());
-      _rootDir = conf.getAsFile("blob.storage.file.dir", baseDir, new File(baseDir, "/blob"));
+    override def start(ctx: InstanceBoundServiceContext): Unit = {
+      val baseDir: File = ctx.storeDir; //new File(conf.getRaw("unsupported.dbms.directories.neo4j_home").get());
+      _rootDir = ctx.configuration.getAsFile("blob.storage.file.dir", baseDir, new File(baseDir, "/blob"));
       _rootDir.mkdirs();
       logger.info(s"using storage dir: ${_rootDir.getCanonicalPath}");
     }
 
-    override def disconnect(): Unit = {
+    override def stop(ctx: InstanceBoundServiceContext): Unit = {
+
     }
 
     override def iterator(): Iterator[(BlobId, Blob)] = {

@@ -5,7 +5,7 @@ import org.junit.{Assert, Before, Test}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.{Label, RelationshipType}
 import org.neo4j.io.fs.FileUtils
-import org.neo4j.kernel.impl.{CustomPropertyNodeStoreHolder, InMemoryPropertyNodeStore, LoggingPropertiesStore, Settings}
+import org.neo4j.kernel.impl.{InMemoryPropertyNodeStoreFactory, InMemoryPropertyNodeStore, Settings}
 
 
 trait CreateQueryTestBase {
@@ -15,7 +15,9 @@ trait CreateQueryTestBase {
   def initdb(): Unit = {
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
-    val db = new GraphDatabaseFactory().newEmbeddedDatabase(new File("./output/testdb"))
+    val db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
+      setConfig("external.properties.store.factory",classOf[InMemoryPropertyNodeStoreFactory].getName).
+      newGraphDatabase()
     db.shutdown();
   }
 
@@ -35,8 +37,7 @@ trait CreateQueryTestBase {
 
 class CreateNodeQueryTest extends CreateQueryTestBase {
   Settings._hookEnabled = true;
-  val tmpns = new InMemoryPropertyNodeStore()
-  CustomPropertyNodeStoreHolder.hold(new LoggingPropertiesStore(tmpns));
+  val tmpns = InMemoryPropertyNodeStore
 
   @Test
   def test1(): Unit = {
@@ -47,6 +48,4 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     testQuery("MATCH (n)  RETURN n.name");
     Assert.assertEquals(3, tmpns.nodes.size)
   }
-
-
 }

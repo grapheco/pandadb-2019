@@ -19,7 +19,7 @@
  */
 package org.neo4j.kernel.impl.storageengine.impl.recordstorage;
 
-import cn.graiph.db.InstanceContext;
+import cn.graiph.context.InstanceContext;
 import org.neo4j.kernel.impl.store.record.*;
 import org.neo4j.kernel.impl.transaction.state.RecordAccess;
 import org.neo4j.kernel.impl.transaction.state.RecordAccess.RecordProxy;

@@ -1,11 +1,12 @@
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
+import cn.graiph.context.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.{Expression, ParameterExpression, Property}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.predicates.{GreaterThan, GreaterThanOrEqual}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.predicates.{LessThan, LessThanOrEqual, Equals}
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
-import org.neo4j.kernel.impl.CustomPropertyNodeStoreHolder
+import org.neo4j.kernel.impl.CustomPropertyNodeStore
 import org.neo4j.values.virtual.NodeValue
 
 case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends Pipe {
@@ -23,7 +24,9 @@ case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends P
     val baseContext = state.newExecutionContext(executionContextFactory)
     //state.query.nodeOps.all.map(n => executionContextFactory.copyWith(baseContext, ident, n))
     // NOTE: graiph
-    if(!CustomPropertyNodeStoreHolder.isDefined) {
+    val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+
+    if(!maybeStore.isDefined) {
       state.query.nodeOps.all.map(n => executionContextFactory.copyWith(baseContext, ident, n))
     }
     else {
@@ -32,31 +35,31 @@ case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends P
           predicate match {
             case GreaterThan(a: Property, b: ParameterExpression) => {
               val value = b.apply(baseContext, state)
-              CustomPropertyNodeStoreHolder.get.filterNodes(NFGreaterThan(a.propertyKey.name, value)).
+              maybeStore.get.filterNodes(NFGreaterThan(a.propertyKey.name, value)).
                 map(_.toNeo4jNodeValue()).iterator
             }
 
             case GreaterThanOrEqual(a: Property, b: ParameterExpression) => {
               val value = b.apply(baseContext, state)
-              CustomPropertyNodeStoreHolder.get.filterNodes(NFGreaterThanOrEqual(a.propertyKey.name, value)).
+              maybeStore.get.filterNodes(NFGreaterThanOrEqual(a.propertyKey.name, value)).
                 map(_.toNeo4jNodeValue()).iterator
             }
 
             case LessThan(a: Property, b: ParameterExpression) => {
               val value = b.apply(baseContext, state)
-              CustomPropertyNodeStoreHolder.get.filterNodes(NFLessThan(a.propertyKey.name, value)).
+              maybeStore.get.filterNodes(NFLessThan(a.propertyKey.name, value)).
                 map(_.toNeo4jNodeValue()).iterator
             }
 
             case LessThanOrEqual(a: Property, b: ParameterExpression) => {
               val value = b.apply(baseContext, state)
-              CustomPropertyNodeStoreHolder.get.filterNodes(NFLessThanOrEqual(a.propertyKey.name, value)).
+              maybeStore.get.filterNodes(NFLessThanOrEqual(a.propertyKey.name, value)).
                 map(_.toNeo4jNodeValue()).iterator
             }
 
             case Equals(a: Property, b: ParameterExpression) => {
               val value = b.apply(baseContext, state)
-              CustomPropertyNodeStoreHolder.get.filterNodes(NFEquals(a.propertyKey.name, value)).
+              maybeStore.get.filterNodes(NFEquals(a.propertyKey.name, value)).
                 map(_.toNeo4jNodeValue()).iterator
             }
 

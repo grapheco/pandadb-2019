@@ -19,6 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
+import cn.graiph.context.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.Expression
 import org.neo4j.cypher.internal.runtime.{LenientCreateRelationship, Operations, QueryContext}
@@ -29,7 +30,7 @@ import org.neo4j.values.virtual.{NodeValue, RelationshipValue}
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.cypher.internal.v3_5.util.{CypherTypeException, InternalException, InvalidSemanticsException}
 
-import org.neo4j.kernel.impl.{CustomPropertyNode, CustomPropertyNodeStoreHolder}
+import org.neo4j.kernel.impl.{CustomPropertyNodeStore, CustomPropertyNode}
 
 /**
   * Extends PipeWithSource with methods for setting properties and labels on entities.
@@ -96,7 +97,8 @@ abstract class EntityCreatePipe(src: Pipe) extends BaseCreatePipe(src) {
     val node = state.query.createNode(labelIds)
     // data.properties.foreach(setProperties(context, state, node.id(), _, state.query.nodeOps))
     // NOTE: graiph
-    if(!CustomPropertyNodeStoreHolder.isDefined){
+    val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+    if(!maybeStore.isDefined){
       data.properties.foreach(setProperties(context, state, node.id(), _, state.query.nodeOps))
     }
     else{
@@ -111,7 +113,8 @@ abstract class EntityCreatePipe(src: Pipe) extends BaseCreatePipe(src) {
         case _ =>
           throw new CypherTypeException("Parameter provided for node creation is not a Map")
       })
-      CustomPropertyNodeStoreHolder.get.addNodes(Some(
+
+      maybeStore.get.addNodes(Some(
         new CustomPropertyNode(node.id(), customProperties.toMap, data.labels.map(_.name))))
     }
     // END-NOTE

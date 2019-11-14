@@ -19,14 +19,15 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
+import cn.graiph.context.InstanceContext
 import org.neo4j.cypher.internal.v3_5.util.CypherTypeException
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.Expression
 import org.neo4j.cypher.internal.runtime.interpreted.GraphElementPropertyFunctions
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
+import org.neo4j.kernel.impl.CustomPropertyNodeStore
 import org.neo4j.values.storable.Values
 import org.neo4j.values.virtual.{RelationshipValue, NodeValue, PathValue}
-import org.neo4j.kernel.impl.CustomPropertyNodeStoreHolder
 
 import scala.collection.JavaConverters._
 
@@ -62,13 +63,15 @@ case class DeletePipe(src: Pipe, expression: Expression, forced: Boolean)
     else state.query.nodeOps.delete(n.id())
     */
     // NOTE: graiph
-    if(!CustomPropertyNodeStoreHolder.isDefined) {
+    val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+
+    if(!maybeStore.isDefined) {
       if (forced) state.query.detachDeleteNode(n.id())
       else state.query.nodeOps.delete(n.id())
     }
     else{
-      if (forced) CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
-      else CustomPropertyNodeStoreHolder.get.deleteNodes(List(n.id()))
+      if (forced) maybeStore.get.deleteNodes(List(n.id()))
+      else maybeStore.get.deleteNodes(List(n.id()))
     }
     // END-NOTE
   }

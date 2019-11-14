@@ -21,7 +21,7 @@
 import java.io.{File, FileInputStream}
 
 import cn.graiph.blob.Blob
-import cn.graiph.db.InstanceContext
+import cn.graiph.context.InstanceContext
 import org.apache.commons.io.IOUtils
 import org.neo4j.graphdb.Node
 import org.neo4j.kernel.impl.blob.BlobStorage
