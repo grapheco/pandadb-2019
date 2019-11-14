@@ -1,6 +1,7 @@
 
 import java.io.File
 
+import cn.graiph.server.GNodeServer
 import org.junit.{Assert, Before, Test}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.{Label, RelationshipType}
@@ -13,6 +14,7 @@ trait CreateQueryTestBase {
 
   @Before
   def initdb(): Unit = {
+    GNodeServer.touch()
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
     val db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
