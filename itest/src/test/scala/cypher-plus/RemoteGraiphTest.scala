@@ -192,8 +192,15 @@ class RemoteGraiphTest extends FunSuite with BeforeAndAfter with TestBase {
     conn.querySingleObject("return <http://img.zcool.cn/community/049f6b5674911500000130b7f00a87.jpg>", (result: Record) => {
       val blob2 = result.get(0).asBlob
       assert(blob2.length > 10240)
-      assert(IOUtils.toByteArray(new URL("http://img.zcool.cn/community/049f6b5674911500000130b7f00a87.jpg")) ===
-        blob2.toBytes());
+      val bs = blob2.toBytes()
+      assert(blob2.length === bs.length)
+
+      val bs2 = IOUtils.toByteArray(new URL("http://img.zcool.cn/community/049f6b5674911500000130b7f00a87.jpg"))
+      println(bs2.toList)
+      println(bs.toList)
+
+      assert(bs2.length === bs.length)
+      assert(bs2 === bs);
     });
 
     //test https
