@@ -7,6 +7,7 @@ import cn.graiph.context.InstanceBoundServiceFactoryRegistry
 import cn.graiph.db.Touchable
 import cn.graiph.util.{Ctrl, Logging}
 import org.apache.commons.io.IOUtils
+import org.neo4j.kernel.impl.PropertyStoreFactory
 import org.neo4j.kernel.impl.blob.{BlobStorageServiceFactory, DefaultBlobFunctionsServiceFactory}
 import org.neo4j.server.{AbstractNeoServer, CommunityBootstrapper}
 import Ctrl._
@@ -24,6 +25,7 @@ object GNodeServer extends Logging with Touchable {
     InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
     InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
     InstanceBoundServiceFactoryRegistry.register[GNodeServerServiceFactory];
+    InstanceBoundServiceFactoryRegistry.register[PropertyStoreFactory];
   }
 
   def startServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map()): GNodeServer = {
