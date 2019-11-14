@@ -1,6 +1,6 @@
 package org.neo4j.kernel.impl
 
-import cn.graiph.context.InstanceBoundServiceContext
+import cn.graiph.context.{InstanceBoundService, InstanceBoundServiceFactory, InstanceBoundServiceContext}
 import cn.graiph.util.Ctrl
 import cn.graiph.util.Ctrl._
 import org.apache.solr.client.solrj.SolrQuery
@@ -8,9 +8,17 @@ import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
 import org.neo4j.values.storable.{Value, Values}
-
+import cn.graiph.util.ConfigUtils._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
+
+class InSolrPropertyNodeStoreFactory extends InstanceBoundServiceFactory {
+  override def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] =
+  Some(new InSolrPropertyNodeStore(
+    ctx.configuration.getRequiredValueAsString("external.properties.store.solr.zk"),
+    ctx.configuration.getRequiredValueAsString("external.properties.store.solr.collection")
+  ))
+}
 
 /**
   * Created by bluejoe on 2019/10/7.
@@ -18,8 +26,6 @@ import scala.collection.mutable.ArrayBuffer
 class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends CustomPropertyNodeStore {
   val _solrClient =
     run("initialize solr connection") {
-      val zkUrl = "10.0.86.179:2181,10.0.87.45:2181,10.0.87.46:2181"
-      val collectionName = "graiphdb"
       val client = new CloudSolrClient(zkUrl);
       client.setZkClientTimeout(30000);
       client.setZkConnectTimeout(50000);
