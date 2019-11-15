@@ -12,12 +12,12 @@ import cn.graiph.util.ConfigUtils._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
-class InSolrPropertyNodeStoreFactory extends InstanceBoundServiceFactory {
-  override def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] =
-  Some(new InSolrPropertyNodeStore(
+class InSolrPropertyNodeStoreFactory extends PropertyStoreFactory {
+  override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore =
+  new InSolrPropertyNodeStore(
     ctx.configuration.getRequiredValueAsString("external.properties.store.solr.zk"),
     ctx.configuration.getRequiredValueAsString("external.properties.store.solr.collection")
-  ))
+  )
 }
 
 /**
