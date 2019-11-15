@@ -23,7 +23,9 @@ trait CreateQueryTestBase {
   }
 
   protected def testQuery(query: String): Unit = {
-    val db = new GraphDatabaseFactory().newEmbeddedDatabase(new File("./output/testdb"))
+    val db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
+      setConfig("external.properties.store.factory",classOf[InMemoryPropertyNodeStoreFactory].getName).
+      newGraphDatabase()
     val tx = db.beginTx();
     val rs = db.execute(query);
     while (rs.hasNext) {
