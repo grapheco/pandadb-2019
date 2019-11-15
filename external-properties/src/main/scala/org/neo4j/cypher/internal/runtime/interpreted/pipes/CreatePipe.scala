@@ -98,10 +98,7 @@ abstract class EntityCreatePipe(src: Pipe) extends BaseCreatePipe(src) {
     data.properties.foreach(setProperties(context, state, node.id(), _, state.query.nodeOps))
     // NOTE: graiph
     val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
-    if(!maybeStore.isDefined){
-      data.properties.foreach(setProperties(context, state, node.id(), _, state.query.nodeOps))
-    }
-    else{
+    if(maybeStore.isDefined){
       val customProperties = scala.collection.mutable.Map[String,Value]()
       data.properties.foreach(properties => properties(context, state) match {
         case _: NodeValue | _: RelationshipValue =>
