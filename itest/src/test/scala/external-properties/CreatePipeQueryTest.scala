@@ -10,7 +10,6 @@ import org.neo4j.kernel.impl.{InMemoryPropertyNodeStoreFactory, InMemoryProperty
 
 
 trait CreateQueryTestBase {
-  Settings._hookEnabled = false;
 
   @Before
   def initdb(): Unit = {
@@ -38,7 +37,6 @@ trait CreateQueryTestBase {
 }
 
 class CreateNodeQueryTest extends CreateQueryTestBase {
-  Settings._hookEnabled = true;
   val tmpns = InMemoryPropertyNodeStore
 
   @Test
