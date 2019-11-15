@@ -6,7 +6,7 @@ import cn.graiph.context.{InstanceBoundService, InstanceBoundServiceContext, Ins
   * Created by bluejoe on 2019/10/7.
   */
 object Settings {
-  var _hookEnabled = false;
+  //var _hookEnabled = false;
   var _patternMatchFirst = true;
 }
 

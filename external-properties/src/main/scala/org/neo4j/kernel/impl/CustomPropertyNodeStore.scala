@@ -34,7 +34,7 @@ case class CustomPropertyNodeModification(
 
 }
 
-case class CustomPropertyNode(id: Long, fields: Map[String, Value], labels: Iterable[String]) {
+case class CustomPropertyNode(id: Long, var fields: Map[String, Value], var labels: Iterable[String]) {
   def field(name: String): Option[Value] = fields.get(name)
 
   def toNeo4jNodeValue(): NodeValue = {

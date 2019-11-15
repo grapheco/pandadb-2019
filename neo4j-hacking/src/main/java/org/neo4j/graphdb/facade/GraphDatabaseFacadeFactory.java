@@ -179,9 +179,10 @@ public class GraphDatabaseFacadeFactory
         Procedures procedures = setupProcedures( platform, edition, graphDatabaseFacade );
         platform.dependencies.satisfyDependency( new NonTransactionalDbmsOperations( procedures ) );
 
+        // NOTE: graiph
         //blob support
         platform.life.add( new InstanceBoundServiceFactoryRegistryHolder( procedures, storeDir, config, databaseInfo ) );
-
+        // END-NOTE
         Logger msgLog = platform.logging.getInternalLog( getClass() ).infoLogger();
         DatabaseManager databaseManager = edition.createDatabaseManager( graphDatabaseFacade, platform, edition, procedures, msgLog );
         platform.life.add( databaseManager );
