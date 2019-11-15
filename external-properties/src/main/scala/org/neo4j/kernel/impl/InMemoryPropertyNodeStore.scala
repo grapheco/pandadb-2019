@@ -3,6 +3,7 @@ package org.neo4j.kernel.impl
 import cn.graiph.context.InstanceBoundServiceContext
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.values.AnyValue
+import org.neo4j.values.storable.Value
 import org.neo4j.values.storable.NumberValue
 
 import scala.collection.mutable
@@ -58,7 +59,26 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   }
 
   override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
+    docsToUpdated.foreach(d=>{
+      val n: CustomPropertyNode = nodes(d.id)
+      if(d.fieldsAdded.size>0){
+        nodes(d.id).fields ++= d.fieldsAdded
+      }
+      if(d.fieldsUpdated.size>0){
+        nodes(d.id).fields ++= d.fieldsUpdated
+      }
+      if(d.fieldsRemoved.size>0){
+        d.fieldsRemoved.foreach(f=>nodes(d.id).fields -= f)
+      }
+      if(d.labelsAdded.size>0){
+        nodes(d.id).labels ++= d.labelsAdded
+      }
+      if(d.labelsRemoved.size>0){
+        val tmpLabels = nodes(d.id).labels.toSet
+        nodes(d.id).labels = tmpLabels -- d.labelsRemoved.toSet
+      }
 
+    })
   }
 
   override def getNodesByLabel(label: String): Iterable[CustomPropertyNode] = {
