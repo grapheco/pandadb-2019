@@ -22,6 +22,7 @@ package cn.graiph.context
 
 import cn.graiph.util.ReflectUtils._
 import cn.graiph.util.{ConfigUtils, Configuration, ContextMap}
+import org.neo4j.cypher.internal.runtime.interpreted.pipes.QueryState
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.factory.GraphDatabaseFacade
 import org.neo4j.kernel.impl.store.id.RenewableBatchIdSequence
@@ -50,7 +51,12 @@ object InstanceContext {
 
   def of(x: GraphDatabaseFacade): ContextMap = x._get("config").asInstanceOf[Config].getInstanceContext;
 
+  def of(x: QueryState): ContextMap = x.query.transactionalContext._get("inner.tc.kernel.config").asInstanceOf[Config].getInstanceContext;
+
   def of(o: AnyRef): ContextMap = o match {
+    case x: QueryState =>
+      of(x);
+
     case x: StandardDynamicRecordAllocator =>
       of(x._get("idGenerator"));
 
