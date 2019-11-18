@@ -17,7 +17,7 @@ import scala.collection.JavaConversions
   * Created by bluejoe on 2019/7/17.
   */
 object GNodeServer extends Logging with Touchable {
-  val logo = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("logo.txt"), "utf-8");
+  val logo = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("pandaLogo1.txt"), "utf-8");
   AbstractNeoServer.NEO4J_IS_STARTING_MESSAGE = "======== Graiph Node Server(based on Neo4j-3.5.6) ======== " + "\r\n" + logo;
 
   run("registering global database lifecycle service") {

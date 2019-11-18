@@ -26,12 +26,9 @@ class ClusterStateMachine {
 
 }
 
-
-
 trait ClusterState{
   def handle(context: ClusterStateContext, event: ClusterStateEvent)
 }
-
 case class UnlockedServing(clusterStateContext: ClusterStateContext) extends ClusterState {
   override def handle(context: ClusterStateContext, event: ClusterStateEvent): Unit = ???
 }
