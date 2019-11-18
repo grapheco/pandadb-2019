@@ -22,9 +22,11 @@ package cn.graiph.context
 
 import cn.graiph.util.ReflectUtils._
 import cn.graiph.util.{ConfigUtils, Configuration, ContextMap}
+import org.neo4j.cypher.internal.javacompat.GraphDatabaseCypherService
 import org.neo4j.cypher.internal.runtime.interpreted.pipes.QueryState
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.factory.GraphDatabaseFacade
+import org.neo4j.kernel.impl.query.TransactionalContext
 import org.neo4j.kernel.impl.store.id.RenewableBatchIdSequence
 import org.neo4j.kernel.impl.store.record.{PrimitiveRecord, PropertyRecord}
 import org.neo4j.kernel.impl.store.{CommonAbstractStore, NeoStores, StandardDynamicRecordAllocator}
@@ -53,6 +55,9 @@ object InstanceContext {
 
   def of(x: QueryState): ContextMap = x.query.transactionalContext._get("inner.tc.kernel.config").asInstanceOf[Config].getInstanceContext;
 
+  def of(x: TransactionalContext): ContextMap = x._get("kernel.config").asInstanceOf[Config].getInstanceContext;
+
+
   def of(o: AnyRef): ContextMap = o match {
     case x: QueryState =>
       of(x);
@@ -77,6 +82,9 @@ object InstanceContext {
 
     case x: GraphDatabaseFacade =>
       of(x);
+
+    case x: TransactionalContext =>
+      of(x)
 
     case _ =>
       throw new FaileToGetInstanceContextException(o);
