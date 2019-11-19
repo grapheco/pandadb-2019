@@ -22,7 +22,6 @@ package cn.graiph.context
 
 import cn.graiph.util.ReflectUtils._
 import cn.graiph.util.{ConfigUtils, Configuration, ContextMap}
-import org.neo4j.cypher.internal.javacompat.GraphDatabaseCypherService
 import org.neo4j.cypher.internal.runtime.interpreted.pipes.QueryState
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.factory.GraphDatabaseFacade
@@ -32,7 +31,6 @@ import org.neo4j.kernel.impl.store.record.{PrimitiveRecord, PropertyRecord}
 import org.neo4j.kernel.impl.store.{CommonAbstractStore, NeoStores, StandardDynamicRecordAllocator}
 import org.neo4j.kernel.impl.transaction.state.RecordAccess
 
-import scala.collection.mutable.{Map => MMap}
 
 /**
   * Created by bluejoe on 2019/4/16.
