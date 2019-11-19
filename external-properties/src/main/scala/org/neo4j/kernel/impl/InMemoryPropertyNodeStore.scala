@@ -90,6 +90,10 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     res
   }
 
+  override def getNodeById(id: Long): Option[CustomPropertyNode] = {
+    nodes.get(id)
+  }
+
   override def start(ctx: InstanceBoundServiceContext): Unit = {
     nodes.clear()
   }

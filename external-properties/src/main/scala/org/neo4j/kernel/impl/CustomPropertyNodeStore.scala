@@ -22,6 +22,8 @@ trait CustomPropertyNodeStore extends InstanceBoundService {
   def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode];
 
   def getNodesByLabel(label: String): Iterable[CustomPropertyNode];
+
+  def getNodeById(id: Long): Option[CustomPropertyNode];
 }
 
 case class CustomPropertyNodeModification(
