@@ -36,7 +36,6 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
     label.getOptId(state.query) match {
       case Some(labelId) =>
         val nodes = state.query.getNodesByLabel(labelId.id)
-        nodes.foreach(n=>println(n.id()))
         val baseContext = state.newExecutionContext(executionContextFactory)
         nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
       case None =>
@@ -50,7 +49,6 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
       label.getOptId(state.query) match {
         case Some(labelId) =>
           val nodes = state.query.getNodesByLabel(labelId.id)
-          nodes.foreach(n=>println(n.id()))
           val baseContext = state.newExecutionContext(executionContextFactory)
           nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
         case None =>

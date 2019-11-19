@@ -195,6 +195,8 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     filterNodes(NFContainsWith(propName, label))
   }
 
+  override def getNodeById(id: Long): Option[CustomPropertyNode] = ???
+
   override def start(ctx: InstanceBoundServiceContext): Unit = {
 
   }
