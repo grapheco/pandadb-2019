@@ -584,14 +584,15 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         {
             //no existing value, we just add it
             autoIndexing.nodes().propertyAdded( this, node, propertyKey, value );
+
             // NOTE: graiph
             // ktx.txState().nodeDoAddProperty( node, propertyKey, value );
             Option<CustomPropertyNodeStore> maybeStore = InstanceContext.of(config).getOption(CustomPropertyNodeStore.class.getName());
-
             if(!maybeStore.isDefined()){
                 ktx.txState().nodeDoAddProperty( node, propertyKey, value );
             }
             // END-NOTE
+
             if ( hasRelatedSchema )
             {
                 updater.onPropertyAdd( nodeCursor, propertyCursor, labels, propertyKey, existingPropertyKeyIds, value );
@@ -605,14 +606,15 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             if ( propertyHasChanged( value, existingValue ) )
             {
                 //the value has changed to a new value
+
                 // NOTE: graiph
                 // ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
                 Option<CustomPropertyNodeStore> maybeStore = InstanceContext.of(config).getOption(CustomPropertyNodeStore.class.getName());
-
                 if(!maybeStore.isDefined()){
                     ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
                 }
                 // END-NOTE
+
                 if ( hasRelatedSchema )
                 {
                     updater.onPropertyChange( nodeCursor, propertyCursor, labels, propertyKey, existingPropertyKeyIds, existingValue, value );
