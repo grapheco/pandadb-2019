@@ -110,8 +110,8 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     // create node with labels and properties
     val tx = db.beginTx()
     val query =
-      """CREATE (n1:Person { name:'test01', age:10})
-        |CREATE (n2:Person:Man { name:'test02', age:20})
+      """CREATE (n1:Person { name:'test01', age:10, adult:False})
+        |CREATE (n2:Person:Man { name:'test02', age:20, adult:True})
         |RETURN id(n1),id(n2)
       """.stripMargin
     val rs = db.execute(query)
@@ -126,12 +126,12 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     assert(tmpns.nodes.get(id1).size == 1 && tmpns.nodes.get(id2).size == 1)
 
     val fields1 = tmpns.nodes.get(id1).get.fields
-    assert(fields1.size == 2 && fields1("name").equals("test01") && fields1("age").equals(10) )
+    assert(fields1.size == 3 && fields1("name").equals("test01") && fields1("age").equals(10) && fields1("adult").equals(false) )
     val labels1 = tmpns.nodes.get(id1).get.labels.toList
     assert(labels1.size == 1 && labels1(0) == "Person")
 
     val fields2 = tmpns.nodes.get(id2).get.fields
-    assert(fields2.size == 2 && fields2("name").equals("test02")  && fields2("age").equals(20) )
+    assert(fields2.size == 3 && fields2("name").equals("test02")  && fields2("age").equals(20) && fields2("adult").equals(true)  )
     val labels2 = tmpns.nodes.get(id2).get.labels.toList
     assert(labels2.size == 2 && labels2.contains("Person") && labels2.contains("Man") )
 
@@ -204,7 +204,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     val born2 = TimeValue.time(12, 5, 1, 0, "Z")
     val born3 = DateTimeValue.datetime(2019,1,2,12,5,15,0,"Australia/Eucla")
     val born4 = DateTimeValue.datetime(2015,6,24,12,50,35,556,ZoneId.of("Z"))
-//    val born5 = ZonedDateTime.of(2015,6,24,12,50,35,0,ZoneId.of("Asia/Shanghai"))
+
     assert(fields1("born1").asInstanceOf[DateValue].equals(born1))
     assert(fields1("born2").asInstanceOf[TimeValue].equals(born2))
     assert(fields1("born3").equals(born3))
@@ -212,6 +212,41 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     tx.success();
     tx.close()
   }
+
+  @Test
+  def test7(): Unit = {
+    // create node with Array type property value
+    val tx = db.beginTx()
+    val query =
+      """CREATE (n1:Person { name:'test01',titles:["ceo","ui","dev"],
+        |salaries:[10000,20000,30597,500954], boolattr:[False,True,false,true]})
+        |RETURN id(n1)
+      """.stripMargin
+    val rs = db.execute(query)
+    var id1: Long = -1
+    if(rs.hasNext){
+      val row = rs.next()
+      id1 = row.get("id(n1)").toString.toLong
+    }
+
+    assert(tmpns.nodes.size == 1)
+    assert(tmpns.nodes.get(id1).size == 1 )
+
+    val fields1 = tmpns.nodes.get(id1).get.fields
+    assert(fields1.size == 4 )
+    val titles = Array("ceo","ui","dev")
+    val salaries = Array(10000,20000,30597,500954)
+    val boolattr = Array(false, true, false, true)
+    assert(fields1("titles").equals(titles))
+    assert(fields1("salaries").equals(salaries))
+    assert(fields1("boolattr").equals(boolattr))
+    tx.success();
+    tx.close()
+
+
+  }
+
+
 
 
 }
