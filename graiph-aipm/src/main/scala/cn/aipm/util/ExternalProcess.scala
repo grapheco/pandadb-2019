@@ -1,8 +1,10 @@
-package cn.graiph.util
+package cn.aipm.util
 
 import java.io.ByteArrayOutputStream
 import cn.graiph.blob.Blob
+import cn.graiph.util.{StreamUtils, Logging}
 import StreamUtils._
+import cn.graiph.util.Logging
 import org.apache.commons.io.IOUtils
 import scala.util.parsing.json.JSON
 
