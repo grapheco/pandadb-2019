@@ -42,6 +42,6 @@ trait TestBase {
   }
 
   def openDatabase(dbdir: File = testDbDir, conf: String = testConfPath): GraphDatabaseService = {
-    GraiphDB.openDatabase(dbdir.getAbsoluteFile.getCanonicalFile, new File(conf).getAbsoluteFile.getCanonicalFile)
+    GraiphDB.openDatabase(dbdir.getAbsoluteFile.getCanonicalFile, new File(conf).getAbsoluteFile.getCanonicalFile, Map("external.properties.store.factory" -> null));
   }
 }
