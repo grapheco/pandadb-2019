@@ -105,7 +105,7 @@ abstract class EntityCreatePipe(src: Pipe) extends BaseCreatePipe(src) {
           throw new CypherTypeException("Parameter provided for node creation is not a Map")
         case IsMap(map) =>
           map(state.query).foreach(new ThrowingBiConsumer[String, AnyValue, RuntimeException] {
-            override def accept(k: String, v: AnyValue): Unit =  {customProperties(k) = v.asInstanceOf[Value]}
+            override def accept(k: String, v: AnyValue): Unit =  {customProperties(k) = makeValueNeoSafe(v)}
           })
         case _ =>
           throw new CypherTypeException("Parameter provided for node creation is not a Map")
