@@ -7,12 +7,14 @@ import cn.graiph.cypherplus.SemanticOperatorServiceFactory
 import cn.graiph.driver.CypherService
 import cn.graiph.util.Logging
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.kernel.impl.blob.{DefaultBlobFunctionsServiceFactory, BlobStorageServiceFactory}
+import org.neo4j.graphdb.factory.{GraphDatabaseBuilder, GraphDatabaseFactory}
+import org.neo4j.kernel.impl.blob.{BlobStorageServiceFactory, DefaultBlobFunctionsServiceFactory}
+
+import scala.collection.JavaConversions
 
 /**
   * Created by bluejoe on 2019/7/17.
- *
+  *
   * @deprecated
   */
 object GraiphDB extends Logging with Touchable {
@@ -20,12 +22,36 @@ object GraiphDB extends Logging with Touchable {
   InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
   InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
 
-  def openDatabase(dbDir: File, propertiesFile: File): GraphDatabaseService = {
+  def openDatabase(dbDir: File, propertiesFile: File, build: (GraphDatabaseBuilder) => Unit): GraphDatabaseService = {
+    openDatabase(dbDir, Some(propertiesFile), build)
+  }
+
+  def openDatabase(dbDir: File, propertiesFile: File, overrideConfig: Map[String, String] = Map()): GraphDatabaseService = {
+    openDatabase(dbDir, Some(propertiesFile), (builder: GraphDatabaseBuilder) => {
+      if (!overrideConfig.isEmpty) {
+        builder.setConfig(JavaConversions.mapAsJavaMap(overrideConfig))
+      }
+
+      {}
+    })
+  }
+
+  private def openDatabase(dbDir: File, propertiesFileOption: Option[File], build: (GraphDatabaseBuilder) => Unit): GraphDatabaseService = {
+    openDatabase(dbDir, (builder: GraphDatabaseBuilder) => {
+      if (propertiesFileOption.isDefined) {
+        val propertiesFile = propertiesFileOption.get
+        logger.info(s"loading configuration from $propertiesFile");
+        builder.loadPropertiesFromFile(propertiesFile.getPath);
+      }
+
+      build(builder);
+    })
+  }
+
+  def openDatabase(dbDir: File, build: (GraphDatabaseBuilder) => Unit): GraphDatabaseService = {
     val builder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbDir);
-    logger.info(s"loading configuration from $propertiesFile");
-    builder.loadPropertiesFromFile(propertiesFile.getPath);
-    //bolt server is not required
-    builder.setConfig("dbms.connector.bolt.enabled", "false");
+    build(builder);
+
     builder.newGraphDatabase();
   }
 

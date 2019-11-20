@@ -9,7 +9,7 @@ import org.junit.{After, Assert, Before, Test}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.{GraphDatabaseService, Result}
 import org.neo4j.io.fs.FileUtils
-import org.neo4j.kernel.impl.{InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory, Settings}
+import org.neo4j.kernel.impl.{InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
 import org.neo4j.values.storable.{DateTimeValue, DateValue, LocalDateTimeValue, TimeValue}
 
 
