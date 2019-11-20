@@ -213,15 +213,5 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     tx.close()
   }
 
-  @Test
-  def test7(): Unit = {
-    val born3 = DateTimeValue.datetime(2019,1,2,12,5,15,0,"Australia/Eucla")
-
-    val born2 = TimeValue.time(12, 5, 1, 0, "Z")
-    val born4 = DateTimeValue.datetime(2015,6,24,12,50,35,556,"GMT")
-    val born5 = DateTimeValue.datetime(2015,6,24,12,50,35,556, "Asia/Shanghai")
-
-    println(born4, born5)
-  }
 
 }
