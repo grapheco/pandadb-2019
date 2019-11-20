@@ -3,8 +3,7 @@ package cn.graiph.cypherplus
 import java.io.File
 
 import cn.graiph.blob.CypherPluginRegistry
-import cn.graiph.context.InstanceBoundService
-import cn.graiph.context.{InstanceBoundServiceContext, InstanceBoundServiceFactory}
+import cn.graiph.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
 import cn.graiph.util.Logging
 import org.springframework.context.support.FileSystemXmlApplicationContext
 
