@@ -10,6 +10,8 @@ import org.neo4j.driver.internal.SessionConfig
 import org.neo4j.driver.reactive.RxSession
 import org.neo4j.driver.types.TypeSystem
 
+import scala.xml.dtd.EMPTY
+
 /**
   * Created by bluejoe on 2019/11/21.
   */
@@ -22,8 +24,8 @@ object PandaDriver {
 class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Driver {
   val clusterOperator: ClusterManager = createClusterOperator(uri);
 
-  val defaultSessionConfig = new SessionConfig();
-
+//  val defaultSessionConfig = new SessionConfig()
+  val defaultSessionConfig = SessionConfig.empty()
   override def closeAsync(): CompletionStage[Void] = {
     //TODO
     new CompletableFuture[Void]();
