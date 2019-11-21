@@ -26,19 +26,15 @@
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
-            <artifactId>neo4j-hacking</artifactId>
-            <version>${pandadb.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cn.pandadb</groupId>
             <artifactId>blob-commons</artifactId>
             <version>${pandadb.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j</artifactId>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>neo4j-hacking</artifactId>
+            <version>${pandadb.version}</version>
+            <!--<scope>runtime</scope>-->
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
