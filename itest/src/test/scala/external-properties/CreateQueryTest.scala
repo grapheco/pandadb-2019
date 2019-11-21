@@ -106,7 +106,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
 
 
   @Test
-  def test4(): Unit = {
+  def test3(): Unit = {
     // create node with labels and properties
     val tx = db.beginTx()
     val query =
@@ -140,7 +140,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
   }
 
   @Test
-  def test5(): Unit = {
+  def test4(): Unit = {
     // create node with relationship
     val tx = db.beginTx()
     val query =
@@ -181,7 +181,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
   }
 
   @Test
-  def test6(): Unit = {
+  def test5(): Unit = {
     // create node with DateTime type property value
     val tx = db.beginTx()
     val query =
@@ -214,7 +214,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
   }
 
   @Test
-  def test7(): Unit = {
+  def test6(): Unit = {
     // create node with Array type property value
     val tx = db.beginTx()
     val query =
@@ -243,9 +243,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     tx.success();
     tx.close()
 
-
   }
-
 
 
 

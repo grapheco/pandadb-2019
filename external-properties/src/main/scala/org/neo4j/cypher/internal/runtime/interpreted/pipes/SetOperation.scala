@@ -145,12 +145,10 @@ case class SetNodePropertyOperation(nodeName: String, propertyKey: LazyPropertyK
 
   // NOTE: pandadb
   override def set(executionContext: ExecutionContext, state: QueryState) = {
-    val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+    super.set(executionContext, state)
 
-    if(!maybeStore.isDefined) {
-      super.set(executionContext, state)
-    }
-    else{
+    val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+    if(maybeStore.isDefined) {
       val item = executionContext.get(nodeName).get
       if (item != Values.NO_VALUE) {
         val itemId = id(item)
@@ -172,7 +170,6 @@ case class SetNodePropertyOperation(nodeName: String, propertyKey: LazyPropertyK
           }
           else{
             val field2Update = scala.collection.immutable.Map(propertyName->value)
-            println(field2Update, item)
             maybeStore.get.updateNodes(Some(
               new CustomPropertyNodeModification(itemId,null,null,field2Update,null,  null)
             ))
@@ -298,6 +295,13 @@ case class SetLabelsOperation(nodeName: String, labels: Seq[LazyLabel]) extends 
       val nodeId = CastSupport.castOrFail[VirtualNodeValue](value).id()
       val labelIds = labels.map(_.getOrCreateId(state.query).id)
       state.query.setLabelsOnNode(nodeId, labelIds.iterator)
+      // NOTE: pandadb
+      val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
+      if(maybeStore.isDefined) {
+        maybeStore.get.updateNodes(Some(
+          new CustomPropertyNodeModification(nodeId,null,null,null,labels.map(_.name),  null)))
+      }
+      // END-NOTE
     }
   }
 
