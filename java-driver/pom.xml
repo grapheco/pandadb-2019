@@ -18,6 +18,7 @@
             <groupId>cn.pandadb</groupId>
             <artifactId>blob-commons</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.neo4j.driver</groupId>
