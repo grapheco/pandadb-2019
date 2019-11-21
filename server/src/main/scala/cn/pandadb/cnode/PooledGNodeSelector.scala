@@ -1,5 +1,6 @@
 package cn.pandadb.cnode
 
+import cn.pandadb.util.NodeAddress
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase}
 
 import scala.collection.mutable
@@ -39,7 +40,7 @@ class PooledGNodeSelector extends GNodeSelector with GNodeListListener {
 
   def createDriver(address: NodeAddress): Driver = {
     //get url(bolt://ip:port) from the address
-    val url = address.getUrl();
+    val url = s"bolt://${address.host}:${address.port}";
     val driver = GraphDatabase.driver(url, AuthTokens.basic("", ""));
     driver;
   }

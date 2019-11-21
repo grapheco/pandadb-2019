@@ -2,24 +2,12 @@ package cn.pandadb.cnode
 
 import java.io.FileInputStream
 import java.util.Properties
+import cn.pandadb.util.NodeAddress
 import org.neo4j.driver.Driver
 
 /**
   * Created by bluejoe on 2019/11/4.
   */
-case class NodeAddress(host: String, port: Int) {
-  def getUrl(): String ={
-    return s"bolt://"+host + s":" + port.toString
-  }
-}
-
-object NodeAddress {
-  def fromString(url: String, seperator: String = ":"): NodeAddress = {
-    val pair = url.split(seperator)
-    NodeAddress(pair(0), pair(1).toInt)
-  }
-}
-
 class ZKConstants(path: String) {
 
   val prop = new Properties()
