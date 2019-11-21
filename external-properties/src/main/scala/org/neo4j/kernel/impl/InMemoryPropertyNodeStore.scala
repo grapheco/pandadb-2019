@@ -61,19 +61,20 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
     docsToUpdated.foreach(d=>{
       val n: CustomPropertyNode = nodes(d.id)
-      if(d.fieldsAdded.size>0){
+      if(d.fieldsAdded != null && d.fieldsAdded.size>0){
         nodes(d.id).fields ++= d.fieldsAdded
       }
-      if(d.fieldsUpdated.size>0){
+      if(d.fieldsUpdated != null && d.fieldsUpdated.size>0){
         nodes(d.id).fields ++= d.fieldsUpdated
       }
-      if(d.fieldsRemoved.size>0){
+      if(d.fieldsRemoved != null && d.fieldsRemoved.size>0){
         d.fieldsRemoved.foreach(f=>nodes(d.id).fields -= f)
       }
-      if(d.labelsAdded.size>0){
+      if(d.labelsAdded != null && d.labelsAdded.size>0){
         nodes(d.id).labels ++= d.labelsAdded
+        nodes(d.id).labels = nodes(d.id).labels.toSet
       }
-      if(d.labelsRemoved.size>0){
+      if(d.labelsRemoved != null && d.labelsRemoved.size>0){
         val tmpLabels = nodes(d.id).labels.toSet
         nodes(d.id).labels = tmpLabels -- d.labelsRemoved.toSet
       }
