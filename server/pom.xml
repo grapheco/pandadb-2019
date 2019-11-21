@@ -18,26 +18,31 @@
             <groupId>cn.pandadb</groupId>
             <artifactId>commons</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
             <artifactId>neo4j-hacking</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
             <artifactId>blob-feature</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
             <artifactId>external-properties</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
             <artifactId>java-driver</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.neo4j.app</groupId>

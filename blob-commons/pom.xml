@@ -18,6 +18,7 @@
             <groupId>cn.pandadb</groupId>
             <artifactId>commons</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>eu.medsea.mimeutil</groupId>
