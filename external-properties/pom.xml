@@ -16,25 +16,22 @@
     <dependencies>
         <dependency>
             <groupId>cn.pandadb</groupId>
-            <artifactId>neo4j-hacking</artifactId>
-            <version>${pandadb.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cn.pandadb</groupId>
             <artifactId>commons</artifactId>
             <version>${pandadb.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j</artifactId>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>neo4j-hacking</artifactId>
+            <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
         </dependency>
     </dependencies>
+
 
     <build>
         <plugins>
