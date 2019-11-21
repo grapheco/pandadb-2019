@@ -20,28 +20,33 @@
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
-            <artifactId>neo4j-hacking</artifactId>
-            <version>${pandadb.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.pandadb</groupId>
             <artifactId>blob-feature</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
             <artifactId>external-properties</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
             <artifactId>server</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
             <artifactId>java-driver</artifactId>
             <version>${pandadb.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>aipm-library</artifactId>
+            <version>${pandadb.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
@@ -52,12 +57,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>cn.pandadb</groupId>
-            <artifactId>aipm-library</artifactId>
-            <version>${pandadb.version}</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
