@@ -19,7 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
-import cn.graiph.context.InstanceContext
+import cn.pandadb.context.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.Expression
 import org.neo4j.cypher.internal.runtime.{LenientCreateRelationship, Operations, QueryContext}
@@ -96,7 +96,7 @@ abstract class EntityCreatePipe(src: Pipe) extends BaseCreatePipe(src) {
     val labelIds = data.labels.map(_.getOrCreateId(state.query).id).toArray
     val node = state.query.createNode(labelIds)
     data.properties.foreach(setProperties(context, state, node.id(), _, state.query.nodeOps))
-    // NOTE: graiph
+    // NOTE: pandadb
     val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
     if(maybeStore.isDefined){
       val customProperties = scala.collection.mutable.Map[String,Value]()

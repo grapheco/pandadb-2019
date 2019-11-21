@@ -1,7 +1,7 @@
 import java.io.File
 
-import cn.graiph.blob.Blob
-import cn.graiph.db.GraiphDB
+import cn.pandadb.blob.Blob
+import cn.pandadb.db.PandaDB
 import org.apache.commons.io.FileUtils
 import org.neo4j.graphdb.GraphDatabaseService
 
@@ -42,6 +42,6 @@ trait TestBase {
   }
 
   def openDatabase(dbdir: File = testDbDir, conf: String = testConfPath): GraphDatabaseService = {
-    GraiphDB.openDatabase(dbdir.getAbsoluteFile.getCanonicalFile, new File(conf).getAbsoluteFile.getCanonicalFile, Map("external.properties.store.factory" -> null));
+    PandaDB.openDatabase(dbdir.getAbsoluteFile.getCanonicalFile, new File(conf).getAbsoluteFile.getCanonicalFile, Map("external.properties.store.factory" -> null));
   }
 }

@@ -1,6 +1,6 @@
 package org.neo4j.kernel.impl
 
-import cn.graiph.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
+import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
 
 class CustomPropertyNodeStoreHolderFactory extends InstanceBoundServiceFactory {
   override def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {

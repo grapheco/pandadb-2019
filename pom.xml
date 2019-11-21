@@ -4,19 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cn.graiph</groupId>
-    <artifactId>graiphdb-parent</artifactId>
+    <groupId>cn.pandadb</groupId>
+    <artifactId>parent</artifactId>
     <packaging>pom</packaging>
     <version>0.0.2</version>
     <modules>
-        <module>graiph-java-driver</module>
-        <module>graiph-blob-commons</module>
-        <module>graiph-blob-feature</module>
-        <module>graiph-aipm</module>
+        <module>java-driver</module>
+        <module>blob-commons</module>
+        <module>blob-feature</module>
+        <module>aipm-library</module>
         <module>external-properties</module>
-        <module>graiph-server</module>
+        <module>server</module>
         <module>itest</module>
-        <module>graiph-commons</module>
+        <module>commons</module>
         <module>neo4j-hacking</module>
     </modules>
 
@@ -27,7 +27,7 @@
         <scala.version>2.11.8</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
         <scala.compat.version>2.11</scala.compat.version>
-        <graiph.version>0.0.2</graiph.version>
+        <pandadb.version>0.0.2</pandadb.version>
     </properties>
 
     <dependencies>

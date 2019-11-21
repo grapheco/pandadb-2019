@@ -19,7 +19,7 @@
  */
 package org.neo4j.kernel.impl.newapi;
 
-import cn.graiph.context.InstanceContext;
+import cn.pandadb.context.InstanceContext;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -585,7 +585,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             //no existing value, we just add it
             autoIndexing.nodes().propertyAdded( this, node, propertyKey, value );
 
-            // NOTE: graiph
+            // NOTE: pandadb
             // ktx.txState().nodeDoAddProperty( node, propertyKey, value );
             Option<CustomPropertyNodeStore> maybeStore = InstanceContext.of(config).getOption(CustomPropertyNodeStore.class.getName());
             if(!maybeStore.isDefined()){
@@ -607,7 +607,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             {
                 //the value has changed to a new value
 
-                // NOTE: graiph
+                // NOTE: pandadb
                 // ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
                 Option<CustomPropertyNodeStore> maybeStore = InstanceContext.of(config).getOption(CustomPropertyNodeStore.class.getName());
                 if(!maybeStore.isDefined()){

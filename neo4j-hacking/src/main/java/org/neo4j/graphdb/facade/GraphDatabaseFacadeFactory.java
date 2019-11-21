@@ -19,7 +19,7 @@
  */
 package org.neo4j.graphdb.facade;
 
-import cn.graiph.context.InstanceBoundServiceFactoryRegistryHolder;
+import cn.pandadb.context.InstanceBoundServiceFactoryRegistryHolder;
 import org.neo4j.bolt.BoltServer;
 import org.neo4j.dbms.database.DatabaseManager;
 import org.neo4j.graphdb.DependencyResolver;
@@ -179,7 +179,7 @@ public class GraphDatabaseFacadeFactory
         Procedures procedures = setupProcedures( platform, edition, graphDatabaseFacade );
         platform.dependencies.satisfyDependency( new NonTransactionalDbmsOperations( procedures ) );
 
-        // NOTE: graiph
+        // NOTE: pandadb
         //blob support
         platform.life.add( new InstanceBoundServiceFactoryRegistryHolder( procedures, storeDir, config, databaseInfo ) );
         // END-NOTE
