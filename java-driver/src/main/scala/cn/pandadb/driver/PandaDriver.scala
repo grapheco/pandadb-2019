@@ -3,7 +3,7 @@ package cn.pandadb.driver
 import java.util
 import java.util.concurrent.{CompletableFuture, CompletionStage}
 
-import cn.pandadb.util.NodeAddress
+import cn.pandadb.network.ClusterManager
 import org.neo4j.driver._
 import org.neo4j.driver.async.AsyncSession
 import org.neo4j.driver.internal.SessionConfig
@@ -20,7 +20,7 @@ object PandaDriver {
 }
 
 class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Driver {
-  val clusterOperator: ClusterOperator = createClusterOperator(uri);
+  val clusterOperator: ClusterManager = createClusterOperator(uri);
 
   val defaultSessionConfig = new SessionConfig();
 
@@ -55,12 +55,12 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
 
   override def isEncrypted: Boolean = ???
 
-  private def createClusterOperator(uri: String): ClusterOperator = {
+  private def createClusterOperator(uri: String): ClusterManager = {
     null
   }
 }
 
-class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterOperator) extends Session {
+class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterManager) extends Session {
   override def writeTransaction[T](work: TransactionWork[T]): T = ???
 
   override def writeTransaction[T](work: TransactionWork[T], config: TransactionConfig): T = ???
@@ -96,14 +96,4 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterOperato
   override def run(statement: Statement): StatementResult = ???
 
   override def isOpen: Boolean = ???
-}
-
-trait ClusterOperator {
-  def getWriteMasterNode(): NodeAddress;
-
-  def getReadNode(): NodeAddress;
-
-  def getDirectWriteMasterDriver(): Driver;
-
-  def getDirectReadDriver(): Driver;
 }

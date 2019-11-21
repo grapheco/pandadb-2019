@@ -18,6 +18,7 @@
         <module>itest</module>
         <module>commons</module>
         <module>neo4j-hacking</module>
+        <module>network-commons</module>
     </modules>
 
     <properties>
