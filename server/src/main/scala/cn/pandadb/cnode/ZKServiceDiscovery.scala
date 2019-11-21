@@ -1,8 +1,11 @@
 package cn.pandadb.cnode
 
+import cn.pandadb.network.NodeAddress
+
 import scala.collection.JavaConversions._
 import org.apache.zookeeper.Watcher.Event.EventType
 import org.apache.zookeeper.{WatchedEvent, Watcher, ZooKeeper}
+
 import scala.collection.mutable.ArrayBuffer
 
 
