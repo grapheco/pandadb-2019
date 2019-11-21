@@ -1,6 +1,6 @@
 package cn.pandadb.cnode
 
-import cn.pandadb.util.NodeAddress
+import cn.pandadb.network.NodeAddress
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase}
 
 import scala.collection.mutable
