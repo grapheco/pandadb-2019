@@ -19,7 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
-import cn.graiph.context.InstanceContext
+import cn.pandadb.context.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.Expression
 import org.neo4j.cypher.internal.runtime.{Operations, QueryContext}
@@ -143,7 +143,7 @@ case class SetNodePropertyOperation(nodeName: String, propertyKey: LazyPropertyK
   override protected def invalidateCachedProperties(executionContext: ExecutionContext, id: Long): Unit =
     executionContext.invalidateCachedProperties(id)
 
-  // NOTE: graiph
+  // NOTE: pandadb
   override def set(executionContext: ExecutionContext, state: QueryState) = {
     val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
 

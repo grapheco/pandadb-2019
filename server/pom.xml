@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>cn.pandadb</groupId>
+        <version>0.0.2</version>
+        <relativePath>../</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.pandadb</groupId>
+    <artifactId>server</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>commons</artifactId>
+            <version>${pandadb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>neo4j-hacking</artifactId>
+            <version>${pandadb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>blob-feature</artifactId>
+            <version>${pandadb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>external-properties</artifactId>
+            <version>${pandadb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>java-driver</artifactId>
+            <version>${pandadb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j.app</groupId>
+            <artifactId>neo4j-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-parser-combinators_2.11</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+    </dependencies>
+</project>

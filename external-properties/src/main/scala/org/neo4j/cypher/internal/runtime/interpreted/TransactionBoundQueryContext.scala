@@ -61,9 +61,9 @@ import org.neo4j.values.{AnyValue, ValueMapper}
 import org.neo4j.cypher.internal.v3_5.expressions.SemanticDirection
 import org.neo4j.cypher.internal.v3_5.expressions.SemanticDirection.{BOTH, INCOMING, OUTGOING}
 import org.neo4j.cypher.internal.v3_5.util.{EntityNotFoundException, FailedIndexException}
-// NOTE: graiph
+// NOTE: pandadb
 import org.neo4j.kernel.impl.CustomPropertyNodeStore
-import cn.graiph.context.InstanceContext
+import cn.pandadb.context.InstanceContext
 // END-NOTE
 
 import scala.collection.Iterator
@@ -546,7 +546,7 @@ sealed class TransactionBoundQueryContext(val transactionalContext: Transactiona
             s"Node with id $id has been deleted in this transaction")
           else Values.NO_VALUE
         } else {
-          // NOTE: graiph
+          // NOTE: pandadb
           // node.properties(property)
           // while (property.next()) {
           //   if (property.propertyKey() == propertyKeyId) return property.propertyValue()

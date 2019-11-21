@@ -1,14 +1,14 @@
 package org.neo4j.kernel.impl
 
-import cn.graiph.context.{InstanceBoundService, InstanceBoundServiceFactory, InstanceBoundServiceContext}
-import cn.graiph.util.Ctrl
-import cn.graiph.util.Ctrl._
+import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceFactory, InstanceBoundServiceContext}
+import cn.pandadb.util.Ctrl
+import cn.pandadb.util.Ctrl._
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
 import org.neo4j.values.storable.{Value, Values}
-import cn.graiph.util.ConfigUtils._
+import cn.pandadb.util.ConfigUtils._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 

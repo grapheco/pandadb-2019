@@ -19,7 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
-import cn.graiph.context.InstanceContext
+import cn.pandadb.context.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 
@@ -42,7 +42,7 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
         Iterator.empty
     }
     */
-    // NOTE: graiph
+    // NOTE: pandadb
     val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
 
     if(!maybeStore.isDefined) {

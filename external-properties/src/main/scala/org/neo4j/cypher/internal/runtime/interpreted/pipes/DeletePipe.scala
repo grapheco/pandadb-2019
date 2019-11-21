@@ -19,7 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
-import cn.graiph.context.InstanceContext
+import cn.pandadb.context.InstanceContext
 import org.neo4j.cypher.internal.v3_5.util.CypherTypeException
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.Expression
@@ -62,7 +62,7 @@ case class DeletePipe(src: Pipe, expression: Expression, forced: Boolean)
     if (forced) state.query.detachDeleteNode(n.id())
     else state.query.nodeOps.delete(n.id())
     */
-    // NOTE: graiph
+    // NOTE: pandadb
     val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
 
     if(!maybeStore.isDefined) {

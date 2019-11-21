@@ -19,7 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
-import cn.graiph.context.InstanceContext
+import cn.pandadb.context.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.runtime.interpreted.CastSupport
 import org.neo4j.cypher.internal.runtime.interpreted.GraphElementPropertyFunctions
@@ -45,7 +45,7 @@ case class RemoveLabelsPipe(src: Pipe, variable: String, labels: Seq[LazyLabel])
     //val labelIds = labels.flatMap(_.getOptId(state.query)).map(_.id)
     // state.query.removeLabelsFromNode(nodeId, labelIds.iterator)
 
-    // NOTE: graiph
+    // NOTE: pandadb
     val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
 
     if(!maybeStore.isDefined) {

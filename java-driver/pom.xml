@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>cn.pandadb</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.0.2</version>
+        <relativePath>../</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.pandadb</groupId>
+    <artifactId>java-driver</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>blob-commons</artifactId>
+            <version>${pandadb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j.driver</groupId>
+            <artifactId>neo4j-java-driver</artifactId>
+            <version>2.0.0-alpha03</version>
+        </dependency>
+    </dependencies>
+</project>
