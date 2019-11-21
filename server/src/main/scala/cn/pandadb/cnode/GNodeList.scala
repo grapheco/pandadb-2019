@@ -2,7 +2,8 @@ package cn.pandadb.cnode
 
 import java.io.FileInputStream
 import java.util.Properties
-import cn.pandadb.util.NodeAddress
+
+import cn.pandadb.network.NodeAddress
 import org.neo4j.driver.Driver
 
 /**

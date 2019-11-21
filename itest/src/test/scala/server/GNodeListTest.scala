@@ -2,7 +2,8 @@ import java.io.FileInputStream
 import java.net.InetAddress
 import java.util.Properties
 
-import cn.pandadb.cnode.{NodeAddress, ZKConstants, ZKServiceRegistry}
+import cn.pandadb.cnode.{ZKConstants, ZKServiceRegistry}
+import cn.pandadb.network.NodeAddress
 import org.junit.{Assert, Test}
 class GNodeListTest {
 
