@@ -21,6 +21,7 @@ package cn.pandadb.blob
 
 import java.util.Properties
 
+import cn.pandadb.util.PandaException
 import eu.medsea.mimeutil.MimeUtil
 import org.apache.commons.io.IOUtils
 
@@ -30,9 +31,9 @@ import scala.collection.JavaConversions._
   * Created by bluejoe on 2019/4/18.
   */
 case class MimeType(code: Long, text: String) {
-  def major = text.split("/")(0);
+  def major: String = text.split("/")(0);
 
-  def minor = text.split("/")(1);
+  def minor: String = text.split("/")(1);
 }
 
 object MimeType {
@@ -48,7 +49,7 @@ object MimeType {
     new MimeType(type2Codes.get(lc).getOrElse(throw new UnknownMimeTypeException(lc)), lc);
   }
 
-  def fromCode(code: Long) = new MimeType(code, code2Types(code));
+  def fromCode(code: Long): MimeType = new MimeType(code, code2Types(code));
 
   def guessMimeType(iss: InputStreamSource): MimeType = {
     val mimeTypes = iss.offerStream { is =>
@@ -59,6 +60,6 @@ object MimeType {
   }
 }
 
-class UnknownMimeTypeException(mtype: String) extends RuntimeException(s"unknown mime-type: $mtype") {
+class UnknownMimeTypeException(mtype: String) extends PandaException(s"unknown mime-type: $mtype") {
 
 }

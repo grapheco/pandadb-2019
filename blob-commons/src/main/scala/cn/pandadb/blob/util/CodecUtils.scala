@@ -34,7 +34,8 @@ object CodecUtils {
   def md5AsHex(bytes: Array[Byte]): String =
     md5.digestAsHex(bytes);
 
-  def encodeHexString(bytes: Array[Byte]) = Hex.encodeHexString(bytes);
+  def encodeHexString(bytes: Array[Byte]): String =
+    Hex.encodeHexString(bytes);
 
   def md5AsHex(value: Long): String =
     md5AsHex(StreamUtils.convertLongArray2ByteArray(Array(value)));

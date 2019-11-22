@@ -51,7 +51,7 @@ trait BatchBlobValueStorage extends InstanceBoundService {
 }
 
 object BlobStorage extends Logging {
-  def of(bbvs: BatchBlobValueStorage) = {
+  def of(bbvs: BatchBlobValueStorage): BlobStorage = {
     logger.info(s"using batch blob storage: ${bbvs}");
 
     new BlobStorage {
@@ -98,7 +98,7 @@ object BlobStorage extends Logging {
   class DefaultLocalFileSystemBlobValueStorage extends BatchBlobValueStorage with Logging {
     var _rootDir: File = _;
 
-    override def saveBatch(blobs: Iterable[Blob]) = {
+    override def saveBatch(blobs: Iterable[Blob]): Iterable[BlobId] = {
       blobs.map(blob => {
         val bid = generateId();
         val file = locateFile(bid);
@@ -123,7 +123,7 @@ object BlobStorage extends Logging {
       ids.map(id => Some(readFromBlobFile(locateFile(id))._2));
     }
 
-    override def deleteBatch(ids: Iterable[BlobId]) = {
+    override def deleteBatch(ids: Iterable[BlobId]) {
       ids.foreach { id =>
         locateFile(id).delete()
       }
@@ -161,7 +161,8 @@ object BlobStorage extends Logging {
     }
 
     override def start(ctx: InstanceBoundServiceContext): Unit = {
-      val baseDir: File = new File(ctx.storeDir, ctx.neo4jConf.getValue("dbms.active_database").get().toString); //new File(conf.getRaw("unsupported.dbms.directories.neo4j_home").get());
+      val baseDir: File = new File(ctx.storeDir, ctx.neo4jConf.getValue("dbms.active_database").get().toString);
+      //new File(conf.getRaw("unsupported.dbms.directories.neo4j_home").get());
       _rootDir = ctx.configuration.getAsFile("blob.storage.file.dir", baseDir, new File(baseDir, "/blob"));
       _rootDir.mkdirs();
       logger.info(s"using storage dir: ${_rootDir.getCanonicalPath}");

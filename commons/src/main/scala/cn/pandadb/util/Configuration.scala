@@ -68,25 +68,27 @@ class ConfigurationEx(conf: Configuration) extends Logging {
     }
   }
 
-  def getValueAsString(key: String, defaultValue: String) =
+  def getValueAsString(key: String, defaultValue: String): String =
     getValueWithDefault(key, () => defaultValue, (x: String) => x)
 
-  def getValueAsClass(key: String, defaultValue: Class[_]) =
+  def getValueAsClass(key: String, defaultValue: Class[_]): Class[_] =
     getValueWithDefault(key, () => defaultValue, (x: String) => Class.forName(x))
 
-  def getValueAsInt(key: String, defaultValue: Int) =
+  def getValueAsInt(key: String, defaultValue: Int): Int =
     getValueWithDefault[Int](key, () => defaultValue, (x: String) => x.toInt)
 
-  def getValueAsBoolean(key: String, defaultValue: Boolean) =
+  def getValueAsBoolean(key: String, defaultValue: Boolean): Boolean =
     getValueWithDefault[Boolean](key, () => defaultValue, (x: String) => x.toBoolean)
 
-  def getAsFile(key: String, baseDir: File, defaultValue: File) = {
+  def getAsFile(key: String, baseDir: File, defaultValue: File): File = {
     getValueWithDefault(key, () => defaultValue, { x =>
       val file = new File(x);
-      if (file.isAbsolute)
-        file;
-      else
-        new File(baseDir, x);
+      if (file.isAbsolute) {
+        file
+      }
+      else {
+        new File(baseDir, x)
+      }
     });
   }
 }
@@ -102,5 +104,5 @@ class WrongArgumentException(key: String, value: String, clazz: Class[_]) extend
 }
 
 object ConfigUtils {
-  implicit def config2Ex(conf: Configuration) = new ConfigurationEx(conf);
+  implicit def config2Ex(conf: Configuration): ConfigurationEx = new ConfigurationEx(conf);
 }

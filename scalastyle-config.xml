@@ -61,7 +61,7 @@ This file is divided into 3 sections:
 
     <check level="error" class="org.scalastyle.file.FileLineLengthChecker" enabled="true">
         <parameters>
-            <parameter name="maxLineLength"><![CDATA[120]]></parameter>
+            <parameter name="maxLineLength"><![CDATA[150]]></parameter>
             <parameter name="tabSize"><![CDATA[2]]></parameter>
             <parameter name="ignoreImports">true</parameter>
         </parameters>
@@ -100,11 +100,11 @@ This file is divided into 3 sections:
 
     <check level="error" class="org.scalastyle.scalariform.PublicMethodsHaveTypeChecker" enabled="true"></check>
 
-    <check level="error" class="org.scalastyle.file.NewLineAtEofChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.file.NewLineAtEofChecker" enabled="false"></check>
 
     <check customId="nonascii" level="error" class="org.scalastyle.scalariform.NonASCIICharacterChecker" enabled="true"></check>
 
-    <check level="error" class="org.scalastyle.scalariform.SpaceAfterCommentStartChecker" enabled="true"></check>
+    <check level="error" class="org.scalastyle.scalariform.SpaceAfterCommentStartChecker" enabled="false"></check>
 
     <check level="error" class="org.scalastyle.scalariform.EnsureSingleSpaceBeforeTokenChecker" enabled="true">
         <parameters>
@@ -202,7 +202,7 @@ This file is divided into 3 sections:
 
     <check level="error" class="org.scalastyle.scalariform.MethodNamesChecker" enabled="true">
         <parameters>
-            <parameter name="regex"><![CDATA[^[a-z][A-Za-z0-9]*$]]></parameter>
+            <parameter name="regex"><![CDATA[^`?_?[a-z][A-Za-z0-9]*`?$]]></parameter>
         </parameters>
     </check>
 
@@ -216,9 +216,6 @@ This file is divided into 3 sections:
     <check level="error" class="org.scalastyle.scalariform.IllegalImportsChecker" enabled="true">
         <parameters><parameter name="illegalImports"><![CDATA[sun._,java.awt._]]></parameter></parameters>
     </check>
-
-    <!-- We want the opposite of this: NewLineAtEofChecker -->
-    <check level="error" class="org.scalastyle.file.NoNewLineAtEofChecker" enabled="true"></check>
 
     <!-- This one complains about all kinds of random things. Disable. -->
     <check level="error" class="org.scalastyle.scalariform.SimplifyBooleanExpressionChecker" enabled="false"></check>
@@ -248,7 +245,7 @@ This file is divided into 3 sections:
     </check>
 
     <!-- Doesn't seem super big deal here ... -->
-    <check level="error" class="org.scalastyle.scalariform.MethodLengthChecker" enabled="true">
+    <check level="error" class="org.scalastyle.scalariform.MethodLengthChecker" enabled="false">
         <parameters><parameter name="maxLength">50</parameter></parameters>
     </check>
 

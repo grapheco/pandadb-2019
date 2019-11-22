@@ -43,7 +43,7 @@ trait Blob extends Comparable[Blob] {
 
   def offerStream[T](consume: (InputStream) => T): T = streamSource.offerStream(consume);
 
-  def toBytes() = offerStream(IOUtils.toByteArray(_));
+  def toBytes(): Array[Byte] = offerStream(IOUtils.toByteArray(_));
 
   def makeTempFile(): File = {
     offerStream((is) => {
@@ -53,9 +53,9 @@ trait Blob extends Comparable[Blob] {
     })
   }
 
-  override def compareTo(o: Blob) = this.length.compareTo(o.length);
+  override def compareTo(o: Blob): Int = this.length.compareTo(o.length);
 
-  override def toString = s"blob(length=${length},mime-type=${mimeType.text})";
+  override def toString: String = s"blob(length=${length},mime-type=${mimeType.text})";
 }
 
 //actually a 4-long values

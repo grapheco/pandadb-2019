@@ -1,7 +1,7 @@
 package cn.pandadb.blob
 
 import cn.pandadb.cypherplus._
-import cn.pandadb.util.{Configuration, Logging}
+import cn.pandadb.util.{PandaException, Configuration, Logging}
 
 import scala.beans.BeanProperty
 import scala.collection.mutable
@@ -37,7 +37,7 @@ class CypherPluginRegistry {
   @BeanProperty var extractors: Array[DomainExtractorEntry] = Array();
   @BeanProperty var comparators: Array[DomainComparatorEntry] = Array();
 
-  def createCustomPropertyProvider(conf: Configuration) = new CustomPropertyProvider {
+  def createCustomPropertyProvider(conf: Configuration): CustomPropertyProvider = new CustomPropertyProvider {
     extractors.foreach(_.extractor.initialize(conf));
 
     //propertyName, typeName
@@ -76,7 +76,7 @@ class CypherPluginRegistry {
     }
   }
 
-  def createValueComparatorRegistry(conf: Configuration) = new ValueMatcher with Logging {
+  def createValueComparatorRegistry(conf: Configuration): ValueMatcher = new ValueMatcher with Logging {
     type CompareAnyMethod = (Any, Any) => Any;
     type CompareValueMethod = (Any, Any) => Double;
     type CompareSetMethod = (Any, Any) => Array[Array[Double]];
@@ -144,14 +144,16 @@ class CypherPluginRegistry {
       }
     }
 
-    private def getMatchedComparator(compareValueOrSet: Boolean, typeA: String, typeB: String, algoName: Option[String]): Option[(CompareAnyMethod, DomainComparatorEntry)] = {
+    private def getMatchedComparator(compareValueOrSet: Boolean, typeA: String, typeB: String,
+                                     algoName: Option[String]): Option[(CompareAnyMethod, DomainComparatorEntry)] = {
       def isEntryMatched(entry: DomainComparatorEntry, typeName: String): Boolean = {
         val f = entry.domain.equalsIgnoreCase(typeName) &&
-          (if (compareValueOrSet)
+          (if (compareValueOrSet) {
             entry.comparator.isInstanceOf[ValueComparator]
-          else
+          }
+          else {
             entry.comparator.isInstanceOf[SetComparator]
-            )
+          })
 
         algoName.map { name =>
           f && entry.name.equalsIgnoreCase(name)
@@ -161,10 +163,12 @@ class CypherPluginRegistry {
       }
 
       def doCompare(comparator: AnyComparator, a: Any, b: Any): Any = {
-        if (compareValueOrSet)
-          comparator.asInstanceOf[ValueComparator].compare(a, b);
-        else
-          comparator.asInstanceOf[SetComparator].compareAsSets(a, b);
+        if (compareValueOrSet) {
+          comparator.asInstanceOf[ValueComparator].compare(a, b)
+        }
+        else {
+          comparator.asInstanceOf[SetComparator].compareAsSets(a, b)
+        }
       }
 
       comparators.find(isEntryMatched(_, ValueType.concat(typeA, typeB)))
@@ -213,16 +217,17 @@ class CypherPluginRegistry {
 }
 
 class UnknownPropertyException(name: String, x: Any)
-  extends RuntimeException(s"unknown property `$name` for $x") {
+  extends PandaException(s"unknown property `$name` for $x") {
 
 }
 
 class NoSuitableComparatorException(a: Any, b: Any, algoName: Option[String])
-  extends RuntimeException(s"no suiltable comparator: ${ValueType.typeNameOf(a)} and ${ValueType.typeNameOf(b)}, algorithm name: ${algoName.getOrElse("(none)")}") {
+  extends PandaException(s"no suiltable comparator: ${ValueType.typeNameOf(a)} and ${ValueType.typeNameOf(b)}," +
+    s" algorithm name: ${algoName.getOrElse("(none)")}") {
 
 }
 
 class TooManyObjectsException(o: Any)
-  extends RuntimeException(s"too many objects: $o") {
+  extends PandaException(s"too many objects: $o") {
 
 }

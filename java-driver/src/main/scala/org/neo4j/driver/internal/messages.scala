@@ -33,7 +33,8 @@ class GetBlobMessageEncoder extends MessageEncoder {
   }
 }
 
-class GetBlobMessageHandler(report: CompletableFuture[(BlobChunk, ArrayBuffer[CompletableFuture[BlobChunk]])], exception: CompletableFuture[Throwable])
+class GetBlobMessageHandler(report: CompletableFuture[(BlobChunk, ArrayBuffer[CompletableFuture[BlobChunk]])],
+                            exception: CompletableFuture[Throwable])
   extends ResponseHandler with Logging {
   val _chunks = ArrayBuffer[CompletableFuture[BlobChunk]]();
   var _completedIndex = -1;
@@ -67,12 +68,14 @@ class GetBlobMessageHandler(report: CompletableFuture[(BlobChunk, ArrayBuffer[Co
   override def onFailure(error: Throwable): Unit = {
     exception.complete(error);
 
-    if (!report.isDone)
+    if (!report.isDone) {
       report.complete(null);
+    }
 
     _chunks.foreach { x =>
-      if (!x.isDone)
+      if (!x.isDone) {
         x.complete(null)
+      }
     }
   }
 }

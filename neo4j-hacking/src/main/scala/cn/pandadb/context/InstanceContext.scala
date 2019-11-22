@@ -21,7 +21,7 @@
 package cn.pandadb.context
 
 import cn.pandadb.util.ReflectUtils._
-import cn.pandadb.util.{ConfigUtils, Configuration, ContextMap}
+import cn.pandadb.util._
 import org.neo4j.cypher.internal.runtime.interpreted.pipes.QueryState
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.factory.GraphDatabaseFacade
@@ -47,7 +47,8 @@ object InstanceContext {
 
   def of(x: CommonAbstractStore[_, _]): ContextMap = x._get("configuration").asInstanceOf[Config].getInstanceContext;
 
-  def of(x: RecordAccess[PropertyRecord, PrimitiveRecord]): ContextMap = x._get("loader.val$store.configuration").asInstanceOf[Config].getInstanceContext;
+  def of(x: RecordAccess[PropertyRecord, PrimitiveRecord]): ContextMap =
+    x._get("loader.val$store.configuration").asInstanceOf[Config].getInstanceContext;
 
   def of(x: GraphDatabaseFacade): ContextMap = x._get("config").asInstanceOf[Config].getInstanceContext;
 
@@ -90,12 +91,12 @@ object InstanceContext {
 
 }
 
-class FaileToGetInstanceContextException(o: AnyRef) extends RuntimeException {
+class FaileToGetInstanceContextException(o: AnyRef) extends PandaException(s"failed to get InstanceContext from: $o") {
 
 }
 
 object Neo4jConfigUtils {
-  implicit def neo4jConfig2Config(neo4jConf: Config) = new Configuration() {
+  implicit def neo4jConfig2Config(neo4jConf: Config): Configuration = new Configuration() {
     override def getRaw(name: String): Option[String] = {
       val raw = neo4jConf.getRaw(name);
       if (raw.isPresent) {
@@ -107,5 +108,5 @@ object Neo4jConfigUtils {
     }
   }
 
-  implicit def neo4jConfig2Ex(neo4jConf: Config) = ConfigUtils.config2Ex(neo4jConfig2Config(neo4jConf));
+  implicit def neo4jConfig2Ex(neo4jConf: Config): ConfigurationEx = ConfigUtils.config2Ex(neo4jConfig2Config(neo4jConf));
 }

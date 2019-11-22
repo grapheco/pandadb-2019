@@ -22,6 +22,7 @@ package org.neo4j.kernel.impl.blob
 import java.io.{File, FileInputStream}
 
 import cn.pandadb.blob.{MimeType, Blob}
+import cn.pandadb.util.PandaException
 import org.apache.commons.io.IOUtils
 import org.neo4j.procedure.{Description, Name, UserFunction}
 
@@ -186,6 +187,6 @@ class DefaultBlobFunctions {
   }
 }
 
-class CypherFunctionException(msg: String) extends RuntimeException(msg) {
+class CypherFunctionException(msg: String) extends PandaException(msg) {
 
 }

@@ -22,6 +22,7 @@ package org.neo4j.bolt.blob
 import java.io.{ByteArrayInputStream, InputStream}
 
 import cn.pandadb.blob.{MimeType, BlobMessageSignature, Blob, InputStreamSource}
+import cn.pandadb.util.PandaException
 import org.neo4j.bolt.messaging.Neo4jPack.Unpacker
 import org.neo4j.bolt.messaging.{RequestMessage, RequestMessageDecoder}
 import org.neo4j.bolt.runtime.BoltResult.Visitor
@@ -41,10 +42,10 @@ trait RequestMessageHandler {
 class GetBlobMessage(val blobId: String) extends RequestMessage with RequestMessageHandler {
   override def safeToProcessInAnyState(): Boolean = false;
 
-  override def toString = s"GET_BLOB(id=$blobId)";
+  override def toString: String = s"GET_BLOB(id=$blobId)";
 
   @throws[Exception]
-  override def accepts(context: StateMachineContext) = {
+  override def accepts(context: StateMachineContext): Unit = {
     val opt: Option[Blob] = TransactionalBlobCache.get(blobId)
     if (opt.isDefined) {
       context.connectionState.onRecords(new BoltResult() {
@@ -106,7 +107,7 @@ class GetBlobMessageDecoder(val responseHandler: BoltResponseHandler) extends Re
 }
 
 class InvalidBlobHandleException(blobId: String)
-  extends RuntimeException(s"invalid blob handle: $blobId, make sure it is within an active transaction") {
+  extends PandaException(s"invalid blob handle: $blobId, make sure it is within an active transaction") {
 
 }
 

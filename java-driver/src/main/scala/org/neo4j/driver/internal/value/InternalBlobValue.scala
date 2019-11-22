@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, IOException, InputStream}
 import java.util.concurrent.CompletableFuture
 
 import cn.pandadb.blob.{MimeType, Blob, InputStreamSource}
+import cn.pandadb.util.PandaException
 import org.neo4j.driver.internal._
 import org.neo4j.driver.internal.spi.Connection
 import org.neo4j.driver.internal.types.{TypeConstructor, TypeRepresentation}
@@ -27,7 +28,7 @@ class InternalBlobValue(val blob: Blob) extends ValueAdapter {
 
   override def asBlob: Blob = blob;
 
-  override def asObject = blob;
+  override def asObject: AnyRef = blob;
 
   override def toString: String = s"BoltBlobValue(blob=${blob.toString})"
 }
@@ -108,6 +109,6 @@ class BlobInputStream(firstChunk: BlobChunk, chunkFutures: ArrayBuffer[Completab
   }
 }
 
-class FailedToReadStreamException(cause: Throwable) extends RuntimeException(cause) {
+class FailedToReadStreamException(cause: Throwable) extends PandaException(s"failed to read stream", cause) {
 
 }
