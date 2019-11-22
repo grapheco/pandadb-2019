@@ -20,13 +20,15 @@ trait ClusterManager {
 
   def getCurrentState(): ClusterState;
 
-  def getAllNodes(): NodeState;
+  def getAllNodes(): NodeDetail;
 
   def changeState(state: ClusterState): Unit;
+
+  def listen(listener: ClusterEventListener): Unit;
 }
 
-case class NodeState(address: NodeAddress, writable: Boolean, readable: Boolean) {
-
+trait ClusterEventListener {
+  def onEvent(event: ClusterEvent): Unit;
 }
 
 trait ClusterState {
