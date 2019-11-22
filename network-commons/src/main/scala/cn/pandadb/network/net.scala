@@ -13,7 +13,7 @@ object NodeAddress {
   }
 }
 
-trait ClusterManager {
+trait ClusterClient {
   def getWriteMasterNode(): NodeAddress;
 
   def getReadNode(): NodeAddress;
@@ -35,6 +35,6 @@ trait ClusterState {
 
 }
 
-abstract class ZookeeperBasedClusterManager(zkString: String) extends ClusterManager {
+abstract class ZookeeperBasedClusterManager(zkString: String) extends ClusterClient {
 
 }
