@@ -129,5 +129,7 @@ class LocalGraphService(db: GraphDatabaseService)
     }
   }
 
-  override def queryObjects[T: ClassManifest](queryString: String, fnMap: (Record) => T): Iterator[T] = ???
+  override def queryObjects[T: ClassManifest](queryString: String, fnMap: (Record) => T): Iterator[T] = {
+    null
+  }
 }
