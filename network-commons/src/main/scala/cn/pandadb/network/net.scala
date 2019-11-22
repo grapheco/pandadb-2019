@@ -13,6 +13,7 @@ object NodeAddress {
   }
 }
 
+// used by server & driver
 trait ClusterClient {
   def getWriteMasterNode(): NodeAddress;
 
@@ -22,7 +23,7 @@ trait ClusterClient {
 
   def getAllNodes(): NodeDetail;
 
-  def changeState(state: ClusterState): Unit;
+  def waitFor(state: ClusterState): Unit;
 
   def listen(listener: ClusterEventListener): Unit;
 }
@@ -36,5 +37,5 @@ trait ClusterState {
 }
 
 abstract class ZookeeperBasedClusterManager(zkString: String) extends ClusterClient {
-
+  //use Apache Curator
 }
