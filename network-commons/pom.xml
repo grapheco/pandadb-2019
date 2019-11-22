@@ -14,5 +14,14 @@
     <artifactId>network-commons</artifactId>
     <description>shared lib for driver/server</description>
 
-
+    <dependencies>
+        <dependency>
+            <groupId>net.neoremind</groupId>
+            <artifactId>kraps-rpc_2.11</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+        </dependency>
+    </dependencies>
 </project>
