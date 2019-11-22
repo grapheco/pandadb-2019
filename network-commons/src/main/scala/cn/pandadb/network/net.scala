@@ -7,8 +7,8 @@ case class NodeAddress(host: String, port: Int) {
 }
 
 object NodeAddress {
-  def fromString(url: String, seperator: String = ":"): NodeAddress = {
-    val pair = url.split(seperator)
+  def fromString(url: String, separator: String = ":"): NodeAddress = {
+    val pair = url.split(separator)
     NodeAddress(pair(0), pair(1).toInt)
   }
 }

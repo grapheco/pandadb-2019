@@ -15,12 +15,15 @@ trait InstanceBoundServiceFactory {
   def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService];
 }
 
-case class InstanceBoundServiceContext(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo, configuration: Configuration, instanceContext: ContextMap) {
+case class InstanceBoundServiceContext(proceduresService: Procedures,
+                                       storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo,
+                                       configuration: Configuration, instanceContext: ContextMap) {
 
 }
 
 /**
-  * CustomDatabaseLifecyclePlugins records all plugins which will be maintained/active in whole life cycle of current database instance
+  * CustomDatabaseLifecyclePlugins records all plugins which will be maintained/active
+  * in whole life cycle of current database instance
   */
 object InstanceBoundServiceFactoryRegistry extends Logging {
   val plugins = ArrayBuffer[InstanceBoundServiceFactory]();
@@ -31,8 +34,9 @@ object InstanceBoundServiceFactoryRegistry extends Logging {
   }
 
   def register(plugin: InstanceBoundServiceFactory): InstanceBoundServiceFactory = {
-    if (plugins.exists(_.getClass == plugin.getClass))
+    if (plugins.exists(_.getClass == plugin.getClass)) {
       throw new RuntimeException(s"duplicate plugin: ${plugin.getClass}")
+    }
 
     plugins += plugin
     plugin
