@@ -29,7 +29,6 @@
             <artifactId>external-properties</artifactId>
             <version>${pandadb.version}</version>
         </dependency>
-
         <dependency>
             <groupId>cn.pandadb</groupId>
             <artifactId>server</artifactId>
@@ -38,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
-            <artifactId>java-driver</artifactId>
+            <artifactId>tools</artifactId>
             <version>${pandadb.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -57,11 +56,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
         </dependency>
     </dependencies>
 
