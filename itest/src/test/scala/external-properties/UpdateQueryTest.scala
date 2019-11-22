@@ -72,7 +72,7 @@ class UpdateNodeQueryTest extends UpdateQueryTestBase {
     val query = "create (n1:Person{name:'xx'}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext){
+    if(rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
