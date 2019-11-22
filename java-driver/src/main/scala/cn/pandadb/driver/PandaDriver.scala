@@ -3,7 +3,7 @@ package cn.pandadb.driver
 import java.util
 import java.util.concurrent.{CompletableFuture, CompletionStage}
 
-import cn.pandadb.network.ClusterManager
+import cn.pandadb.network.ClusterClient
 import org.neo4j.driver._
 import org.neo4j.driver.async.AsyncSession
 import org.neo4j.driver.internal.SessionConfig
@@ -22,7 +22,7 @@ object PandaDriver {
 }
 
 class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Driver {
-  val clusterOperator: ClusterManager = createClusterOperator(uri);
+  val clusterOperator: ClusterClient = createClusterOperator(uri);
 
 //  val defaultSessionConfig = new SessionConfig()
   val defaultSessionConfig = SessionConfig.empty()
@@ -57,12 +57,12 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
 
   override def isEncrypted: Boolean = ???
 
-  private def createClusterOperator(uri: String): ClusterManager = {
+  private def createClusterOperator(uri: String): ClusterClient = {
     null
   }
 }
 
-class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterManager) extends Session {
+class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient) extends Session {
   override def writeTransaction[T](work: TransactionWork[T]): T = ???
 
   override def writeTransaction[T](work: TransactionWork[T], config: TransactionConfig): T = ???
