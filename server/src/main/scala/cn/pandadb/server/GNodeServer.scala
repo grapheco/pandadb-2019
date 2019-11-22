@@ -18,7 +18,8 @@ import scala.collection.JavaConversions
   */
 object GNodeServer extends Logging with Touchable {
   val logo = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("pandaLogo1.txt"), "utf-8");
-  AbstractNeoServer.NEO4J_IS_STARTING_MESSAGE = "======== PandaDB Node Server(based on Neo4j-3.5.6) ======== " + "\r\n" + logo;
+  AbstractNeoServer.NEO4J_IS_STARTING_MESSAGE =
+    s"======== PandaDB Node Server(based on Neo4j-3.5.6) ========\r\n${logo}";
 
   run("registering global database lifecycle service") {
     InstanceBoundServiceFactoryRegistry.register[BlobStorageServiceFactory];
