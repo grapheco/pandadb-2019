@@ -39,7 +39,7 @@ object ReflectUtils {
     constructor.newInstance(args.map(_.asInstanceOf[Object]): _*).asInstanceOf[T];
   }
 
-  def instanceOf(className: String)(args: Any*) = {
+  def instanceOf(className: String)(args: Any*): Any = {
     val constructor = Class.forName(className).getDeclaredConstructor(args.map(_.getClass): _*);
     constructor.setAccessible(true);
     constructor.newInstance(args.map(_.asInstanceOf[Object]): _*);
@@ -71,8 +71,9 @@ class ReflectedObject(o: AnyRef) {
     catch {
       case e: NoSuchFieldException =>
         val sc = clazz.getSuperclass;
-        if (sc == null)
+        if (sc == null) {
           throw e;
+        }
 
         _getField(sc, fieldName);
     }
@@ -93,6 +94,6 @@ class ReflectedObject(o: AnyRef) {
 }
 
 class InvalidFieldPathException(o: AnyRef, path: String, cause: Throwable)
-  extends RuntimeException(s"invalid field path: $path, host: $o", cause) {
+  extends PandaException(s"invalid field path: $path, host: $o", cause) {
 
 }

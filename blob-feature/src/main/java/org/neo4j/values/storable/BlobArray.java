@@ -61,7 +61,7 @@ public class BlobArray extends NonPrimitiveArray<Blob>
     @Override
     public boolean equals( Value other )
     {
-        return _support._equals( other );
+        return _support.internalEquals( other );
     }
 
     @Override

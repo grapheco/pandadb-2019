@@ -50,7 +50,7 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
 
   override def toCommandProjection(id: Id, projections: Map[String, Expression],
                                    self: ExpressionConverters): Option[CommandProjection] = {
-    val projected = for ((k,Some(v)) <- projections.mapValues(e => toCommandExpression(id, e, self))) yield (k,v)
+    val projected = for ((k, Some(v)) <- projections.mapValues(e => toCommandExpression(id, e, self ))) yield (k, v)
     if (projected.size < projections.size) None else Some(InterpretedCommandProjection(projected))
   }
 
@@ -68,8 +68,8 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
       case e: ast.Or => predicates.Or(self.toCommandPredicate(id, e.lhs), self.toCommandPredicate(id, e.rhs))
       case e: ast.Xor => predicates.Xor(self.toCommandPredicate(id, e.lhs), self.toCommandPredicate(id, e.rhs))
       case e: ast.And => predicates.And(self.toCommandPredicate(id, e.lhs), self.toCommandPredicate(id, e.rhs))
-      case e: ast.Ands => predicates.Ands(NonEmptyList.from(e.exprs.map(self.toCommandPredicate(id,_))))
-      case e: ast.Ors => predicates.Ors(NonEmptyList.from(e.exprs.map(self.toCommandPredicate(id,_))))
+      case e: ast.Ands => predicates.Ands(NonEmptyList.from(e.exprs.map(self.toCommandPredicate(id, _))))
+      case e: ast.Ors => predicates.Ors(NonEmptyList.from(e.exprs.map(self.toCommandPredicate(id, _))))
       case e: ast.Not => predicates.Not(self.toCommandPredicate(id, e.rhs))
       case e: ast.Equals => predicates.Equals(self.toCommandExpression(id, e.lhs), self.toCommandExpression(id, e.rhs))
       case e: ast.NotEquals => predicates
@@ -124,17 +124,17 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
                          self.toCommandExpression(id, e.scope.extractExpression.get))
       case e: ast.ListComprehension => listComprehension(id, e, self)
       case e: ast.AllIterablePredicate => commands.AllInList(self.toCommandExpression(id, e.expression), e.variable.name,
-                                                             e.innerPredicate.map(self.toCommandPredicate(id,_))
+                                                             e.innerPredicate.map(self.toCommandPredicate(id, _))
                                                                .getOrElse(predicates.True()))
       case e: ast.AnyIterablePredicate => commands.AnyInList(self.toCommandExpression(id, e.expression), e.variable.name,
-                                                             e.innerPredicate.map(self.toCommandPredicate(id,_))
+                                                             e.innerPredicate.map(self.toCommandPredicate(id, _))
                                                                .getOrElse(predicates.True()))
       case e: ast.NoneIterablePredicate => commands.NoneInList(self.toCommandExpression(id, e.expression), e.variable.name,
-                                                               e.innerPredicate.map(self.toCommandPredicate(id,_))
+                                                               e.innerPredicate.map(self.toCommandPredicate(id, _))
                                                                  .getOrElse(predicates.True()))
       case e: ast.SingleIterablePredicate => commands
         .SingleInList(self.toCommandExpression(id, e.expression), e.variable.name,
-                      e.innerPredicate.map(self.toCommandPredicate(id,_)).getOrElse(predicates.True()))
+                      e.innerPredicate.map(self.toCommandPredicate(id, _)).getOrElse(predicates.True()))
       case e: ast.ReduceExpression => commandexpressions
         .ReduceFunction(self.toCommandExpression(id, e.list), e.variable.name, self.toCommandExpression(id, e.expression),
                         e.accumulator.name, self.toCommandExpression(id, e.init))
@@ -143,9 +143,9 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
         .NestedPipeExpression(e.pipe, self.toCommandExpression(id, e.projection))
       case e: ast.GetDegree => getDegree(id, e, self)
       case e: PrefixSeekRangeWrapper => commandexpressions
-        .PrefixSeekRangeExpression(e.range.map(self.toCommandExpression(id,_)))
-      case e: InequalitySeekRangeWrapper => InequalitySeekRangeExpression(e.range.mapBounds(self.toCommandExpression(id,_)))
-      case e: PointDistanceSeekRangeWrapper => PointDistanceSeekRangeExpression(e.range.map(self.toCommandExpression(id,_)))
+        .PrefixSeekRangeExpression(e.range.map(self.toCommandExpression(id, _)))
+      case e: InequalitySeekRangeWrapper => InequalitySeekRangeExpression(e.range.mapBounds(self.toCommandExpression(id, _)))
+      case e: PointDistanceSeekRangeWrapper => PointDistanceSeekRangeExpression(e.range.map(self.toCommandExpression(id, _)))
       case e: ast.AndedPropertyInequalities => predicates
         .AndedPropertyComparablePredicates(variable(e.variable), toCommandProperty(id, e.property, self),
                                            e.inequalities.map(e => inequalityExpression(id, e, self)))
@@ -154,7 +154,7 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
       case e: ResolvedFunctionInvocation =>
         val callArgumentCommands = e.callArguments.map(Some(_))
           .zipAll(e.fcnSignature.get.inputSignature.map(_.default.map(_.value)), None, None).map {
-          case (given, default) => given.map(self.toCommandExpression(id,_))
+          case (given, default) => given.map(self.toCommandExpression(id, _))
             .getOrElse(commandexpressions.Literal(default.get))
         }
         val signature = e.fcnSignature.get
@@ -187,28 +187,34 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
       case Avg =>
         val inner = self.toCommandExpression(id, invocation.arguments.head)
         val command = commandexpressions.Avg(inner)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, inner)
-        else
+        }
+        else {
           command
+        }
       case Ceil => commandexpressions.CeilFunction(self.toCommandExpression(id, invocation.arguments.head))
       case Coalesce => commandexpressions.CoalesceFunction(toCommandExpression(id, invocation.arguments, self): _*)
       case Collect =>
         val inner = self.toCommandExpression(id, invocation.arguments.head)
         val command = commandexpressions.Collect(inner)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, inner)
-        else
+        }
+        else {
           command
+        }
       case Cos => commandexpressions.CosFunction(self.toCommandExpression(id, invocation.arguments.head))
       case Cot => commandexpressions.CotFunction(self.toCommandExpression(id, invocation.arguments.head))
       case Count =>
         val inner = self.toCommandExpression(id, invocation.arguments.head)
         val command = commandexpressions.Count(inner)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, inner)
-        else
+        }
+        else {
           command
+        }
       case Degrees => commandexpressions.DegreesFunction(self.toCommandExpression(id, invocation.arguments.head))
       case E => commandexpressions.EFunction()
       case EndNode => commandexpressions
@@ -257,36 +263,44 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
       case Max =>
         val inner = self.toCommandExpression(id, invocation.arguments.head)
         val command = commandexpressions.Max(inner)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, inner)
-        else
+        }
+        else {
           command
+        }
       case Min =>
         val inner = self.toCommandExpression(id, invocation.arguments.head)
         val command = commandexpressions.Min(inner)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, inner)
-        else
+        }
+        else {
           command
+        }
       case Nodes => commandexpressions.NodesFunction(self.toCommandExpression(id, invocation.arguments.head))
       case PercentileCont =>
         val firstArg = self.toCommandExpression(id, invocation.arguments.head)
         val secondArg = self.toCommandExpression(id, invocation.arguments(1))
 
         val command = commandexpressions.PercentileCont(firstArg, secondArg)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, firstArg)
-        else
+        }
+        else {
           command
+        }
       case PercentileDisc =>
         val firstArg = self.toCommandExpression(id, invocation.arguments.head)
         val secondArg = self.toCommandExpression(id, invocation.arguments(1))
 
         val command = commandexpressions.PercentileDisc(firstArg, secondArg)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, firstArg)
-        else
+        }
+        else {
           command
+        }
       case Pi => commandexpressions.PiFunction()
       case Distance =>
         val firstArg = self.toCommandExpression(id, invocation.arguments.head)
@@ -330,17 +344,21 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
       case StdDev =>
         val inner = self.toCommandExpression(id, invocation.arguments.head)
         val command = commandexpressions.Stdev(inner)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, inner)
-        else
+        }
+        else {
           command
+        }
       case StdDevP =>
         val inner = self.toCommandExpression(id, invocation.arguments.head)
         val command = commandexpressions.StdevP(inner)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, inner)
-        else
+        }
+        else {
           command
+        }
       case Substring =>
         commandexpressions.SubstringFunction(
           self.toCommandExpression(id, invocation.arguments.head),
@@ -350,10 +368,12 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
       case Sum =>
         val inner = self.toCommandExpression(id, invocation.arguments.head)
         val command = commandexpressions.Sum(inner)
-        if (invocation.distinct)
+        if (invocation.distinct) {
           commandexpressions.Distinct(command, inner)
-        else
+        }
+        else {
           command
+        }
       case Tail =>
         commandexpressions.ListSlice(
           self.toCommandExpression(id, invocation.arguments.head),
@@ -379,11 +399,11 @@ case class CommunityExpressionConverter(tokenContext: TokenContext) extends Expr
 
   private def toCommandExpression(id: Id, expression: Option[ast.Expression],
                                   self: ExpressionConverters): Option[CommandExpression] =
-    expression.map(self.toCommandExpression(id,_))
+    expression.map(self.toCommandExpression(id, _))
 
   private def toCommandExpression(id: Id, expressions: Seq[ast.Expression],
                                   self: ExpressionConverters): Seq[CommandExpression] =
-    expressions.map(self.toCommandExpression(id,_))
+    expressions.map(self.toCommandExpression(id, _))
 
   private def variable(e: ast.LogicalVariable) = commands.expressions.Variable(e.name)
 

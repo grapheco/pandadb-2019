@@ -40,7 +40,7 @@ import org.neo4j.cypher.internal.v3_5.util.{CypherExecutionException, LabelId, P
 import scala.collection.JavaConverters._
 
 object TransactionBoundPlanContext {
-  def apply(tc: TransactionalContextWrapper, logger: InternalNotificationLogger) =
+  def apply(tc: TransactionalContextWrapper, logger: InternalNotificationLogger): TransactionBoundPlanContext =
     new TransactionBoundPlanContext(tc, logger, InstrumentedGraphStatistics(TransactionBoundGraphStatistics(tc.dataRead,
                                                                                                             tc.schemaRead),
       new MutableGraphStatisticsSnapshot()))
@@ -66,7 +66,7 @@ class TransactionBoundPlanContext(tc: TransactionalContextWrapper, logger: Inter
   override def indexGetForLabelAndProperties(labelName: String, propertyKeys: Seq[String]): Option[IndexDescriptor] = evalOrNone {
     try {
       val descriptor = toLabelSchemaDescriptor(this, labelName, propertyKeys)
-      getOnlineIndex(tc.schemaRead.index(descriptor.getLabelId, descriptor.getPropertyIds:_*))
+      getOnlineIndex(tc.schemaRead.index(descriptor.getLabelId, descriptor.getPropertyIds: _*))
     } catch {
       case _: KernelException => None
     }
@@ -132,7 +132,8 @@ class TransactionBoundPlanContext(tc: TransactionalContextWrapper, logger: Inter
     case _: types.GeometryType | _: types.PointType =>
       ValueCategory.GEOMETRY
 
-    case _: types.DateTimeType | _: types.LocalDateTimeType | _: types.DateType | _: types.TimeType | _: types.LocalTimeType | _: types.DurationType =>
+    case _: types.DateTimeType | _: types.LocalDateTimeType | _: types.DateType | _: types.TimeType |
+         _: types.LocalTimeType | _: types.DurationType =>
       ValueCategory.TEMPORAL
 
     // For everything else, we don't know
@@ -167,7 +168,7 @@ class TransactionBoundPlanContext(tc: TransactionalContextWrapper, logger: Inter
 
   override val txIdProvider = LastCommittedTxIdProvider(tc.graph)
 
-  override def procedureSignature(name: QualifiedName) = {
+  override def procedureSignature(name: QualifiedName): ProcedureSignature = {
     val kn = new procs.QualifiedName(name.namespace.asJava, name.name)
     val procedures = tc.kernelTransaction.procedures()
     val handle = procedures.procedureGet(kn)

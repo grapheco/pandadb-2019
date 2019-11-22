@@ -1,8 +1,8 @@
 package cn.pandadb.cypherplus
 
-import cn.pandadb.util.{ContextMap, ReflectUtils}
-import cn.pandadb.cypherplus.{CustomPropertyProvider, ValueMatcher}
-import ReflectUtils._
+import cn.pandadb.util.ReflectUtils._
+import cn.pandadb.util.{PandaException, ContextMap}
+import org.neo4j.cypher.internal.runtime.interpreted.commands.AstNode
 import org.neo4j.cypher.internal.runtime.interpreted.commands.convert.{ExpressionConverters, ExtendedCommandExpr}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.{Expression => CommandExpression}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.predicates.Predicate
@@ -13,16 +13,13 @@ import org.neo4j.cypher.internal.runtime.interpreted.{ExecutionContext, UpdateCo
 import org.neo4j.cypher.internal.v3_5.ast.semantics._
 import org.neo4j.cypher.internal.v3_5.expressions.Expression.SemanticContext
 import org.neo4j.cypher.internal.v3_5.expressions._
-import org.neo4j.cypher.internal.v3_5.parser.Expressions
 import org.neo4j.cypher.internal.v3_5.util.InputPosition
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.cypher.internal.v3_5.util.symbols._
-import org.neo4j.cypher.internal.v3_5.{expressions => ast}
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.values.AnyValue
 import org.neo4j.values.storable.{Value, _}
 import org.neo4j.values.virtual.VirtualValues
-import org.parboiled.scala._
 
 case class AlgoNameWithThresholdExpr(algorithm: Option[String], threshold: Option[Double])(val position: InputPosition)
   extends Expression with ExtendedExpr {
@@ -42,7 +39,7 @@ case class AlgoNameWithThresholdExpr(algorithm: Option[String], threshold: Optio
 
 case class CustomPropertyExpr(map: Expression, propertyKey: PropertyKeyName)(val position: InputPosition)
   extends LogicalProperty with ExtendedExpr with ExtendedCommandExpr {
-  override def asCanonicalStringVal = s"${map.asCanonicalStringVal}.${propertyKey.asCanonicalStringVal}"
+  override def asCanonicalStringVal: String = s"${map.asCanonicalStringVal}.${propertyKey.asCanonicalStringVal}"
 
   override def makeCommand(id: Id, self: ExpressionConverters): CommandExpression =
     CustomPropertyCommand(self.toCommandExpression(id, map), PropertyKey(this.propertyKey.name))
@@ -59,7 +56,7 @@ case class SemanticLikeExpr(lhs: Expression, ant: Option[AlgoNameWithThresholdEx
     TypeSignature(argumentTypes = Vector(CTAny, CTAny), outputType = CTBoolean)
   )
 
-  override def canonicalOperatorSymbol = this.getClass.getSimpleName
+  override def canonicalOperatorSymbol: String = this.getClass.getSimpleName
 
   override def makeCommand(id: Id, self: ExpressionConverters): CommandExpression =
     SemanticLikeCommand(self.toCommandExpression(id, this.lhs), this.ant, self.toCommandExpression(id, this.rhs))
@@ -78,7 +75,7 @@ case class SemanticUnlikeExpr(lhs: Expression, ant: Option[AlgoNameWithThreshold
   override def makeCommand(id: Id, self: ExpressionConverters): CommandExpression =
     SemanticUnlikeCommand(self.toCommandExpression(id, this.lhs), this.ant, self.toCommandExpression(id, this.rhs))
 
-  override def canonicalOperatorSymbol = this.getClass.getSimpleName
+  override def canonicalOperatorSymbol: String = this.getClass.getSimpleName
 
   override def check(ctx: SemanticContext): SemanticCheck =
     SemanticExpressionCheck.check(ctx, this.arguments) chain
@@ -94,7 +91,7 @@ case class SemanticCompareExpr(lhs: Expression, ant: Option[AlgoNameWithThreshol
   override def makeCommand(id: Id, self: ExpressionConverters): CommandExpression =
     SemanticCompareCommand(self.toCommandExpression(id, this.lhs), this.ant, self.toCommandExpression(id, this.rhs))
 
-  override def canonicalOperatorSymbol = this.getClass.getSimpleName
+  override def canonicalOperatorSymbol: String = this.getClass.getSimpleName
 
   override def check(ctx: SemanticContext): SemanticCheck =
     SemanticExpressionCheck.check(ctx, this.arguments) chain
@@ -110,7 +107,7 @@ case class SemanticSetCompareExpr(lhs: Expression, ant: Option[AlgoNameWithThres
   override def makeCommand(id: Id, self: ExpressionConverters): CommandExpression =
     SemanticSetCompareCommand(self.toCommandExpression(id, this.lhs), this.ant, self.toCommandExpression(id, this.rhs))
 
-  override def canonicalOperatorSymbol = this.getClass.getSimpleName
+  override def canonicalOperatorSymbol: String = this.getClass.getSimpleName
 
   override def check(ctx: SemanticContext): SemanticCheck =
     SemanticExpressionCheck.check(ctx, this.arguments) chain
@@ -126,7 +123,7 @@ case class SemanticContainExpr(lhs: Expression, ant: Option[AlgoNameWithThreshol
   override def makeCommand(id: Id, self: ExpressionConverters): CommandExpression =
     SemanticContainCommand(self.toCommandExpression(id, this.lhs), this.ant, self.toCommandExpression(id, this.rhs))
 
-  override def canonicalOperatorSymbol = this.getClass.getSimpleName
+  override def canonicalOperatorSymbol: String = this.getClass.getSimpleName
 
   override def check(ctx: SemanticContext): SemanticCheck =
     SemanticExpressionCheck.check(ctx, this.arguments) chain
@@ -142,7 +139,7 @@ case class SemanticInExpr(lhs: Expression, ant: Option[AlgoNameWithThresholdExpr
   override def makeCommand(id: Id, self: ExpressionConverters): CommandExpression =
     SemanticInCommand(self.toCommandExpression(id, this.lhs), this.ant, self.toCommandExpression(id, this.rhs))
 
-  override def canonicalOperatorSymbol = this.getClass.getSimpleName
+  override def canonicalOperatorSymbol: String = this.getClass.getSimpleName
 
   override def check(ctx: SemanticContext): SemanticCheck =
     SemanticExpressionCheck.check(ctx, this.arguments) chain
@@ -158,7 +155,7 @@ case class SemanticContainSetExpr(lhs: Expression, ant: Option[AlgoNameWithThres
   override def makeCommand(id: Id, self: ExpressionConverters): CommandExpression =
     SemanticContainSetCommand(self.toCommandExpression(id, this.lhs), this.ant, self.toCommandExpression(id, this.rhs))
 
-  override def canonicalOperatorSymbol = this.getClass.getSimpleName
+  override def canonicalOperatorSymbol: String = this.getClass.getSimpleName
 
   override def check(ctx: SemanticContext): SemanticCheck =
     SemanticExpressionCheck.check(ctx, this.arguments) chain
@@ -171,7 +168,7 @@ case class SemanticSetInExpr(lhs: Expression, ant: Option[AlgoNameWithThresholdE
     TypeSignature(argumentTypes = Vector(CTAny, CTAny), outputType = CTBoolean)
   )
 
-  override def canonicalOperatorSymbol = this.getClass.getSimpleName
+  override def canonicalOperatorSymbol: String = this.getClass.getSimpleName
 
   override def makeCommand(id: Id, self: ExpressionConverters): CommandExpression =
     SemanticSetInCommand(self.toCommandExpression(id, this.lhs), this.ant, self.toCommandExpression(id, this.rhs))
@@ -213,15 +210,15 @@ case class CustomPropertyCommand(mapExpr: CommandExpression, propertyKey: KeyTok
         pv.map(Values.unsafeOf(_, true)).getOrElse(Values.NO_VALUE)
     }
 
-  def rewrite(f: (CommandExpression) => CommandExpression) = f(CustomPropertyCommand(mapExpr.rewrite(f), propertyKey.rewrite(f)))
+  def rewrite(f: (CommandExpression) => CommandExpression): CommandExpression = f(CustomPropertyCommand(mapExpr.rewrite(f), propertyKey.rewrite(f)))
 
-  override def children = Seq(mapExpr, propertyKey)
+  override def children: Seq[AstNode[_]] = Seq(mapExpr, propertyKey)
 
-  def arguments = Seq(mapExpr)
+  def arguments: Seq[CommandExpression] = Seq(mapExpr)
 
-  def symbolTableDependencies = mapExpr.symbolTableDependencies
+  def symbolTableDependencies: Set[String] = mapExpr.symbolTableDependencies
 
-  override def toString = s"$mapExpr.${propertyKey.name}"
+  override def toString: String = s"$mapExpr.${propertyKey.name}"
 }
 
 trait SemanticOperatorSupport {
@@ -246,15 +243,15 @@ trait SemanticOperatorSupport {
 
   override def toString: String = lhsExpr.toString() + this.getOperatorString + rhsExpr.toString()
 
-  def containsIsNull = false
+  def containsIsNull: Boolean = false
 
-  def rewrite(f: (CommandExpression) => CommandExpression) = f(rhsExpr.rewrite(f) match {
+  def rewrite(f: (CommandExpression) => CommandExpression): CommandExpression = f(rhsExpr.rewrite(f) match {
     case other => rewriteMethod(lhsExpr.rewrite(f), ant, other)
   })
 
-  def arguments = Seq(lhsExpr, rhsExpr)
+  def arguments: Seq[CommandExpression] = Seq(lhsExpr, rhsExpr)
 
-  def symbolTableDependencies = lhsExpr.symbolTableDependencies ++ rhsExpr.symbolTableDependencies
+  def symbolTableDependencies: Set[String] = lhsExpr.symbolTableDependencies ++ rhsExpr.symbolTableDependencies
 }
 
 case class SemanticLikeCommand(lhsExpr: CommandExpression, ant: Option[AlgoNameWithThresholdExpr], rhsExpr: CommandExpression)
@@ -273,7 +270,8 @@ case class SemanticLikeCommand(lhsExpr: CommandExpression, ant: Option[AlgoNameW
 
   override def getOperatorString: String = "~:"
 
-  override def rewriteMethod = SemanticLikeCommand(_, _, _)(converter)
+  override def rewriteMethod: (CommandExpression, Option[AlgoNameWithThresholdExpr], CommandExpression) => CommandExpression =
+    SemanticLikeCommand(_, _, _)(converter)
 }
 
 
@@ -287,7 +285,8 @@ case class SemanticUnlikeCommand(lhsExpr: CommandExpression, ant: Option[AlgoNam
 
   override def getOperatorString: String = "!:"
 
-  override def rewriteMethod = SemanticUnlikeCommand(_, _, _)(converter)
+  override def rewriteMethod: (CommandExpression, Option[AlgoNameWithThresholdExpr], CommandExpression) => CommandExpression =
+    SemanticUnlikeCommand(_, _, _)(converter)
 }
 
 case class SemanticContainCommand(lhsExpr: CommandExpression, ant: Option[AlgoNameWithThresholdExpr], rhsExpr: CommandExpression)
@@ -307,7 +306,8 @@ case class SemanticContainCommand(lhsExpr: CommandExpression, ant: Option[AlgoNa
 
   override def getOperatorString: String = ">:"
 
-  override def rewriteMethod = SemanticContainCommand(_, _, _)(converter)
+  override def rewriteMethod: (CommandExpression, Option[AlgoNameWithThresholdExpr], CommandExpression) => CommandExpression =
+    SemanticContainCommand(_, _, _)(converter)
 }
 
 case class SemanticInCommand(lhsExpr: CommandExpression, ant: Option[AlgoNameWithThresholdExpr], rhsExpr: CommandExpression)
@@ -319,7 +319,8 @@ case class SemanticInCommand(lhsExpr: CommandExpression, ant: Option[AlgoNameWit
 
   override def getOperatorString: String = "<:"
 
-  override def rewriteMethod = SemanticInCommand(_, _, _)(converter)
+  override def rewriteMethod: (CommandExpression, Option[AlgoNameWithThresholdExpr], CommandExpression) => CommandExpression =
+    SemanticInCommand(_, _, _)(converter)
 }
 
 case class SemanticContainSetCommand(lhsExpr: CommandExpression, ant: Option[AlgoNameWithThresholdExpr], rhsExpr: CommandExpression)
@@ -339,7 +340,8 @@ case class SemanticContainSetCommand(lhsExpr: CommandExpression, ant: Option[Alg
 
   override def getOperatorString: String = ">>:"
 
-  override def rewriteMethod = SemanticContainSetCommand(_, _, _)(converter)
+  override def rewriteMethod: (CommandExpression, Option[AlgoNameWithThresholdExpr], CommandExpression) => CommandExpression =
+    SemanticContainSetCommand(_, _, _)(converter)
 }
 
 case class SemanticSetInCommand(lhsExpr: CommandExpression, ant: Option[AlgoNameWithThresholdExpr], rhsExpr: CommandExpression)
@@ -351,7 +353,8 @@ case class SemanticSetInCommand(lhsExpr: CommandExpression, ant: Option[AlgoName
 
   override def getOperatorString: String = "<<:"
 
-  override def rewriteMethod = SemanticSetInCommand(_, _, _)(converter)
+  override def rewriteMethod: (CommandExpression, Option[AlgoNameWithThresholdExpr], CommandExpression) => CommandExpression =
+    SemanticSetInCommand(_, _, _)(converter)
 }
 
 case class SemanticCompareCommand(lhsExpr: CommandExpression, ant: Option[AlgoNameWithThresholdExpr], rhsExpr: CommandExpression)
@@ -370,7 +373,8 @@ case class SemanticCompareCommand(lhsExpr: CommandExpression, ant: Option[AlgoNa
 
   override def getOperatorString: String = "::"
 
-  override def rewriteMethod = SemanticCompareCommand(_, _, _)(converter)
+  override def rewriteMethod: (CommandExpression, Option[AlgoNameWithThresholdExpr], CommandExpression) => CommandExpression =
+    SemanticCompareCommand(_, _, _)(converter)
 }
 
 case class SemanticSetCompareCommand(lhsExpr: CommandExpression, ant: Option[AlgoNameWithThresholdExpr], rhsExpr: CommandExpression)
@@ -393,9 +397,6 @@ case class SemanticSetCompareCommand(lhsExpr: CommandExpression, ant: Option[Alg
 
   override def getOperatorString: String = ":::"
 
-  override def rewriteMethod = SemanticSetCompareCommand(_, _, _)(converter)
-}
-
-class InvalidSemanticOperatorException(compared: AnyValue) extends RuntimeException {
-
+  override def rewriteMethod: (CommandExpression, Option[AlgoNameWithThresholdExpr], CommandExpression) => CommandExpression =
+    SemanticSetCompareCommand(_, _, _)(converter)
 }

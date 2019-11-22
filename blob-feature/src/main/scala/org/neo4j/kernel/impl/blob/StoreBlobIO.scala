@@ -23,7 +23,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 
 import cn.pandadb.blob._
-import cn.pandadb.util.{StreamUtils, ContextMap, Logging}
+import cn.pandadb.util.{PandaException, StreamUtils, ContextMap, Logging}
 import org.neo4j.kernel.impl.store.record.{PrimitiveRecord, PropertyBlock, PropertyRecord}
 import org.neo4j.values.storable.{BlobArray, BlobValue}
 
@@ -36,7 +36,7 @@ object StoreBlobIO extends Logging {
     BlobIO.pack(Blob.makeEntry(bid, blob));
   }
 
-  def saveBlob(ic: ContextMap, blob: Blob, keyId: Int, block: PropertyBlock) = {
+  def saveBlob(ic: ContextMap, blob: Blob, keyId: Int, block: PropertyBlock) {
     val bid = ic.get[BlobStorage].save(blob);
     block.setValueBlocks(BlobIO._pack(Blob.makeEntry(bid, blob), keyId));
   }
@@ -84,6 +84,6 @@ object StoreBlobIO extends Logging {
   }
 }
 
-class BlobNotExistException(bid: BlobId) extends RuntimeException {
+class BlobNotExistException(bid: BlobId) extends PandaException(s"blob does not exist: $bid") {
 
 }

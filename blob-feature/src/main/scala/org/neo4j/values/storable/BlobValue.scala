@@ -27,6 +27,7 @@ import org.neo4j.values.{AnyValue, ValueMapper}
 /**
   * Created by bluejoe on 2018/12/12.
   */
+//noinspection ScalaStyle
 case class BlobValue(val blob: Blob) extends ScalarValue {
   override def unsafeCompareTo(value: Value): Int = blob.length.compareTo(value.asInstanceOf[BlobValue].blob.length)
 
@@ -71,9 +72,9 @@ class BlobArraySupport[X <: BlobArraySupport[X]](val blobs: Array[Blob]) {
     writer.endArray()
   }
 
-  def unsafeCompareTo(other: Value): Int = if (_equals(other)) 0 else -1;
+  def unsafeCompareTo(other: Value): Int = if (internalEquals(other)) 0 else -1;
 
-  def _equals(other: Value): Boolean = {
+  def internalEquals(other: Value): Boolean = {
     other.isInstanceOf[X] &&
       other.asInstanceOf[X].blobs.zip(blobs).map(t => t._1 == t._2).reduce(_ && _)
   }

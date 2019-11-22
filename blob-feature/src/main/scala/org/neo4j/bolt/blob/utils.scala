@@ -103,9 +103,9 @@ object BoltTransactionListener {
 
   private def transactionId(kt: TopLevelTransaction) = "" + kt.hashCode();
 
-  def currentTopLevelTransaction() = _local.get();
+  def currentTopLevelTransaction(): TopLevelTransaction = _local.get();
 
-  def currentTopLevelTransactionId() = transactionId(_local.get());
+  def currentTopLevelTransactionId(): String = transactionId(_local.get());
 
   def onTransactionCreate(tx: InternalTransaction): Unit = {
     tx match {
@@ -120,9 +120,7 @@ object BoltTransactionListener {
           }
         })
 
-      case _ => {
-
-      }
+      case _ =>
     }
   }
 }
@@ -161,17 +159,11 @@ object TransactionalBlobCache {
     bid;
   };
 
-  def dump(): Unit = {
-    println("<<<<<<<<<<<<<<<<<")
-    _blobCache.foreach(println);
-    println(">>>>>>>>>>>>>>>>>")
-  }
-
   def get(bid: String): Option[Blob] = {
     _blobCache.get(bid).map(_.blob)
   };
 
-  def invalidate(transactionId: String) = {
+  def invalidate(transactionId: String): Unit = {
     _blobCache --= _blobCache.filter(_._2.transactionId.equals(transactionId)).map(_._1);
   };
 }

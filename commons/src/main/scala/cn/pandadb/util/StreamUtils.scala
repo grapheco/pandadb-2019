@@ -49,9 +49,9 @@ object StreamUtils {
     baos.readLong()
   }
 
-  implicit def inputStream2Ex(is: InputStream) = new InputStreamEx(is);
+  implicit def inputStream2Ex(is: InputStream): InputStreamEx = new InputStreamEx(is);
 
-  implicit def outputStream2Ex(os: OutputStream) = new OutputStreamEx(os);
+  implicit def outputStream2Ex(os: OutputStream): OutputStreamEx = new OutputStreamEx(os);
 }
 
 class InputStreamEx(is: InputStream) {
@@ -76,8 +76,9 @@ class InputStreamEx(is: InputStream) {
     val bytes: Array[Byte] = new Array[Byte](n).map(x => 0.toByte);
     val nread = is.read(bytes);
 
-    if (nread != n)
+    if (nread != n) {
       throw new InsufficientBytesException(n, nread);
+    }
 
     bytes;
   }
