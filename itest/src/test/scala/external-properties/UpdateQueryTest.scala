@@ -14,7 +14,6 @@ trait UpdateQueryTestBase {
 
   @Before
   def initdb(): Unit = {
-    GNodeServer.touch()
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
@@ -93,9 +92,4 @@ class UpdateNodeQueryTest extends UpdateQueryTestBase {
     val labels = tmpns.nodes.get(id1).get.labels.toList
     assert(labels.size == 3 && labels.contains("Person") && labels.contains("Man") && labels.contains("Boy") )
   }
-
-
-
-
-
 }

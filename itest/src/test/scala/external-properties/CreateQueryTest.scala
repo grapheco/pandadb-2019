@@ -17,7 +17,6 @@ trait CreateQueryTestBase {
   var db:GraphDatabaseService = null
   @Before
   def initdb(): Unit = {
-    GNodeServer.touch()
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
