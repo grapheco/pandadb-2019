@@ -1,7 +1,7 @@
 
 import java.io.File
 
-import cn.pandadb.server.GNodeServer
+import cn.pandadb.server.PNodeServer
 import org.junit.{After, Before, Test}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.GraphDatabaseService

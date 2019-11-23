@@ -6,7 +6,7 @@ import java.security.GeneralSecurityException
 import java.{security, util}
 import java.util.concurrent.{CompletableFuture, CompletionStage}
 
-import cn.pandadb.network.ClusterManager
+import cn.pandadb.network.{ClusterClient}
 import org.neo4j.driver.Config.TrustStrategy
 import org.neo4j.driver._
 import org.neo4j.driver.async.{AsyncSession, AsyncStatementRunner, AsyncTransaction, AsyncTransactionWork, StatementResultCursor}
@@ -30,13 +30,13 @@ import org.reactivestreams.Publisher
   * Created by bluejoe on 2019/11/21.
   */
 object PandaDriver {
-  def create(uri: String, authToken: AuthToken,config: Config): Driver = {
-    new PandaDriver(uri, authToken,config)
+  def create(uri: String, authToken: AuthToken, config: Config): Driver = {
+    new PandaDriver(uri, authToken, config)
   }
 }
 
-class PandaDriver(uri: String, authToken: AuthToken,config: Config) extends Driver {
-  val clusterOperator: ClusterManager = createClusterOperator(uri);
+class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Driver {
+  val clusterOperator: ClusterClient = createClusterOperator(uri);
 //  val defaultSessionConfig = new SessionConfig()
   val defaultSessionConfig = SessionConfig.empty()
   override def closeAsync(): CompletionStage[Void] = {
@@ -96,12 +96,12 @@ class PandaDriver(uri: String, authToken: AuthToken,config: Config) extends Driv
 
 
 
-  private def createClusterOperator(uri: String): ClusterManager = {
+  private def createClusterOperator(uri: String): ClusterClient = {
     null
   }
 }
 
-class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterManager) extends Session {
+class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient) extends Session {
 
   val host = "10.0.86.179"
 
@@ -117,7 +117,7 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterManager
 
   //override def writeTransaction[T](work: TransactionWork[T], config: TransactionConfig): T = ???
   override def writeTransaction[T](work: TransactionWork[T], config: TransactionConfig): T = {
-    session.writeTransaction(work,config)
+    session.writeTransaction(work, config)
   }
 
   //override def readTransaction[T](work: TransactionWork[T]): T = ???
@@ -127,7 +127,7 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterManager
 
   //override def readTransaction[T](work: TransactionWork[T], config: TransactionConfig): T = ???
   override def readTransaction[T](work: TransactionWork[T], config: TransactionConfig): T = {
-    session.readTransaction(work,config)
+    session.readTransaction(work, config)
   }
 
   //override def run(statement: String, config: TransactionConfig): StatementResult = ???

@@ -23,17 +23,17 @@ import java.net.URL
 
 import cn.pandadb.blob.Blob
 import cn.pandadb.driver.RemotePanda
-import cn.pandadb.server.GNodeServer
+import cn.pandadb.server.PNodeServer
 import org.apache.commons.io.IOUtils
 import org.neo4j.driver._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
 class RemotePandaTest extends FunSuite with BeforeAndAfter with TestBase {
-  var server: GNodeServer = _;
+  var server: PNodeServer = _;
 
   before {
     setupNewDatabase(new File("./output/testdb/data/databases/graph.db"));
-    server = GNodeServer.startServer(testDbDir, new File(testConfPath));
+    server = PNodeServer.startServer(testDbDir, new File(testConfPath));
   }
 
   after {

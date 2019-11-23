@@ -2,20 +2,25 @@ package cn.pandadb.server
 
 import java.io.File
 import java.util.Optional
-import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
+
 import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
-import cn.pandadb.util.{Ctrl, Logging}
+import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
+import cn.pandadb.util.Ctrl._
+import cn.pandadb.util.{GlobalContext, Logging}
 import org.apache.commons.io.IOUtils
+import org.apache.curator.framework.recipes.leader.{LeaderSelector, LeaderSelectorListenerAdapter}
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
+import org.apache.curator.retry.ExponentialBackoffRetry
 import org.neo4j.kernel.impl.CustomPropertyNodeStoreHolderFactory
 import org.neo4j.kernel.impl.blob.{BlobStorageServiceFactory, DefaultBlobFunctionsServiceFactory}
 import org.neo4j.server.{AbstractNeoServer, CommunityBootstrapper}
-import Ctrl._
+
 import scala.collection.JavaConversions
 
 /**
   * Created by bluejoe on 2019/7/17.
   */
-object GNodeServer extends Logging {
+object PNodeServer extends Logging {
   val logo = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("pandaLogo1.txt"), "utf-8");
   AbstractNeoServer.NEO4J_IS_STARTING_MESSAGE =
     s"======== PandaDB Node Server(based on Neo4j-3.5.6) ========\r\n${logo}";
@@ -28,25 +33,40 @@ object GNodeServer extends Logging {
     InstanceBoundServiceFactoryRegistry.register[CustomPropertyNodeStoreHolderFactory];
   }
 
-  def startServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map()): GNodeServer = {
-    val server = new GNodeServer(dbDir, configFile, configOverrides);
+  def startServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map()): PNodeServer = {
+    val server = new PNodeServer(dbDir, configFile, configOverrides);
     server.start();
     server;
   }
 }
 
-class GNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map()) {
+class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map())
+  extends LeaderSelectorListenerAdapter {
   val neo4jServer = new CommunityBootstrapper();
   val coordinartor: CoordinartorServer = null;
+  val client = CuratorFrameworkFactory.newClient("localhost:2181,localhost:2182,localhost:2183", new ExponentialBackoffRetry(1000, 3));
 
-  def start(): Int = {
+  def start(): Unit = {
+    client.start();
+    val leaderSelector = new LeaderSelector(client, "/leader", this);
+
+    leaderSelector.autoRequeue();
+
+    leaderSelector.start();
+
     neo4jServer.start(dbDir, Optional.of(configFile),
       JavaConversions.mapAsJavaMap(configOverrides));
-  }
+ }
 
-  def shutdown(): Int = {
+  def shutdown(): Unit = {
     coordinartor.stop();
     neo4jServer.stop();
+  }
+
+  override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
+    GlobalContext.put("isLeaderNode", true);
+    logger.debug(s"taken leader ship...");
+    Thread.sleep(-1);
   }
 }
 
@@ -57,7 +77,7 @@ object GNodeServerStarter {
       sys.error(s"GNodeServerStarter <db-dir> <conf-file>\r\n");
     }
     else {
-      GNodeServer.startServer(new File(args(0)),
+      PNodeServer.startServer(new File(args(0)),
         new File(args(1)));
     }
   }
