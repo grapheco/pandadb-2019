@@ -21,7 +21,7 @@ import scala.collection.JavaConversions
   * Created by bluejoe on 2019/7/17.
   */
 object PNodeServer extends Logging {
-  val logo = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("pandaLogo1.txt"), "utf-8");
+  val logo = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("logo.txt"), "utf-8");
   AbstractNeoServer.NEO4J_IS_STARTING_MESSAGE =
     s"======== PandaDB Node Server(based on Neo4j-3.5.6) ========\r\n${logo}";
 
