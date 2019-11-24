@@ -19,15 +19,14 @@
  */
 package org.neo4j.bolt.v1.runtime;
 
+import cn.pandadb.server.DispatchedStatementProcessor;
 import cn.pandadb.server.PNodeServerContext;
-import cn.pandadb.util.GlobalContext;
 import org.neo4j.bolt.runtime.BoltConnectionFatality;
 import org.neo4j.bolt.runtime.BoltStateMachineSPI;
 import org.neo4j.bolt.runtime.StateMachineContext;
 import org.neo4j.bolt.runtime.StatementProcessor;
 import org.neo4j.bolt.security.auth.AuthenticationResult;
 import org.neo4j.values.storable.Values;
-import scala.Some;
 
 import java.util.Map;
 
