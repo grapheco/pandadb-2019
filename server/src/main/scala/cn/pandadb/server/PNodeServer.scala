@@ -69,6 +69,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
 
     val clusterClient: ClusterClient = null;
     runningLock.lock()
+
     PNodeServerContext.bindClusterClient(clusterClient);
     client.start();
     val leaderSelector = new LeaderSelector(client, "/panda/leader", this);
