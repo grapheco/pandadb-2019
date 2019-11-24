@@ -36,7 +36,7 @@ object PandaDriver {
 }
 
 class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Driver {
-  val clusterOperator: ClusterClient = createClusterClient(uri);
+  val clusterClient: ClusterClient = createClusterClient(uri);
 //  val defaultSessionConfig = new SessionConfig()
   val defaultSessionConfig = SessionConfig.empty()
   override def closeAsync(): CompletionStage[Void] = {
@@ -46,7 +46,7 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
 
   override def session(): Session = session(defaultSessionConfig)
 
-  override def session(sessionConfig: SessionConfig): Session = new PandaSession(sessionConfig, clusterOperator);
+  override def session(sessionConfig: SessionConfig): Session = new PandaSession(sessionConfig, clusterClient);
 
   //override def defaultTypeSystem(): TypeSystem = ???
   override def defaultTypeSystem(): TypeSystem = InternalTypeSystem.TYPE_SYSTEM
