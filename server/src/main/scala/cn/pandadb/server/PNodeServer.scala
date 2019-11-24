@@ -2,12 +2,13 @@ package cn.pandadb.server
 
 import java.io.File
 import java.util.Optional
+import java.util.concurrent.locks.ReentrantLock
 
 import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
 import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
 import cn.pandadb.network.ClusterClient
 import cn.pandadb.util.Ctrl._
-import cn.pandadb.util.{ContextMap, GlobalContext, Logging}
+import cn.pandadb.util.{ContextMap, Logging}
 import org.apache.commons.io.IOUtils
 import org.apache.curator.framework.recipes.leader.{LeaderSelector, LeaderSelectorListenerAdapter}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
@@ -39,13 +40,16 @@ object PNodeServer extends Logging {
 }
 
 object PNodeServerContext extends ContextMap {
-  def bindClusterClient(client: ClusterClient): Unit = ???
 
-  def getClusterClient: ClusterClient = ???
+  def bindClusterClient(client: ClusterClient): Unit =
+    this.put[ClusterClient](client)
 
-  def bindLeaderNode(boolean: Boolean): Unit = ???
+  def getClusterClient: ClusterClient = this.get[ClusterClient]
 
-  def isLeaderNode: Boolean = ???
+  def bindLeaderNode(boolean: Boolean): Unit =
+    this.put("is.leader.node", boolean)
+
+  def isLeaderNode: Boolean = this.getOption("is.leader.node").getOrElse(false)
 }
 
 class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map())
@@ -54,9 +58,17 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   val neo4jServer = new CommunityBootstrapper();
   val coordinator: CoordinatorServer = null;
   val client = CuratorFrameworkFactory.newClient("localhost:2181,localhost:2182,localhost:2183", new ExponentialBackoffRetry(1000, 3));
+  val runningLock = new ReentrantLock()
 
   def start(): Unit = {
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      override def run(): Unit = {
+        shutdown();
+      }
+    });
+
     val clusterClient: ClusterClient = null;
+    runningLock.lock()
     PNodeServerContext.bindClusterClient(clusterClient);
     client.start();
     val leaderSelector = new LeaderSelector(client, "/panda/leader", this);
@@ -68,14 +80,24 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   }
 
   def shutdown(): Unit = {
+    /*
+    if (neo4jServer.isRunning) {
+      neo4jServer.stop();
+    }
+    */
+
+    if (runningLock.isLocked) {
+      runningLock.unlock();
+    }
+
     coordinator.stop();
-    neo4jServer.stop();
   }
 
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
     PNodeServerContext.bindLeaderNode(true);
     logger.debug(s"taken leader ship...");
     //yes, i won't quit, never!
-    Thread.sleep(100000000);
+    runningLock.lock()
+    logger.debug(s"shutdown...");
   }
 }
