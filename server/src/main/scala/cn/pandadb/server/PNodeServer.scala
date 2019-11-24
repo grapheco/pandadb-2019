@@ -2,7 +2,7 @@ package cn.pandadb.server
 
 import java.io.File
 import java.util.Optional
-import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.CountDownLatch
 
 import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
 import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
@@ -58,7 +58,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   val neo4jServer = new CommunityBootstrapper();
   val coordinator: CoordinatorServer = null;
   val client = CuratorFrameworkFactory.newClient("localhost:2181,localhost:2182,localhost:2183", new ExponentialBackoffRetry(1000, 3));
-  val runningLock = new ReentrantLock()
+  val runningLock = new CountDownLatch(1)
 
   def start(): Unit = {
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -68,12 +68,11 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     });
 
     val clusterClient: ClusterClient = null;
-    runningLock.lock()
 
     PNodeServerContext.bindClusterClient(clusterClient);
     client.start();
     val leaderSelector = new LeaderSelector(client, "/panda/leader", this);
-    leaderSelector.autoRequeue();
+    //leaderSelector.autoRequeue();
     leaderSelector.start();
 
     neo4jServer.start(dbDir, Optional.of(configFile),
@@ -87,10 +86,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     }
     */
 
-    if (runningLock.isLocked) {
-      runningLock.unlock();
-    }
-
+    runningLock.countDown()
     coordinator.stop();
   }
 
@@ -98,7 +94,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     PNodeServerContext.bindLeaderNode(true);
     logger.debug(s"taken leader ship...");
     //yes, i won't quit, never!
-    runningLock.lock()
+    runningLock.await()
     logger.debug(s"shutdown...");
   }
 }
