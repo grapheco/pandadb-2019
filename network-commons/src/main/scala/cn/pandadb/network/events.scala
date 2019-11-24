@@ -33,9 +33,4 @@ case class WriteRequestCompleted() extends ClusterEvent {
 }
 
 case class MasterWriteNodeSeleted() extends ClusterEvent {
-
-}
-
-case class NodeDetail(address: NodeAddress, writable: Boolean, readable: Boolean) {
-
 }

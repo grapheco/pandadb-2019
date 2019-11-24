@@ -9,7 +9,11 @@ import cn.pandadb.server.PNodeServer
   */
 object PNodeServerStarter {
   def main(args: Array[String]) {
-    //TODO: check args
+    if (args.length != 2) {
+      sys.error(s"Usage:\r\n");
+      sys.error(s"GNodeServerStarter <db-dir> <conf-file>\r\n");
+    }
+
     PNodeServer.startServer(new File(args(0)),
       new File(args(1)));
   }

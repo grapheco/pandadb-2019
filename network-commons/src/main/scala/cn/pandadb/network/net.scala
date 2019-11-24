@@ -1,5 +1,7 @@
 package cn.pandadb.network
 
+import org.apache.curator.framework.CuratorFramework
+
 /**
   * Created by bluejoe on 2019/11/21.
   */
@@ -17,11 +19,9 @@ object NodeAddress {
 trait ClusterClient {
   def getWriteMasterNode(): NodeAddress;
 
-  def getReadNode(): NodeAddress;
+  def getAllNodes(): Iterable[NodeAddress];
 
   def getCurrentState(): ClusterState;
-
-  def getAllNodes(): NodeDetail;
 
   def waitFor(state: ClusterState): Unit;
 
@@ -38,4 +38,5 @@ trait ClusterState {
 
 abstract class ZookeeperBasedClusterManager(zkString: String) extends ClusterClient {
   //use Apache Curator
+  val curator: CuratorFramework = null;
 }
