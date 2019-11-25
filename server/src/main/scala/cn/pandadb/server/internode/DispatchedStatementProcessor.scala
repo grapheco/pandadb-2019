@@ -1,4 +1,4 @@
-package cn.pandadb.server.internal
+package cn.pandadb.server.internode
 
 import java.time.Duration
 import java.{lang, util}
