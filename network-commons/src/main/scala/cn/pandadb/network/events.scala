@@ -10,6 +10,7 @@ case class ClusterStateChanged() extends ClusterEvent {
 }
 
 case class NodeConnected(nodeAddress: NodeAddress) extends ClusterEvent {
+// watcher in ZKDiscovery find this event, update available node list.
 
 }
 
