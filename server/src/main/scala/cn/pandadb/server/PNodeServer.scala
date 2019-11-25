@@ -7,6 +7,9 @@ import java.util.concurrent.CountDownLatch
 import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
 import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
 import cn.pandadb.network.ClusterClient
+import cn.pandadb.server.internode.InterNodeRequestHandler
+import cn.pandadb.server.neo4j.Neo4jRequestHandler
+import cn.pandadb.server.rpc.NettyRpcServer
 import cn.pandadb.util.Ctrl._
 import cn.pandadb.util.{ContextMap, Logging}
 import org.apache.commons.io.IOUtils
@@ -57,9 +60,12 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   extends LeaderSelectorListenerAdapter with Logging {
   //TODO: we will replace neo4jServer with InterNodeRpcServer someday!!
   val neo4jServer = new CommunityBootstrapper();
-  val coordinator: CoordinatorServer = null;
   val client = CuratorFrameworkFactory.newClient("localhost:2181,localhost:2182,localhost:2183", new ExponentialBackoffRetry(1000, 3));
   val runningLock = new CountDownLatch(1)
+
+  val serverKernel = new NettyRpcServer("0.0.0.0", 1224, "inter-node-server");
+  serverKernel.accept(Neo4jRequestHandler());
+  serverKernel.accept(InterNodeRequestHandler());
 
   def start(): Unit = {
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -76,8 +82,17 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     //leaderSelector.autoRequeue();
     leaderSelector.start();
 
-    neo4jServer.start(dbDir, Optional.of(configFile),
-      JavaConversions.mapAsJavaMap(configOverrides));
+    new Thread() {
+      override def run() {
+        neo4jServer.start(dbDir, Optional.of(configFile),
+          JavaConversions.mapAsJavaMap(configOverrides));
+      }
+    }.start()
+
+    serverKernel.start({
+      //scalastyle:off
+      println(PNodeServer.logo);
+    });
   }
 
   def shutdown(): Unit = {
@@ -88,7 +103,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     */
 
     runningLock.countDown()
-    coordinator.stop();
+    serverKernel.shutdown();
   }
 
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
