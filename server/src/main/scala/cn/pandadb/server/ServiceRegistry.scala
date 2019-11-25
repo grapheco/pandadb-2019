@@ -1,5 +1,6 @@
 package cn.pandadb.server
 
+import cn.pandadb.network.ZKConstants
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.{CreateMode, ZooDefs}
@@ -9,6 +10,10 @@ trait ServiceRegistry {
 
   //service name: ordinaryNode, leader
   def registry(serviceName: String)
+  // TODO: new join node func implement
+  //  def getLog()
+  //  def getVersion()
+
 }
 
 class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
@@ -23,11 +28,12 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
     val servicePath = registryPath + s"/" + serviceName
     val serviceAddress = servicePath + s"/" + localNodeAddress
 /*    node mode in zk：
-    *           gnode
-    *        /         \
-    *   ordinaryNodes  leader
-    *      /              \
-    *  addresses      leaderAddress
+    *                     pandaDB
+    *               /        |        \
+    *           /            |           \
+    *   ordinaryNodes     leader          data
+    *      /                 |              \
+    *  addresses        leaderAddress     version(not implemented)
     *
     */
 
