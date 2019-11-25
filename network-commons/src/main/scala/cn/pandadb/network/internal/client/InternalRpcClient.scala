@@ -1,6 +1,6 @@
 package cn.pandadb.network.internal.client
 
-import cn.pandadb.network.internal.message.InternalRpcMessage
+import cn.pandadb.network.internal.message.InternalRpcRequest
 import cn.pandadb.util.Logging
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.netty.NettyRpcEnvFactory
@@ -25,7 +25,7 @@ class InternalRpcClient(rpcEnv: RpcEnv, host: String, port: Int) extends Logging
     rpcEnv.stop(endPointRef)
   }
 
-  def request[T >: InternalRpcMessage](message: Any): T = {
+  def request[T >: InternalRpcRequest](message: Any): T = {
     Await.result(endPointRef.ask(message), Duration.Inf);
   }
 }
