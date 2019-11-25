@@ -19,7 +19,7 @@
  */
 package org.neo4j.bolt.v1.runtime;
 
-import cn.pandadb.server.DispatchedStatementProcessor;
+import cn.pandadb.server.internal.DispatchedStatementProcessor;
 import cn.pandadb.server.PNodeServerContext;
 import org.neo4j.bolt.runtime.BoltConnectionFatality;
 import org.neo4j.bolt.runtime.BoltStateMachineSPI;
