@@ -52,9 +52,10 @@ object PNodeServerContext extends ContextMap {
   def isLeaderNode: Boolean = this.getOption("is.leader.node").getOrElse(false)
 }
 
+// This class need to be modified, replace hard code.
 class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map())
   extends LeaderSelectorListenerAdapter with Logging {
-  //TODO: we will replace  neo4jServer with InterNodeRpcServer someday!!
+  //TODO: we will replace neo4jServer with InterNodeRpcServer someday!!
   val neo4jServer = new CommunityBootstrapper();
   val coordinator: CoordinatorServer = null;
   val client = CuratorFrameworkFactory.newClient("localhost:2181,localhost:2182,localhost:2183", new ExponentialBackoffRetry(1000, 3));

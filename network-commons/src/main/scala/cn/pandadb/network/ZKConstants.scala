@@ -1,6 +1,6 @@
-package cn.pandadb.server
+package cn.pandadb.network
 
-import java.io.{File, FileInputStream}
+import java.io.FileInputStream
 import java.util.Properties
 
 class ZKConstants(path: String) {

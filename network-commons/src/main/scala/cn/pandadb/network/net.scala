@@ -1,6 +1,7 @@
 package cn.pandadb.network
 
-import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
+import org.apache.curator.retry.ExponentialBackoffRetry
 
 /**
   * Created by bluejoe on 2019/11/21.
@@ -36,7 +37,64 @@ trait ClusterState {
 
 }
 
+case class LockedServing() extends ClusterState{
+
+}
+
+case class UnlockedServing() extends ClusterState{
+
+}
+
+case class PreWrite() extends ClusterState{
+  // prepare to write, ignore all new requests.
+}
+
+case class Writing() extends ClusterState{
+
+}
+
+case class Finished() extends ClusterState{
+
+}
+
+
+
 abstract class ZookeeperBasedClusterManager(zkString: String) extends ClusterClient {
   //use Apache Curator
-  val curator: CuratorFramework = null;
+  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkString, new ExponentialBackoffRetry(1000, 3));
+  curator.start()
+}
+
+class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ZookeeperBasedClusterManager(zkConstants.zkServerAddress) {
+
+  private var currentState: ClusterState = _
+  val registryPath = zkConstants.registryPath
+  val leaderPath = registryPath + s"/leaderNode"
+  val ordianryPath = registryPath + s"/ordinaryNode"
+
+  override def getWriteMasterNode(): NodeAddress = {
+    val leaderAddress = curator.getChildren().forPath(leaderPath).toString
+    NodeAddress.fromString(leaderAddress)
+  }
+
+  override def getAllNodes(): Iterable[NodeAddress] = {
+    val ordinaryNodes = curator.getChildren.forPath(ordianryPath).iterator()
+    var nodeAddresses: List[NodeAddress] = Nil
+    while (ordinaryNodes.hasNext) {
+      nodeAddresses = nodeAddresses :+ NodeAddress.fromString(ordinaryNodes.next())
+    }
+    val allNodes = nodeAddresses;
+    allNodes
+  }
+
+
+  override def getCurrentState(): ClusterState = {
+    currentState
+  }
+
+  override def listen(listener: ClusterEventListener): Unit = ???
+
+  override def waitFor(state: ClusterState): Unit = null
+
+
 }
