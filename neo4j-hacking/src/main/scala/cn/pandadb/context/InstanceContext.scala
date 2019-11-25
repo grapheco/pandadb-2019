@@ -22,6 +22,7 @@ package cn.pandadb.context
 
 import cn.pandadb.util.ReflectUtils._
 import cn.pandadb.util._
+import org.neo4j.cypher.internal.runtime.QueryContext
 import org.neo4j.cypher.internal.runtime.interpreted.pipes.QueryState
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.factory.GraphDatabaseFacade
@@ -54,11 +55,16 @@ object InstanceContext {
 
   def of(x: QueryState): ContextMap = x.query.transactionalContext._get("inner.tc.kernel.config").asInstanceOf[Config].getInstanceContext;
 
+  def of(x: QueryContext): ContextMap = x.transactionalContext._get("inner.tc.kernel.config").asInstanceOf[Config].getInstanceContext;
+
   def of(x: TransactionalContext): ContextMap = x._get("kernel.config").asInstanceOf[Config].getInstanceContext;
 
 
   def of(o: AnyRef): ContextMap = o match {
     case x: QueryState =>
+      of(x);
+
+    case x: QueryContext =>
       of(x);
 
     case x: StandardDynamicRecordAllocator =>

@@ -1,9 +1,6 @@
 
 import java.io.File
-import java.time.{ZoneId, ZonedDateTime}
-import java.util.TimeZone
-
-import scala.collection.mutable
+import java.time.ZoneId
 import cn.pandadb.server.PNodeServer
 import org.junit.{After, Assert, Before, Test}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
@@ -14,9 +11,11 @@ import org.neo4j.values.storable.{DateTimeValue, DateValue, LocalDateTimeValue, 
 
 
 trait CreateQueryTestBase {
-  var db:GraphDatabaseService = null
+  var db: GraphDatabaseService = null
+
   @Before
   def initdb(): Unit = {
+    PNodeServer.toString
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
@@ -34,7 +33,6 @@ trait CreateQueryTestBase {
     val rs = db.execute(query);
     while (rs.hasNext) {
       val row = rs.next();
-      println(row);
     }
     tx.success();
     tx.close()
@@ -51,7 +49,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     val query = "create (n1:Person) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext){
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
