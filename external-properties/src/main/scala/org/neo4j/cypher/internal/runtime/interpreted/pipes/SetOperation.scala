@@ -31,7 +31,7 @@ import org.neo4j.values.virtual._
 
 import scala.collection.Map
 import scala.collection.mutable.ArrayBuffer
-import org.neo4j.kernel.impl.{CustomPropertyNodeStore, CustomPropertyNodeModification}
+import org.neo4j.kernel.impl.{CustomPropertyNode, CustomPropertyNodeModification, CustomPropertyNodeStore}
 import org.neo4j.values.storable.{TextValue, Value}
 
 
@@ -144,11 +144,11 @@ case class SetNodePropertyOperation(nodeName: String, propertyKey: LazyPropertyK
     executionContext.invalidateCachedProperties(id)
 
   // NOTE: pandadb
-  override def set(executionContext: ExecutionContext, state: QueryState) = {
+  override def set(executionContext: ExecutionContext, state: QueryState): Unit = {
     super.set(executionContext, state)
 
     val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
-    if(maybeStore.isDefined) {
+    if (maybeStore.isDefined) {
       val item = executionContext.get(nodeName).get
       if (item != Values.NO_VALUE) {
         val itemId = id(item)
@@ -159,7 +159,7 @@ case class SetNodePropertyOperation(nodeName: String, propertyKey: LazyPropertyK
         invalidateCachedProperties(executionContext, itemId)
 
         try {
-          val queryContext = state.query
+//          val queryContext = state.query
           val propertyName: String = propertyKey.name
           val value: Value = makeValueNeoSafe(expression(executionContext, state))
 
@@ -168,7 +168,7 @@ case class SetNodePropertyOperation(nodeName: String, propertyKey: LazyPropertyK
               new CustomPropertyNodeModification(itemId,null,Some(propertyName),null,null,  null)
             ))
           }
-          else{
+          else {
             val field2Update = scala.collection.immutable.Map(propertyName->value)
             maybeStore.get.updateNodes(Some(
               new CustomPropertyNodeModification(itemId,null,null,field2Update,null,  null)
@@ -223,8 +223,8 @@ case class SetPropertyOperation(entityExpr: Expression, propertyKey: LazyPropert
 }
 
 abstract class SetPropertyFromMapOperation[T](itemName: String, expression: Expression,
-                                              removeOtherProps: Boolean) extends SetOperation {
-  override def set(executionContext: ExecutionContext, state: QueryState) = {
+                                              removeOtherProps: Boolean)(implicit m: Manifest[T]) extends SetOperation {
+  override def set(executionContext: ExecutionContext, state: QueryState): Unit = {
     val item = executionContext(itemName)
     if (item != Values.NO_VALUE) {
       val ops = operations(state.query)
@@ -245,7 +245,6 @@ abstract class SetPropertyFromMapOperation[T](itemName: String, expression: Expr
 
   private def setPropertiesFromMap(qtx: QueryContext, ops: Operations[T], itemId: Long,
                                    map: Map[Int, AnyValue], removeOtherProps: Boolean) {
-
     /*Set all map values on the property container*/
     for ((k, v) <- map) {
       if (v == Values.NO_VALUE)
@@ -262,6 +261,33 @@ abstract class SetPropertyFromMapOperation[T](itemName: String, expression: Expr
         ops.removeProperty(itemId, propertyKeyId)
       }
     }
+
+    // NOTE: pandadb
+    if (m.runtimeClass == classOf[NodeValue]) {
+      val maybeStore = InstanceContext.of(qtx).getOption[CustomPropertyNodeStore]();
+      if (maybeStore.isDefined) {
+        val fieldsToUpdate = scala.collection.mutable.Map[String, Value]()
+        val fieldsToDelete = scala.collection.mutable.ArrayBuffer[String]()
+        for ((k, v) <- map) {
+          if (v == Values.NO_VALUE) {
+            fieldsToDelete.append(qtx.getPropertyKeyName(k))
+          }
+          else {
+            fieldsToUpdate(qtx.getPropertyKeyName(k)) = makeValueNeoSafe(v)
+          }
+        }
+        if (removeOtherProps) {
+          for (propertyKeyId <- properties) {
+            fieldsToDelete.append(qtx.getPropertyKeyName(propertyKeyId))
+          }
+        }
+        maybeStore.get.updateNodes(Some(
+          new CustomPropertyNodeModification(itemId, null, fieldsToDelete, fieldsToUpdate.toMap, null, null)
+        ))
+
+      }
+    }
+    // END-NOTE
   }
 }
 

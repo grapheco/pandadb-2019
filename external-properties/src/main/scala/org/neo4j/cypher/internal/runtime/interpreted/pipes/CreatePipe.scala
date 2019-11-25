@@ -98,14 +98,14 @@ abstract class EntityCreatePipe(src: Pipe) extends BaseCreatePipe(src) {
     data.properties.foreach(setProperties(context, state, node.id(), _, state.query.nodeOps))
     // NOTE: pandadb
     val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
-    if(maybeStore.isDefined){
-      val customProperties = scala.collection.mutable.Map[String,Value]()
+    if (maybeStore.isDefined) {
+      val customProperties = scala.collection.mutable.Map[String, Value]()
       data.properties.foreach(properties => properties(context, state) match {
         case _: NodeValue | _: RelationshipValue =>
           throw new CypherTypeException("Parameter provided for node creation is not a Map")
         case IsMap(map) =>
           map(state.query).foreach(new ThrowingBiConsumer[String, AnyValue, RuntimeException] {
-            override def accept(k: String, v: AnyValue): Unit =  {customProperties(k) = makeValueNeoSafe(v)}
+            override def accept(k: String, v: AnyValue): Unit = {customProperties(k) = makeValueNeoSafe(v)}
           })
         case _ =>
           throw new CypherTypeException("Parameter provided for node creation is not a Map")
