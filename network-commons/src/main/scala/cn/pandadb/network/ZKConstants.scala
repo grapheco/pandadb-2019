@@ -1,15 +1,14 @@
 package cn.pandadb.network
 
-import java.io.FileInputStream
-import java.util.Properties
+import cn.pandadb.util.{ ConfigurationEx}
 
-class ZKConstants(path: String) {
+class ZKConstants(conf: ConfigurationEx) {
 
-  val prop = new Properties()
-  prop.load(new FileInputStream(path))
-  val localNodeAddress = prop.getProperty("localNodeAddress")
-  val zkServerAddress = prop.getProperty("zkServerAddress")
-  val sessionTimeout = prop.getProperty("sessionTimeout").toInt
-  val connectionTimeout = prop.getProperty("connectionTimeout")
-  val registryPath = prop.getProperty("registryPath")
+  val localNodeAddress = conf.getRequiredValueAsString(s"localNodeAddress")
+  val zkServerAddress = conf.getRequiredValueAsString(s"zkServerAddress")
+  val sessionTimeout = conf.getRequiredValueAsInt(s"sessionTimeout")
+  val connectionTimeout = conf.getRequiredValueAsInt(s"connectionTimeout")
+  val registryPath = conf.getRequiredValueAsString(s"registryPath")
+  val ordinaryNodesPath = conf.getRequiredValueAsString(s"ordinaryNodesPath")
+  val leaderNodePath = conf.getRequiredValueAsString(s"leaderNodePath")
 }

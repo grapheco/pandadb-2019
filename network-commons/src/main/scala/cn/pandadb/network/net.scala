@@ -59,18 +59,20 @@ case class Finished() extends ClusterState{
 
 
 
-abstract class ZookeeperBasedClusterManager(zkString: String) extends ClusterClient {
-  //use Apache Curator
-  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkString, new ExponentialBackoffRetry(1000, 3));
+//abstract class ZookeeperBasedClusterManager(zkString: String) extends ClusterClient {
+//  //use Apache Curator
+//  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkString, new ExponentialBackoffRetry(1000, 3));
+//  curator.start()
+//}
+
+class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ClusterClient {
+
+  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkConstants.zkServerAddress, new ExponentialBackoffRetry(1000, 3));
   curator.start()
-}
-
-class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ZookeeperBasedClusterManager(zkConstants.zkServerAddress) {
-
   private var currentState: ClusterState = _
   val registryPath = zkConstants.registryPath
-  val leaderPath = registryPath + s"/leaderNode"
-  val ordianryPath = registryPath + s"/ordinaryNode"
+  val leaderPath = zkConstants.leaderNodePath
+  val ordinaryPath = zkConstants.ordinaryNodesPath
 
   override def getWriteMasterNode(): NodeAddress = {
     val leaderAddress = curator.getChildren().forPath(leaderPath).toString
@@ -78,7 +80,7 @@ class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ZookeeperB
   }
 
   override def getAllNodes(): Iterable[NodeAddress] = {
-    val ordinaryNodes = curator.getChildren.forPath(ordianryPath).iterator()
+    val ordinaryNodes = curator.getChildren.forPath(ordinaryPath).iterator()
     var nodeAddresses: List[NodeAddress] = Nil
     while (ordinaryNodes.hasNext) {
       nodeAddresses = nodeAddresses :+ NodeAddress.fromString(ordinaryNodes.next())
@@ -95,6 +97,4 @@ class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ZookeeperB
   override def listen(listener: ClusterEventListener): Unit = ???
 
   override def waitFor(state: ClusterState): Unit = null
-
-
 }

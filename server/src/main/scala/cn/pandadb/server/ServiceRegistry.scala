@@ -23,9 +23,8 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
   val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkConstants.zkServerAddress,
     new ExponentialBackoffRetry(1000, 3));
 
-  def registry(serviceName: String): Unit = {
+  def registry(servicePath: String): Unit = {
     val registryPath = zkConstants.registryPath
-    val servicePath = registryPath + s"/" + serviceName
     val serviceAddress = servicePath + s"/" + localNodeAddress
 /*    node mode in zk：
     *                     pandaDB
@@ -61,11 +60,11 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
   }
 
   def registerAsOrdinaryNode(serviceAddress: String): Unit = {
-    registry(s"ordinaryNode")
+    registry(zkConstants.ordinaryNodesPath)
   }
 
   def registerAsLeader(serviceAddress: String): Unit = {
-    registry(s"leaderNode")
+    registry(zkConstants.leaderNodePath)
   }
 
 }
