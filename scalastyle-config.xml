@@ -215,6 +215,12 @@ This file is divided into 3 sections:
 
     <check level="error" class="org.scalastyle.scalariform.IllegalImportsChecker" enabled="true">
         <parameters><parameter name="illegalImports"><![CDATA[sun._,java.awt._]]></parameter></parameters>
+
+    </check>
+
+    <check level="error" class="org.scalastyle.scalariform.IllegalImportsChecker" enabled="true">
+        <parameters><parameter name="illegalImports"><![CDATA[org.apache.zookeeper._]]></parameter></parameters>
+        <customMessage>org.apache.curator advised</customMessage>
     </check>
 
     <!-- This one complains about all kinds of random things. Disable. -->
