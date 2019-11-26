@@ -48,6 +48,8 @@ class ZKResistryTest {
     ordinadyNodeRegistry.registerAsOrdinaryNode(zkConstants.localNodeAddress)
     val flag = curator.checkExists().forPath(ordinaryNodePath)
     Assert.assertEquals(true, flag != null)
+    val ordinaryNodeAddress = curator.getChildren().forPath("/pandaNodes/ordinaryNodes") // returned type is ArrayList[String]
+    Assert.assertEquals("10.0.88.11:1111", ordinaryNodeAddress.get(0))
     ordinadyNodeRegistry.curator.close()
   }
 

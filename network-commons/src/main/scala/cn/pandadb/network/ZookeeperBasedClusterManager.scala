@@ -21,6 +21,7 @@ class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ClusterCli
 
   var listenerList: List[ZKClusterEventListener] = List[ZKClusterEventListener]()
 
+  // query from zk when init.
   var availableNodes: Set[NodeAddress] = _;
 
   // Is this supposed to be right? listenerList is null at this time.
@@ -33,13 +34,7 @@ class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ClusterCli
 
   // return variable availableNodes, don't query from zk every time.
   override def getAllNodes(): Iterable[NodeAddress] = {
-    val ordinaryNodes = curator.getChildren.forPath(ordinaryPath).iterator()
-    var nodeAddresses: List[NodeAddress] = Nil
-    while (ordinaryNodes.hasNext) {
-      nodeAddresses = nodeAddresses :+ NodeAddress.fromString(ordinaryNodes.next())
-    }
-    val allNodes = nodeAddresses;
-    allNodes
+    availableNodes
   }
 
 
@@ -47,7 +42,7 @@ class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ClusterCli
     currentState
   }
 
-  // is this the func to add listener?
+  // no use at this period.
   override def listen(listener: ClusterEventListener): Unit = {
     listenerList = listener.asInstanceOf[ZKClusterEventListener] :: listenerList
   }
@@ -65,7 +60,6 @@ class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ClusterCli
         availableNodes = availableNodes + nodeAddress;
       case NodeDisconnected(nodeAddress) =>
         availableNodes = availableNodes - nodeAddress;
-
       case ReadRequestAccepted() => ;
       case WriteRequestAccepted() => ;
       case ReadRequestCompleted() => ;
