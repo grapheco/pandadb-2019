@@ -7,7 +7,7 @@ import java.util.Collections
 import java.{security, util}
 import java.util.concurrent.{CompletableFuture, CompletionStage}
 
-import cn.pandadb.network.{ClusterClient, NodeAddress, ZookeerperBasedClusterClient}
+import cn.pandadb.network.{ClusterClient, NodeAddress, ZookeerperBasedClusterManager}
 import org.apache.commons.lang3.NotImplementedException
 import org.neo4j.driver.Config.TrustStrategy
 import org.neo4j.driver.{Transaction, Value, _}
@@ -29,7 +29,7 @@ import org.reactivestreams.Publisher
 
 import scala.collection.JavaConversions
 
-
+import cn.pandadb.driver.PandaTransaction
 
 
 /**
@@ -105,16 +105,17 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
   }
 
   private def createClusterClient(uri: String): ClusterClient = {
-    new ZookeerperBasedClusterClient(uri)
+    null
   }
 }
 
 class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient) extends Session {
 
   var session: Session = null
-  var transaction: Transaction = null
-  var isTransaction = false
-  var config: TransactionConfig = null
+  var driver: Driver = null
+  //var transaction: Transaction = null
+  //var isTransaction = false
+  //var config: TransactionConfig = null
   private def isRead(statement: String): Boolean = {
     val tempStatement = statement.toLowerCase()
     if (tempStatement.contains("create") || tempStatement.contains("merge") ||
@@ -124,19 +125,19 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient)
     else true
   }
   private def getWriteNode(): NodeAddress = {
-    clusterOperator.getWriteMasterNode()
-    //val hos = "10.0.86.179"
-    //val por = 7687
-    //new NodeAddress(hos, por)
+    //clusterOperator.getWriteMasterNode()
+    val hos = "10.0.86.179"
+    val por = 7687
+    new NodeAddress(hos, por)
   }
   private def getReadNode(): NodeAddress = {
     //random to pick up a node
-    val nodeLists = clusterOperator.getAllNodes().toList
-    val index = (new util.Random).nextInt(nodeLists.length)
-    nodeLists(index)
-    //val hos = "10.0.86.179"
-    //val por = 7687
-    //new NodeAddress(hos, por)
+    //val nodeLists = clusterOperator.getAllNodes().toList
+    //val index = (new util.Random).nextInt(nodeLists.length)
+   // nodeLists(index)
+    val hos = "10.0.86.179"
+    val por = 7687
+    new NodeAddress(hos, por)
   }
   private def getNodeByStatement(statement: String): NodeAddress = {
     if (isRead(statement)) getReadNode() else getWriteNode()
@@ -145,13 +146,13 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient)
     val host = node.host
     val port = node.port
     val uri = s"bolt://$host:$port"
-    val driver = GraphDatabase.driver(uri, AuthTokens.basic("panda", "bamboo"))
+    this.driver = GraphDatabase.driver(uri, AuthTokens.basic("neo4j", "123456"))
     //val driver = GraphDatabase.driver(uri, AuthTokens.basic("", ""))
     this.session = driver.session(sessionConfig)
-    if (this.isTransaction) {
+    /*if (this.isTransaction) {
       this.transaction = this.session.beginTransaction(this.config)
       this.isTransaction = false
-    }
+    }*/
     this.session
   }
 
@@ -188,7 +189,8 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient)
   }
 
   override def close(): Unit = {
-    session.close()
+    if (!(this.session == null)) session.close()
+    if (!(this.driver == null)) driver.close()
   }
 
   override def lastBookmark(): String = {
@@ -204,9 +206,10 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient)
   }
 
   override def beginTransaction(config: TransactionConfig): Transaction = {
-    isTransaction = true
+    /*isTransaction = true
     this.config = config
-    this.transaction
+    this.transaction*/
+    new PandaTransaction(sessionConfig, config, clusterOperator)
   }
 
   override def run(statementTemplate: String, parameters: Value): StatementResult = {
