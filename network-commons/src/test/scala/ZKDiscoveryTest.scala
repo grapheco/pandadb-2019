@@ -1,4 +1,5 @@
 import java.io.File
+import java.util.concurrent.Executors
 
 import cn.pandadb.context.Neo4jConfigUtils
 import cn.pandadb.network._
@@ -19,42 +20,14 @@ import org.neo4j.kernel.configuration.Config
   * @Modified By:
   */
 
-class FakeListener() {
+class FakeListener(listenerId: Int) {
+  val id = listenerId
   var CHILD_ADDED = 0
   var CHILD_REMOVED = 0
   var path = s"";
 }
 
-class TestZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants, listenerList: List[FakeListener]) {
 
-  val nodesChildrenCache = new PathChildrenCache(curator, zkConstants.ordinaryNodesPath, true)
-  nodesChildrenCache.start(StartMode.POST_INITIALIZED_EVENT)
-  nodesChildrenCache.getListenable().addListener(
-    new PathChildrenCacheListener {
-      override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
-        try {
-          pathChildrenCacheEvent.getType() match {
-            case PathChildrenCacheEvent.Type.CHILD_ADDED =>
-              for (listener <- listenerList) {
-                listener.CHILD_ADDED = 1;
-                listener.path = pathChildrenCacheEvent.getData.getPath
-              }
-//              for (listener <- listenerList) listener.onEvent(NodeConnected(NodeAddress.fromString(pathChildrenCacheEvent.getData.getPath)));
-            case PathChildrenCacheEvent.Type.CHILD_REMOVED =>
-              for (listener <- listenerList) {
-                listener.CHILD_REMOVED = 1;
-                listener.path = pathChildrenCacheEvent.getData.getPath
-              }
-//              for (listener <- listenerList) listener.onEvent(NodeDisconnected(NodeAddress.fromString(pathChildrenCacheEvent.getData.getPath)));
-            // What to do if a node's data is updated?
-            case PathChildrenCacheEvent.Type.CHILD_UPDATED => ;
-            case _ => ;
-          }
-        } catch { case ex: Exception => ex.printStackTrace() }
-      }
-    })
-
-}
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class ZKDiscoveryTest {
@@ -69,40 +42,123 @@ class ZKDiscoveryTest {
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
 
-  val listenerList: List[FakeListener] = List(new FakeListener, new FakeListener)
+  val listenerList: List[FakeListener] = List(new FakeListener(1), new FakeListener(2))
   val ordinadyNodeRegistry = new ZKServiceRegistry(zkConstants)
-  val testZKServiceDiscovery = new TestZKServiceDiscovery(curator, zkConstants, listenerList)
+  testZKServiceDiscovery(curator, zkConstants, listenerList)
 
-  //emptyListenerList
+  var funcNum = 0
+
   @Test
-  def test1(): Unit = {
+  def test0(): Unit = {
+
+    funcNum = 1
     for (listener <- listenerList) {
       Assert.assertEquals(0, listener.CHILD_ADDED)
       Assert.assertEquals(0, listener.CHILD_REMOVED)
+      Assert.assertEquals("", listener.path)
     }
-  }
+    funcNum = 11
 
-  //discoverRegister
-  @Test
-  def test2(): Unit = {
+    funcNum = 2
     ordinadyNodeRegistry.registerAsOrdinaryNode(zkConstants.localNodeAddress)
+    Thread.sleep(3000)
     for (listener <- listenerList) {
       Assert.assertEquals(1, listener.CHILD_ADDED)
       Assert.assertEquals(0, listener.CHILD_REMOVED)
+      Assert.assertEquals("10.0.88.11:1111", listener.path)
     }
-  }
+    //ordinadyNodeRegistry.curator.close()
+    funcNum = 22
 
+    funcNum = 3
+    ordinadyNodeRegistry.unRegister(zkConstants.localNodeAddress)
+    Thread.sleep(1000)
 
-  //discoverUnRegister
-  @Test
-  def test3(): Unit = {
-    ordinadyNodeRegistry.curator.close()
     for (listener <- listenerList) {
       Assert.assertEquals(1, listener.CHILD_ADDED)
       Assert.assertEquals(1, listener.CHILD_REMOVED)
     }
+    funcNum = 33
   }
 
+////  emptyListenerList
+//  @Test
+//  def test1(): Unit = {
+//    funcNum = 1
+//    for (listener <- listenerList) {
+//      Assert.assertEquals(0, listener.CHILD_ADDED)
+//      Assert.assertEquals(0, listener.CHILD_REMOVED)
+//      Assert.assertEquals("", listener.path)
+//    }
+//    funcNum = 11
+//  }
+//
+////  discoverRegister
+//  @Test
+//  def test2(): Unit = {
+//    funcNum = 2
+//    ordinadyNodeRegistry.registerAsOrdinaryNode(zkConstants.localNodeAddress)
+//    Thread.sleep(3000)
+//    for (listener <- listenerList) {
+//      Assert.assertEquals(1, listener.CHILD_ADDED)
+//      Assert.assertEquals(0, listener.CHILD_REMOVED)
+//      Assert.assertEquals("10.0.88.11:1111", listener.path)
+//    }
+//    //ordinadyNodeRegistry.curator.close()
+//    funcNum = 22
+//  }
+//
+//
+////  discoverUnRegister
+//  @Test
+//  def test3(): Unit = {
+//    funcNum = 3
+//    ordinadyNodeRegistry.unRegister(zkConstants.localNodeAddress)
+//    Thread.sleep(1000)
+//
+//    for (listener <- listenerList) {
+//      Assert.assertEquals(1, listener.CHILD_ADDED)
+//      Assert.assertEquals(1, listener.CHILD_REMOVED)
+//    }
+//    funcNum = 33
+//  }
 
+
+  def testZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants, listenerList: List[FakeListener]) {
+
+    val pool = Executors.newFixedThreadPool(1);
+    val nodesChildrenCache = new PathChildrenCache(curator, ZKPathConfig.ordinaryNodesPath, false)
+    //caution: use sync method.
+    nodesChildrenCache.start(StartMode.BUILD_INITIAL_CACHE)
+
+    nodesChildrenCache.getListenable().addListener(
+      new PathChildrenCacheListener {
+        override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
+          try {
+            pathChildrenCacheEvent.getType() match {
+              case PathChildrenCacheEvent.Type.CHILD_ADDED =>
+                for (listener <- listenerList) {
+                  listener.CHILD_ADDED = 1;
+                  // if not splitted, returned: /pandaNodes/ordinaryNodes.10.0.88.11:1111
+                  listener.path = pathChildrenCacheEvent.getData.getPath.split(s"/").last
+                }
+
+              case PathChildrenCacheEvent.Type.CHILD_REMOVED =>
+                for (listener <- listenerList) {
+                  listener.CHILD_REMOVED = 1;
+                  listener.path = pathChildrenCacheEvent.getData.getPath
+                  println("listenerID: "+ listener.id.toString + funcNum.toString)
+                }
+              // What to do if a node's data is updated?
+              case PathChildrenCacheEvent.Type.CHILD_UPDATED => ;
+              case _ => ;
+            }
+          } catch { case ex: Exception => ex.printStackTrace() }
+        }
+      }, pool)
+
+    // remember to pool.shutdown()
+
+  }
 
 }

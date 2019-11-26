@@ -1,7 +1,7 @@
 import java.io.File
 
 import cn.pandadb.context.Neo4jConfigUtils
-import cn.pandadb.network.ZKConstants
+import cn.pandadb.network.{ZKConstants, ZKPathConfig}
 import cn.pandadb.server.ZKServiceRegistry
 import cn.pandadb.util.ConfigUtils
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
@@ -26,8 +26,8 @@ class ZKResistryTest {
   val pandaConfigEX = ConfigUtils.config2Ex(pandaConfig)
   val zkConstants = new ZKConstants(pandaConfigEX)
 
-  val ordinaryNodePath = zkConstants.ordinaryNodesPath + s"/" + zkConstants.localNodeAddress
-  val leaderNodePath = zkConstants.leaderNodePath + s"/" + zkConstants.localNodeAddress
+  val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + zkConstants.localNodeAddress
+  val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + zkConstants.localNodeAddress
 
   val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkConstants.zkServerAddress,
     new ExponentialBackoffRetry(1000, 3));
