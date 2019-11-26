@@ -22,6 +22,18 @@ case class RunCommandResponse(results: Array[Result]) extends InternalRpcRespons
 
 }
 
+case class BeginTransactionRequest() extends InternalRpcRequest {
+
+}
+
+case class CloseTransactionRequest() extends InternalRpcRequest {
+
+}
+
 class Result {
+
+}
+
+case class ServerSideExceptionResponse(msg: String) extends InternalRpcResponse {
 
 }
