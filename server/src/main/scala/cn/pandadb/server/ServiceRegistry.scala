@@ -22,10 +22,11 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
   val zkServerAddress = zkConstants.zkServerAddress
   val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkConstants.zkServerAddress,
     new ExponentialBackoffRetry(1000, 3));
+  curator.start()
 
   def registry(servicePath: String): Unit = {
     val registryPath = zkConstants.registryPath
-    val serviceAddress = servicePath + s"/" + localNodeAddress
+    val nodeAddress = servicePath + s"/" + localNodeAddress
 /*    node mode in zk：
     *                     pandaDB
     *               /        |        \
@@ -37,26 +38,32 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
     */
 
     // Create registry node (pandanode, persistent)
-    curator.create()
-      .creatingParentsIfNeeded()
-      .withMode(CreateMode.PERSISTENT)
-      .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-      .forPath(registryPath)
-
+    if(curator.checkExists().forPath(registryPath) == null) {
+      curator.create()
+        .creatingParentsIfNeeded()
+        .withMode(CreateMode.PERSISTENT)
+        .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+        .forPath(registryPath)
+    }
 
     // Create service node (persistent)
-    curator.create()
-      .creatingParentsIfNeeded()
-      .withMode(CreateMode.PERSISTENT)
-      .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-      .forPath(servicePath)
+    if(curator.checkExists().forPath(servicePath) == null) {
+      curator.create()
+        .creatingParentsIfNeeded()
+        .withMode(CreateMode.PERSISTENT)
+        .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+        .forPath(servicePath)
+    }
 
     // Create address node (temp)
-    curator.create()
-      .creatingParentsIfNeeded()
-      .withMode(CreateMode.EPHEMERAL)
-      .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-      .forPath(serviceAddress)
+    if(curator.checkExists().forPath(nodeAddress) == null) {
+      curator.create()
+        .creatingParentsIfNeeded()
+        .withMode(CreateMode.EPHEMERAL)
+        .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+        .forPath(nodeAddress)
+    }
+
   }
 
   def registerAsOrdinaryNode(serviceAddress: String): Unit = {
@@ -66,5 +73,6 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
   def registerAsLeader(serviceAddress: String): Unit = {
     registry(zkConstants.leaderNodePath)
   }
+
 
 }

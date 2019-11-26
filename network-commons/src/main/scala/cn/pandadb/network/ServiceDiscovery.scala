@@ -1,8 +1,8 @@
-package cn.pandadb.server
-import cn.pandadb.network.ZKConstants
+package cn.pandadb.network
+
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
 import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode
+import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
 /**
   * @Author: Airzihao
   * @Description:
@@ -15,7 +15,7 @@ trait ServiceDiscovery {
 
 }
 
-class ZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants) {
+class ZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants, listenerList: List[ZKClusterEventListener]) {
   val nodesChildrenCache = new PathChildrenCache(curator, zkConstants.ordinaryNodesPath, true)
   nodesChildrenCache.start(StartMode.POST_INITIALIZED_EVENT)
   nodesChildrenCache.getListenable().addListener(
@@ -23,14 +23,17 @@ class ZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants) {
       override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
         try {
           pathChildrenCacheEvent.getType() match {
-            //TODO: What to do when watch these events?
-            case PathChildrenCacheEvent.Type.CHILD_ADDED => _;
-            case PathChildrenCacheEvent.Type.CHILD_REMOVED => _;
-            case PathChildrenCacheEvent.Type.CHILD_UPDATED => _;
+            case PathChildrenCacheEvent.Type.CHILD_ADDED =>
+              for (listener <- listenerList) listener.onEvent(NodeConnected(NodeAddress.fromString(pathChildrenCacheEvent.getData.getPath)));
+            case PathChildrenCacheEvent.Type.CHILD_REMOVED =>
+              for (listener <- listenerList) listener.onEvent(NodeDisconnected(NodeAddress.fromString(pathChildrenCacheEvent.getData.getPath)));
+            // What to do if a node's data is updated?
+            case PathChildrenCacheEvent.Type.CHILD_UPDATED => ;
           }
         } catch { case ex: Exception => ex.printStackTrace() }
       }
     })
+
 }
 
 
