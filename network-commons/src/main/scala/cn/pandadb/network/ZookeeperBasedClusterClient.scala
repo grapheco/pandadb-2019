@@ -1,5 +1,7 @@
 package cn.pandadb.network
 
+import java.util
+
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
@@ -10,22 +12,33 @@ import org.apache.curator.retry.ExponentialBackoffRetry
   * @Modified By:
   */
 
-class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ClusterClient with ClusterEventListener {
+// zk agent client  no listener
+class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
 
-  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkConstants.zkServerAddress, new ExponentialBackoffRetry(1000, 3));
+  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkString,
+    new ExponentialBackoffRetry(1000, 3));
   curator.start()
+
+  // avoid outter write
   private var currentState: ClusterState = _
-  val registryPath = zkConstants.registryPath
-  val leaderPath = zkConstants.leaderNodePath
-  val ordinaryPath = zkConstants.ordinaryNodesPath
+
+  val registryPath = ZKPathConfig.registryPath
+  val leaderPath = ZKPathConfig.leaderNodePath
+  val ordinaryPath = ZKPathConfig.ordinaryNodesPath
 
   var listenerList: List[ZKClusterEventListener] = List[ZKClusterEventListener]()
 
   // query from zk when init.
-  var availableNodes: Set[NodeAddress] = _;
+  var availableNodes: Set[NodeAddress] = {
+    val arrayList = curator.getChildren.forPath(ordinaryPath).toArray
+    for (nodeAddressStr <- arrayList) {
+      availableNodes += NodeAddress.fromString(nodeAddressStr.toString)
+    }
+    availableNodes
+  }
 
   // Is this supposed to be right? listenerList is null at this time.
-  new ZKServiceDiscovery(curator, zkConstants, listenerList)
+  //new ZKServiceDiscovery(curator, zkConstants, listenerList)
 
   override def getWriteMasterNode(): NodeAddress = {
     val leaderAddress = curator.getChildren().forPath(leaderPath).toString
@@ -48,27 +61,5 @@ class ZookeerperBasedClusterManager(zkConstants: ZKConstants) extends ClusterCli
   }
 
   override def waitFor(state: ClusterState): Unit = null
-
-
-  override def onEvent(event: ClusterEvent): Unit = {
-    event match {
-      // Not implemented.
-      case ClusterStateChanged() => ;
-
-      // update availableNodes in ZKBasedClusterManager
-      case NodeConnected(nodeAddress) =>
-        availableNodes = availableNodes + nodeAddress;
-      case NodeDisconnected(nodeAddress) =>
-        availableNodes = availableNodes - nodeAddress;
-      case ReadRequestAccepted() => ;
-      case WriteRequestAccepted() => ;
-      case ReadRequestCompleted() => ;
-      case WriteRequestCompleted() => ;
-      case MasterWriteNodeSeleted() => ;
-      case READY_TO_WRITE() => ;
-      case WRITE_FINISHED() => ;
-
-    }
-  }
 
 }
