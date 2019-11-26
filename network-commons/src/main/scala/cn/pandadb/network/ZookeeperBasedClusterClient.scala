@@ -1,7 +1,5 @@
 package cn.pandadb.network
 
-import java.util
-
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
@@ -12,7 +10,6 @@ import org.apache.curator.retry.ExponentialBackoffRetry
   * @Modified By:
   */
 
-// zk agent client  no listener
 class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
 
   val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkString,
@@ -29,7 +26,7 @@ class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
   var listenerList: List[ZKClusterEventListener] = List[ZKClusterEventListener]()
 
   // query from zk when init.
-  var availableNodes: Set[NodeAddress] = {
+  private var availableNodes: Set[NodeAddress] = {
     val arrayList = curator.getChildren.forPath(ordinaryPath).toArray
     for (nodeAddressStr <- arrayList) {
       availableNodes += NodeAddress.fromString(nodeAddressStr.toString)

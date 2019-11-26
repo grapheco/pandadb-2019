@@ -17,7 +17,7 @@ trait ServiceDiscovery {
 
 class ZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants, listenerList: List[ZKClusterEventListener]) {
 
-  val nodesChildrenCache = new PathChildrenCache(curator, zkConstants.ordinaryNodesPath, true)
+  val nodesChildrenCache = new PathChildrenCache(curator, ZKPathConfig.ordinaryNodesPath, true)
   nodesChildrenCache.start(StartMode.POST_INITIALIZED_EVENT)
   nodesChildrenCache.getListenable().addListener(
     new PathChildrenCacheListener {

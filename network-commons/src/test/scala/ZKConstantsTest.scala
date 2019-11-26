@@ -2,9 +2,9 @@ import java.io.File
 
 import org.neo4j.kernel.configuration.Config
 import cn.pandadb.context.Neo4jConfigUtils
-import cn.pandadb.network.ZKConstants
+import cn.pandadb.network.{ZKConstants, ZKPathConfig}
 import cn.pandadb.util._
-import org.junit.{Test, Assert}
+import org.junit.{Assert, Test}
 
 /**
   * @Author: Airzihao
@@ -20,10 +20,13 @@ class ZKConstantsTest {
   val zkConstants = new ZKConstants(pandaConfigEX)
 
   @Test
+  def testZKPathConfig(): Unit = {
+    Assert.assertEquals(s"/pandaNodes", ZKPathConfig.registryPath)
+    Assert.assertEquals(s"/pandaNodes/leaderNode", ZKPathConfig.leaderNodePath)
+    Assert.assertEquals(s"/pandaNodes/ordinaryNodes", ZKPathConfig.ordinaryNodesPath)
+  }
+  @Test
   def testZkConstant(): Unit = {
-    Assert.assertEquals(zkConstants.registryPath, s"/pandaNodes")
-    Assert.assertEquals(zkConstants.leaderNodePath, s"/pandaNodes/leaderNode")
-    Assert.assertEquals(zkConstants.ordinaryNodesPath, s"/pandaNodes/ordinaryNodes")
     Assert.assertEquals(zkConstants.connectionTimeout, 10000)
     Assert.assertEquals(zkConstants.zkServerAddress, "10.0.86.26:2181,10.0.86.27:2181,10.0.86.70:2181")
     Assert.assertEquals(zkConstants.localNodeAddress, "10.0.88.11:1111")

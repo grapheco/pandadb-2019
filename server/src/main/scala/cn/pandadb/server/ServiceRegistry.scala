@@ -1,6 +1,6 @@
 package cn.pandadb.server
 
-import cn.pandadb.network.ZKConstants
+import cn.pandadb.network.{ZKConstants, ZKPathConfig}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.{CreateMode, ZooDefs}
@@ -25,7 +25,7 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
   curator.start()
 
   def registry(servicePath: String): Unit = {
-    val registryPath = zkConstants.registryPath
+    val registryPath = ZKPathConfig.registryPath
     val nodeAddress = servicePath + s"/" + localNodeAddress
 /*    node mode in zk：
     *                     pandaDB
@@ -67,11 +67,23 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
   }
 
   def registerAsOrdinaryNode(serviceAddress: String): Unit = {
-    registry(zkConstants.ordinaryNodesPath)
+    registry(ZKPathConfig.ordinaryNodesPath)
   }
 
   def registerAsLeader(serviceAddress: String): Unit = {
-    registry(zkConstants.leaderNodePath)
+    registry(ZKPathConfig.leaderNodePath)
+  }
+
+  // ugly funcion! to satisfy curator event listener.
+  def unRegister(serviceAddress: String): Unit = {
+    val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + serviceAddress
+    val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + serviceAddress
+    if(curator.checkExists().forPath(ordinaryNodePath) != null) {
+      curator.delete().forPath(ordinaryNodePath)
+    }
+    if(curator.checkExists().forPath(leaderNodePath) != null) {
+      curator.delete().forPath(leaderNodePath)
+    }
   }
 
 
