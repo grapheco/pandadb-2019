@@ -7,6 +7,7 @@ import java.util.Collections
 import java.{security, util}
 import java.util.concurrent.{CompletableFuture, CompletionStage}
 
+import cn.pandadb.cypherplus.utils.CypherPlusUtils
 import cn.pandadb.network.{ClusterClient, NodeAddress, ZookeerperBasedClusterClient}
 import org.apache.commons.lang3.NotImplementedException
 import org.neo4j.driver.Config.TrustStrategy
@@ -28,7 +29,6 @@ import org.neo4j.driver.types.TypeSystem
 import org.reactivestreams.Publisher
 
 import scala.collection.JavaConversions
-
 import cn.pandadb.driver.PandaTransaction
 
 
@@ -118,8 +118,7 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient)
   //var config: TransactionConfig = null
   private def isRead(statement: String): Boolean = {
     val tempStatement = statement.toLowerCase()
-    if (tempStatement.contains("create") || tempStatement.contains("merge") ||
-      tempStatement.contains("set") || tempStatement.contains("delete")) {
+    if (CypherPlusUtils.isWriteStatement(tempStatement)) {
       false
     }
     else true
