@@ -16,10 +16,10 @@ class DriverTest {
       AuthTokens.basic("", ""));
     val session = driver.session();
     val results1 = session.run("create (n:person{name:'bluejoe'})");
-   // val results = session.run("match (n) return n.name");
-    //val result = results.next();
-    //Assert.assertEquals("bluejoe", result.get("n.name").asString());
-   // val results2 = session.run("match (n:person) delete n");
+    val results = session.run("match (n) return n.name");
+    val result = results.next();
+    Assert.assertEquals("bluejoe", result.get("n.name").asString());
+    val results2 = session.run("match (n:person) delete n");
     session.close();
     driver.close();
   }
@@ -33,10 +33,12 @@ class DriverTest {
     val session = driver.session();
     val transaction = session.beginTransaction()
     val results1 = transaction.run("create (n:person{name:'bluejoe'})");
-   // val results = transaction.run("match (n) return n.name");
-  //  val result = results.next();
-  //  Assert.assertEquals("bluejoe", result.get("n.name").asString());
-   // val results2 = transaction.run("match (n:person) delete n");
+
+    val results = transaction.run("match (n) return n.name");
+    val result = results.next();
+    Assert.assertEquals("bluejoe", result.get("n.name").asString());
+    val results2 = transaction.run("match (n:person) delete n");
+    transaction.success()
     transaction.close()
     session.close();
     driver.close();
@@ -45,15 +47,20 @@ class DriverTest {
   //test
   @Test
   def test3() {
-    val driver = GraphDatabase.driver("panda://10.0.86.179:2181,10.0.87.45:2181,10.0.87.46:2181/db1",
-      AuthTokens.basic("", ""));
+    val driver = GraphDatabase.driver("bolt://10.0.86.179:7687",
+      AuthTokens.basic("neo4j", "123456"));
     val session = driver.session();
     val transaction = session.beginTransaction()
+
     val results1 = transaction.run("create (n:person{name:'bluejoe'})");
+
+    //submit
+    //transaction.failure() //rollback
     val results = transaction.run("match (n) return n.name");
+   // transaction.success()
     val result = results.next();
     Assert.assertEquals("bluejoe", result.get("n.name").asString());
-    val results2 = transaction.run("match (n:person) delete n");
+   // val results2 = transaction.run("match (n:person) delete n");
     transaction.close()
     session.close();
     driver.close();
