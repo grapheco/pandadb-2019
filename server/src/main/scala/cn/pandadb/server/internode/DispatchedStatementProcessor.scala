@@ -3,6 +3,7 @@ package cn.pandadb.server.internode
 import java.time.Duration
 import java.{lang, util}
 
+import cn.pandadb.cypherplus.utils.CypherPlusUtils
 import cn.pandadb.server.PNodeServerContext
 import org.neo4j.bolt.runtime.BoltResult.Visitor
 import org.neo4j.bolt.runtime.{BoltResult, StatementMetadata, StatementProcessor, TransactionStateMachineSPI}
@@ -49,8 +50,7 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
 
     //pickup a runnable node
     val tempStatement = statement.toLowerCase()
-    if (tempStatement.contains("create") || tempStatement.contains("merge") ||
-      tempStatement.contains("set") || tempStatement.contains("delete")) {
+    if (CypherPlusUtils.isWriteStatement(tempStatement)) {
       //      val driver = selector.chooseWriteNode();
       //      val session = driver.session();
       //      _currentTransaction = session.beginTransaction();

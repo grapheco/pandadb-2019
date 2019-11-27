@@ -3,6 +3,7 @@ package cn.pandadb.driver
 
 import java.util
 
+import cn.pandadb.cypherplus.utils.CypherPlusUtils
 import cn.pandadb.network.{ClusterClient, NodeAddress}
 import org.neo4j.driver.internal.{AbstractStatementRunner, SessionConfig}
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase, Record, Session, Statement, StatementResult, StatementRunner, Transaction, TransactionConfig, Value, Values}
@@ -17,8 +18,7 @@ class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, 
   var driver: Driver = null
   private def isRead(statement: String): Boolean = {
     val tempStatement = statement.toLowerCase()
-    if (tempStatement.contains("create") || tempStatement.contains("merge") ||
-      tempStatement.contains("set") || tempStatement.contains("delete")) {
+    if (CypherPlusUtils.isWriteStatement(tempStatement)) {
       false
     }
     else true
