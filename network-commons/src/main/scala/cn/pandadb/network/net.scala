@@ -7,6 +7,9 @@ import org.apache.curator.retry.ExponentialBackoffRetry
   * Created by bluejoe on 2019/11/21.
   */
 case class NodeAddress(host: String, port: Int) {
+  def getAsStr(): String = {
+    host + s":" + port.toString
+  }
 }
 
 object NodeAddress {
