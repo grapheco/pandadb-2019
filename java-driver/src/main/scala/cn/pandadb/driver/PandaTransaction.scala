@@ -8,6 +8,14 @@ import org.neo4j.driver.internal.{AbstractStatementRunner, SessionConfig}
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase, Record, Session, Statement, StatementResult, StatementRunner, Transaction, TransactionConfig, Value, Values}
 
 
+/**
+ * @Author: codeBabyLin
+ * @Description:
+ * @Date: Created in 9:06 2019/11/26
+ * @Modified By:
+ */
+
+
 class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, clusterOperator: ClusterClient) extends Transaction{
 
   var isSucess = false
@@ -49,8 +57,6 @@ class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, 
     //val driver = GraphDatabase.driver(uri, AuthTokens.basic("", ""))
     this.session = driver.session(sessionConfig)
     this.transaction = session.beginTransaction(config)
-    if(isSucess) this.transaction.success()
-    if(isFailue) this.transaction.failure()
     this.transaction
   }
 
@@ -58,11 +64,13 @@ class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, 
 
 
   override def success(): Unit = {
-    isSucess = true
+    //if(isSucess) this.transaction.success()
+    if (!(this.transaction == null)) this.transaction.success()
+    //if(isFailue) this.transaction.failure()
   }
 
   override def failure(): Unit = {
-    isFailue = true
+    if (!(this.transaction == null)) this.transaction.failure()
   }
 
   override def close(): Unit = {
@@ -88,11 +96,11 @@ class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, 
   }
 
   override def run(statement: Statement): StatementResult = {
-    getTransactionReady(getNodeByStatement(statement.text()))
+    if (this.transaction == null) getTransactionReady(getNodeByStatement(statement.text()))
     this.transaction.run(statement)
   }
 
   override def isOpen: Boolean = {
-    true
+    if (!(this.transaction == null)) this.transaction.isOpen else true
   }
 }
