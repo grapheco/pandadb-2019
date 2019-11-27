@@ -8,6 +8,8 @@ import cn.pandadb.network.{ClusterClient, NodeAddress}
 import org.neo4j.driver.internal.{AbstractStatementRunner, SessionConfig}
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase, Record, Session, Statement, StatementResult, StatementRunner, Transaction, TransactionConfig, Value, Values}
 
+import scala.collection.mutable.ArrayBuffer
+
 
 /**
  * @Author: codeBabyLin
@@ -19,64 +21,56 @@ import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase, Record, Session, Sta
 
 class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, clusterOperator: ClusterClient) extends Transaction{
 
-  var isSucess = false
-  var isFailue = false
-  var transaction: Transaction = null
-  var session: Session = null
-  var driver: Driver = null
-  private def isRead(statement: String): Boolean = {
-    val tempStatement = statement.toLowerCase()
-    if (CypherPlusUtils.isWriteStatement(tempStatement)) {
-      false
+  var transactionArray: ArrayBuffer[Transaction] = ArrayBuffer[Transaction]()  //save session
+  var sessionArray: ArrayBuffer[Session] = ArrayBuffer[Session]()   // save transaction
+
+  var transaction: Transaction = _
+  var writeTransaction: Transaction = _
+  var session: Session = _
+  var readDriver: Driver = _
+  var writeDriver : Driver = _
+  //rule1 one session ,one transaction
+  //rule2 session closed,transaction does't work
+  private def getSession(isWriteStatement: Boolean): Session = {
+    //if (!(this.session==null)) this.session.close()   //session the sanme with the Transaction can not close
+    if (isWriteStatement) {
+      if (this.writeDriver==null) this.writeDriver = SelectNode.getDriver(isWriteStatement, clusterOperator)
+      this.session = this.writeDriver.session(sessionConfig)
+    } else {
+      if (this.readDriver==null) this.readDriver = SelectNode.getDriver(isWriteStatement, clusterOperator)
+      this.session = this.readDriver.session(sessionConfig)
     }
-    else true
+    this.session
   }
-  private def getWriteNode(): NodeAddress = {
-    //clusterOperator.getWriteMasterNode()
-    val hos = "10.0.86.179"
-    val por = 7687
-    new NodeAddress(hos, por)
-  }
-  private def getReadNode(): NodeAddress = {
-    //random to pick up a node
-    //val nodeLists = clusterOperator.getAllNodes().toList
-    //val index = (new util.Random).nextInt(nodeLists.length)
-    // nodeLists(index)
-    val hos = "10.0.86.179"
-    val por = 7687
-    new NodeAddress(hos, por)
-  }
-  private def getNodeByStatement(statement: String): NodeAddress = {
-    if (isRead(statement)) getReadNode() else getWriteNode()
-  }
-  private def getTransactionReady(node: NodeAddress): Transaction = {
-    val host = node.host
-    val port = node.port
-    val uri = s"bolt://$host:$port"
-    this.driver = GraphDatabase.driver(uri, AuthTokens.basic("neo4j", "123456"))
-    //val driver = GraphDatabase.driver(uri, AuthTokens.basic("", ""))
-    this.session = driver.session(sessionConfig)
-    this.transaction = session.beginTransaction(config)
+  private def getTransactionReady(isWriteStatement: Boolean): Transaction = {
+    if (!(this.writeTransaction==null)) this.transaction = this.writeTransaction //reuse the wrtie transaction
+    else {
+      this.session = getSession(isWriteStatement)
+      this.transaction = session.beginTransaction(config)
+      if(isWriteStatement) this.writeTransaction = this.transaction
+      this.sessionArray += this.session
+      this.transactionArray += this.transaction
+    }
     this.transaction
+
   }
 
 
 
 
   override def success(): Unit = {
-    //if(isSucess) this.transaction.success()
-    if (!(this.transaction == null)) this.transaction.success()
-    //if(isFailue) this.transaction.failure()
+    if (this.transactionArray.nonEmpty) this.transactionArray.foreach(trans => trans.success())
   }
 
   override def failure(): Unit = {
-    if (!(this.transaction == null)) this.transaction.failure()
+    if (this.transactionArray.nonEmpty) this.transactionArray.foreach(trans => trans.failure())
   }
 
   override def close(): Unit = {
-    if (!(this.transaction == null)) transaction.close()
-    if (!(this.session == null)) session.close()
-    if (!(this.driver == null)) driver.close()
+    if (this.transactionArray.nonEmpty) this.transactionArray.foreach(trans => trans.close())
+    if (this.sessionArray.nonEmpty) this.sessionArray.foreach(sess => sess.close())
+    if (!(this.writeDriver == null)) this.writeDriver.close()
+    if (!(this.readDriver == null)) this.readDriver.close()
   }
 
   override def run(s: String, value: Value): StatementResult = {
@@ -96,7 +90,10 @@ class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, 
   }
 
   override def run(statement: Statement): StatementResult = {
-    if (this.transaction == null) getTransactionReady(getNodeByStatement(statement.text()))
+    //transanction could not be closed until
+    val tempState = statement.text().toLowerCase()
+    val isWriteStatement = CypherPlusUtils.isWriteStatement(tempState)
+    getTransactionReady(isWriteStatement)
     this.transaction.run(statement)
   }
 

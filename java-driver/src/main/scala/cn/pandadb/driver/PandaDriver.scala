@@ -112,46 +112,18 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
 class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient) extends Session {
 
   var session: Session = null
-  var driver: Driver = null
-  //var transaction: Transaction = null
-  //var isTransaction = false
-  //var config: TransactionConfig = null
-  private def isRead(statement: String): Boolean = {
-    val tempStatement = statement.toLowerCase()
-    if (CypherPlusUtils.isWriteStatement(tempStatement)) {
-      false
+  var readDriver: Driver = null
+  var writeDriver : Driver = null
+
+  private def getSession(isWriteStatement: Boolean): Session = {
+    if (!(this.session==null)) this.session.close()
+    if (isWriteStatement) {
+      if (this.writeDriver==null) this.writeDriver = SelectNode.getDriver(isWriteStatement, clusterOperator)
+      this.session = this.writeDriver.session(sessionConfig)
+    } else {
+      if (this.readDriver==null) this.readDriver = SelectNode.getDriver(isWriteStatement, clusterOperator)
+      this.session = this.readDriver.session(sessionConfig)
     }
-    else true
-  }
-  private def getWriteNode(): NodeAddress = {
-    //clusterOperator.getWriteMasterNode()
-    val hos = "10.0.86.179"
-    val por = 7687
-    new NodeAddress(hos, por)
-  }
-  private def getReadNode(): NodeAddress = {
-    //random to pick up a node
-    //val nodeLists = clusterOperator.getAllNodes().toList
-    //val index = (new util.Random).nextInt(nodeLists.length)
-   // nodeLists(index)
-    val hos = "10.0.86.179"
-    val por = 7687
-    new NodeAddress(hos, por)
-  }
-  private def getNodeByStatement(statement: String): NodeAddress = {
-    if (isRead(statement)) getReadNode() else getWriteNode()
-  }
-  private def getSessionReady(node: NodeAddress): Session = {
-    val host = node.host
-    val port = node.port
-    val uri = s"bolt://$host:$port"
-    this.driver = GraphDatabase.driver(uri, AuthTokens.basic("neo4j", "123456"))
-    //val driver = GraphDatabase.driver(uri, AuthTokens.basic("", ""))
-    this.session = driver.session(sessionConfig)
-    /*if (this.isTransaction) {
-      this.transaction = this.session.beginTransaction(this.config)
-      this.isTransaction = false
-    }*/
     this.session
   }
 
@@ -161,7 +133,7 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient)
 
 
   override def writeTransaction[T](work: TransactionWork[T], config: TransactionConfig): T = {
-    getSessionReady(getWriteNode()).writeTransaction(work, config)
+    getSession(true).writeTransaction(work, config)
   }
 
 
@@ -170,7 +142,7 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient)
   }
 
   override def readTransaction[T](work: TransactionWork[T], config: TransactionConfig): T = {
-    getSessionReady(getReadNode()).readTransaction(work, config)
+    getSession(false).readTransaction(work, config)
   }
 
   override def run(statement: String, config: TransactionConfig): StatementResult = {
@@ -182,14 +154,16 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient)
   }
 
   override def run(statement: Statement, config: TransactionConfig): StatementResult = {
-    //getSessionReady(getNodeByStatement(statement.text()))
-    //session.run(statement, config)
-    getSessionReady(getNodeByStatement(statement.text())).run(statement, config)
+    val tempState = statement.text().toLowerCase()
+    val isWriteStatement = CypherPlusUtils.isWriteStatement(tempState)
+    getSession(isWriteStatement)
+    this.session.run(statement, config)
   }
 
   override def close(): Unit = {
     if (!(this.session == null)) session.close()
-    if (!(this.driver == null)) driver.close()
+    if (!(this.writeDriver == null)) this.writeDriver.close()
+    if (!(this.readDriver == null)) this.readDriver.close()
   }
 
   override def lastBookmark(): String = {
