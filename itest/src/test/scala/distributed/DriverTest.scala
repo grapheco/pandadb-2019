@@ -15,7 +15,7 @@ class DriverTest {
     val driver = GraphDatabase.driver("panda://10.0.86.179:2181,10.0.87.45:2181,10.0.87.46:2181/db1",
       AuthTokens.basic("", ""));
     val session = driver.session();
-    val results1 = session.run("create (n:person{name:'bluejoe'})");
+    var results1 = session.run("create (n:person{name:'bluejoe'})");
     val results = session.run("match (n) return n.name");
     val result = results.next();
     Assert.assertEquals("bluejoe", result.get("n.name").asString());
@@ -32,12 +32,14 @@ class DriverTest {
       AuthTokens.basic("", ""));
     val session = driver.session();
     val transaction = session.beginTransaction()
-    val results1 = transaction.run("create (n:person{name:'bluejoe'})");
+    var results1 = transaction.run("create (n:person{name:'bluejoe'})");
 
+    results1 = transaction.run("create (n:people{name:'lin'})");
     val results = transaction.run("match (n) return n.name");
+
     val result = results.next();
     Assert.assertEquals("bluejoe", result.get("n.name").asString());
-    val results2 = transaction.run("match (n:person) delete n");
+    val results2 = transaction.run("match (n) delete n");
     transaction.success()
     transaction.close()
     session.close();
@@ -51,16 +53,18 @@ class DriverTest {
       AuthTokens.basic("neo4j", "123456"));
     val session = driver.session();
     val transaction = session.beginTransaction()
-
+    //val transaction2 = session.beginTransaction()
+    //session.close()
     val results1 = transaction.run("create (n:person{name:'bluejoe'})");
 
-    //submit
-    //transaction.failure() //rollback
-    val results = transaction.run("match (n) return n.name");
-   // transaction.success()
+    val results3 = transaction.run("create (n:people{name:'lin'})");
+
+    val results = transaction.run("match (n:person) return n.name");
+
     val result = results.next();
     Assert.assertEquals("bluejoe", result.get("n.name").asString());
-   // val results2 = transaction.run("match (n:person) delete n");
+    val results2 = transaction.run("match (n) delete n");
+    transaction.success()
     transaction.close()
     session.close();
     driver.close();
