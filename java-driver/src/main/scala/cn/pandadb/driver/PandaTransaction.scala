@@ -25,6 +25,7 @@ class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, 
   var sessionArray: ArrayBuffer[Session] = ArrayBuffer[Session]()   // save transaction
 
   var transaction: Transaction = _
+  var writeTransaction: Transaction = _
   var session: Session = _
   var readDriver: Driver = _
   var writeDriver : Driver = _
@@ -42,11 +43,16 @@ class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, 
     this.session
   }
   private def getTransactionReady(isWriteStatement: Boolean): Transaction = {
-    this.session = getSession(isWriteStatement)
-    this.transaction = session.beginTransaction(config)
-    this.sessionArray += this.session
-    this.transactionArray += this.transaction
+    if (!(this.writeTransaction==null)) this.transaction = this.writeTransaction //reuse the wrtie transaction
+    else {
+      this.session = getSession(isWriteStatement)
+      this.transaction = session.beginTransaction(config)
+      if(isWriteStatement) this.writeTransaction = this.transaction
+      this.sessionArray += this.session
+      this.transactionArray += this.transaction
+    }
     this.transaction
+
   }
 
 
