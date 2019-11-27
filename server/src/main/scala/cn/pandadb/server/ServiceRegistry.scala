@@ -24,6 +24,8 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
 
+
+
   def registry(servicePath: String): Unit = {
     val registryPath = ZKPathConfig.registryPath
     val nodeAddress = servicePath + s"/" + localNodeAddress
@@ -66,18 +68,20 @@ class ZKServiceRegistry(zkConstants: ZKConstants) extends ServiceRegistry {
 
   }
 
-  def registerAsOrdinaryNode(serviceAddress: String): Unit = {
+  def registerAsOrdinaryNode(): Unit = {
     registry(ZKPathConfig.ordinaryNodesPath)
+
   }
 
-  def registerAsLeader(serviceAddress: String): Unit = {
+  def registerAsLeader(): Unit = {
     registry(ZKPathConfig.leaderNodePath)
   }
 
   // ugly funcion! to satisfy curator event listener.
-  def unRegister(serviceAddress: String): Unit = {
-    val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + serviceAddress
-    val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + serviceAddress
+  def unRegister(): Unit = {
+    val nodeAddress = zkConstants.localNodeAddress
+    val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + nodeAddress
+    val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + nodeAddress
     if(curator.checkExists().forPath(ordinaryNodePath) != null) {
       curator.delete().forPath(ordinaryNodePath)
     }

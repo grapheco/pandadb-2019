@@ -7,7 +7,7 @@ import java.util.Collections
 import java.{security, util}
 import java.util.concurrent.{CompletableFuture, CompletionStage}
 
-import cn.pandadb.network.{ClusterClient, NodeAddress, ZookeerperBasedClusterManager}
+import cn.pandadb.network.{ClusterClient, NodeAddress, ZookeerperBasedClusterClient}
 import org.apache.commons.lang3.NotImplementedException
 import org.neo4j.driver.Config.TrustStrategy
 import org.neo4j.driver.{Transaction, Value, _}
