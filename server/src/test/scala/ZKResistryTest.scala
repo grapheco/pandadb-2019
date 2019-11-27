@@ -32,8 +32,8 @@ class ZKResistryTest {
   val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkConstants.zkServerAddress,
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
-  val ordinadyNodeRegistry = new ZKServiceRegistry(zkConstants)
-  val leaderNodeRegistry = new ZKServiceRegistry(zkConstants)
+  val ordinadyNodeRegistry = new ZKServiceRegistry(zkConstants.zkServerAddress)
+  val leaderNodeRegistry = new ZKServiceRegistry(zkConstants.zkServerAddress)
 
   // no ordinaryNode before registry.
   @Test
@@ -70,7 +70,7 @@ class ZKResistryTest {
   // exist leader node after registry
   @Test
   def test5(): Unit = {
-    leaderNodeRegistry.registerAsLeader(leaderNodePath)
+    leaderNodeRegistry.registerAsLeader(zkConstants.localNodeAddress)
     val flag = curator.checkExists().forPath(leaderNodePath)
     Assert.assertEquals(true, flag != false)
     leaderNodeRegistry.curator.close()

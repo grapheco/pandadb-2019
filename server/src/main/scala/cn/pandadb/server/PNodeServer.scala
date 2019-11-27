@@ -108,9 +108,12 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
 
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
     PNodeServerContext.bindLeaderNode(true);
+    // here to init master role
+
     logger.debug(s"taken leader ship...");
     //yes, i won't quit, never!
     runningLock.await()
     logger.debug(s"shutdown...");
+
   }
 }

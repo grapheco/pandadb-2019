@@ -16,7 +16,8 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 
 class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
 
-  private val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkString,
+  val zkServerAddress = zkString
+  private val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkServerAddress,
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
 
@@ -56,6 +57,10 @@ class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
 
   override def waitFor(state: ClusterState): Unit = null
 
+  def getCurator(): CuratorFramework = {
+    curator
+  }
+
   def addCuratorListener(): Unit = {
 
     val nodesChildrenCache = new PathChildrenCache(curator, ZKPathConfig.ordinaryNodesPath, true)
@@ -70,6 +75,7 @@ class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
               case PathChildrenCacheEvent.Type.CHILD_ADDED =>
                 val nodeAddress = NodeAddress.fromString(pathChildrenCacheEvent.getData.getPath.split(s"/").last)
                 availableNodes += nodeAddress
+                // is this sentence useful?
                 for (listener <- listenerList) listener.onEvent(NodeConnected(nodeAddress));
 
               case PathChildrenCacheEvent.Type.CHILD_REMOVED =>
