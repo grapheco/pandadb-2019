@@ -1,11 +1,13 @@
 package cn.pandadb.network
 
 import scala.collection.JavaConverters._
-
 import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode
 import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * @Author: Airzihao
@@ -35,7 +37,18 @@ class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
   // add listener, to monitor zk nodes change
   addCuratorListener()
 
-  override def getWriteMasterNode(): Option[NodeAddress] = {
+  // silly while wait? what an ugly implemention!
+  override def getWriteMasterNode(): NodeAddress = {
+    var leaderAddress = curator.getChildren().forPath(ZKPathConfig.leaderNodePath)
+
+    while (leaderAddress.isEmpty) {
+      Thread.sleep(1000)
+      leaderAddress = curator.getChildren().forPath(ZKPathConfig.leaderNodePath)
+    }
+    NodeAddress.fromString(leaderAddress.get(0))
+  }
+
+  def getWriteMasterNode(inner: String): Option[NodeAddress] = {
     val leaderAddress = curator.getChildren().forPath(ZKPathConfig.leaderNodePath)
 
     if(leaderAddress.isEmpty) {
