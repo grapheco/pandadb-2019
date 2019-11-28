@@ -127,15 +127,15 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
       //var tempResult: StatementResult = null
       //var tempTransaction: Transaction = null
       try {
-        masterRole.clusterWrite(statement)
+        _currentStatementResult = masterRole.clusterWrite(statement)
       }
     }
     else {
       val clusterClient = PNodeServerContext.getClusterClient;
       val allNodes = clusterClient.getAllNodes()
       val nodeAddress = allNodes.iterator.next().getAsStr()
-
-      val driver: Driver = GraphDatabase.driver(nodeAddress)
+      val uri = s"bolt://" + nodeAddress
+      val driver: Driver = GraphDatabase.driver(uri)
       val session = driver.session();
       _currentTransaction = session.beginTransaction();
       _currentStatementResult = _currentTransaction.run(statement, mapTrans);

@@ -2,7 +2,9 @@ package cn.pandadb.server
 
 import cn.pandadb.network.{ClusterClient, ClusterState, Finished, NodeAddress, UnlockedServing, Writing, ZKClusterEventListener, ZKPathConfig, ZookeerperBasedClusterClient}
 import org.apache.curator.framework.CuratorFramework
-import org.neo4j.driver.{AuthToken, AuthTokens, GraphDatabase}
+import org.neo4j.driver.{AuthToken, AuthTokens, Driver, GraphDatabase, Session, StatementResult, Transaction}
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * @Author: Airzihao
@@ -30,7 +32,7 @@ trait Master {
 
   def addListener(listener: ZKClusterEventListener)
 
-  def clusterWrite(cypher: String)
+  def clusterWrite(cypher: String): StatementResult
 
 }
 
@@ -56,27 +58,57 @@ class MasterRole(zkClusterClient: ZookeerperBasedClusterClient) extends Master {
     currentState = state
   }
 
-  private def distributeWriteStatement(cypher: String): Unit = {
+  private def distributeWriteStatement(cypher: String): StatementResult = {
+    var driverList: List[Driver] = List();
     for (nodeAddress <- allNodes) {
-      val driver = GraphDatabase.driver(nodeAddress.getAsStr(),
+      val uri = s"bolt://" + nodeAddress.getAsStr()
+      val driver = GraphDatabase.driver(uri,
         AuthTokens.basic("", ""))
-      val session = driver.session()
-      val tx = session.beginTransaction()
-      tx.run(cypher)
-      tx.success()
-      session.close()
+      driverList = driver :: driverList
     }
+
+    val closeList: ArrayBuffer[(Session, Transaction)] = new ArrayBuffer[(Session, Transaction)]()
+    var tempResult: StatementResult = null
+    var tempTransaction: Transaction = null
+      try{
+        driverList.foreach(driver => {
+          val session = driver.session()
+          val tx = session.beginTransaction()
+          tempTransaction = tx
+          tempResult = tx.run(cypher)
+          closeList += Tuple2(session, tx)
+        })
+        closeList.foreach(sessionAndTx => {
+          sessionAndTx._2.success()
+          sessionAndTx._1.close()
+            })
+        tempResult
+
+//        _currentTransaction = tempTransaction
+//        _currentStatementResult = tempResult
+      } catch {
+        case e: Exception =>
+          closeList.foreach(sessionAndTx => {
+            sessionAndTx._2.failure()
+            sessionAndTx._1.close()
+          })
+//          _currentTransaction = null
+//          _currentStatementResult = null
+          tempResult
+      }
+
   }
 
   // TODO finetune the state change mechanism
-  override def clusterWrite(cypher: String): Unit = {
+  override def clusterWrite(cypher: String): StatementResult = {
     initWriteContext()
     setClusterState(new Writing)
     globalWriteLock.lock()
-    distributeWriteStatement(cypher)
+    val tempResult = distributeWriteStatement(cypher)
     globalWriteLock.unlock()
     setClusterState(new Finished)
     setClusterState(new UnlockedServing)
+    tempResult
   }
 
   override def addListener(listener: ZKClusterEventListener): Unit = {
