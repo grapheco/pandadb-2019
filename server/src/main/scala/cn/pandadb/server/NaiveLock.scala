@@ -21,11 +21,10 @@ trait NaiveLock {
 class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeerperBasedClusterClient) extends NaiveLock {
 
   val nodeList = allNodes.toList
-  var masterNodeAddress: NodeAddress = _
+  val masterNodeAddress: NodeAddress = clusterClient.getWriteMasterNode("").get
   val register = new ZKServiceRegistry(clusterClient.zkServerAddress)
 
   override def lock(): Unit = {
-    masterNodeAddress = clusterClient.getWriteMasterNode("").get
     nodeList.foreach(lockOrdinaryNode(_))
     lockLeaderNode(masterNodeAddress)
   }
@@ -52,21 +51,23 @@ class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeerperB
 
 class NaiveReadLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeerperBasedClusterClient) extends NaiveLock {
 
-  val nodeList = allNodes.toList
+//  val nodeList = allNodes.toList
   val register = new ZKServiceRegistry(clusterClient.zkServerAddress)
+  var masterNodeAddress: NodeAddress = _
 
   override def lock(): Unit = {
-    nodeList.foreach(lockOrdinaryNode(_))
+    masterNodeAddress = clusterClient.getWriteMasterNode("").get
+    lockLeaderNode(masterNodeAddress)
   }
 
   override def unlock(): Unit = {
-    nodeList.foreach(unlockOrdinaryNode(_))
+    unlockLeaderNode(masterNodeAddress)
   }
 
-  def lockOrdinaryNode(node: NodeAddress): Unit = {
-    register.unRegisterOrdinaryNode(node)
+  def lockLeaderNode(node: NodeAddress): Unit = {
+    register.unRegisterLeaderNode(node)
   }
-  def unlockOrdinaryNode(node: NodeAddress): Unit = {
-    register.registerAsOrdinaryNode(node)
+  def unlockLeaderNode(node: NodeAddress): Unit = {
+    register.registerAsLeader(node)
   }
 }
