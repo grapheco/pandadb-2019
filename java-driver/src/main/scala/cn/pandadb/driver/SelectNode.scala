@@ -26,9 +26,9 @@ object SelectNode {
   val RONDOM_POLICY = 0
   val _POLICY = 1
 
-  private def getWriteNode(clusterOperator: ClusterClient): NodeAddress = {
-    //clusterOperator.getWriteMasterNode()
-    policyDefault
+  private def getWriteNode(clusterOperator: ClusterClient): Option[NodeAddress] = {
+    clusterOperator.getWriteMasterNode()
+    //policyDefault
   }
 
   private def policyRandom(clusterOperator: ClusterClient): NodeAddress = {
@@ -51,7 +51,7 @@ object SelectNode {
     }
   }
   private def getNode(isWriteStatement: Boolean, clusterOperator: ClusterClient, strategy: Strategy): NodeAddress = {
-    if (isWriteStatement) getWriteNode(clusterOperator) else getReadNode(clusterOperator, strategy)
+    if (isWriteStatement) getWriteNode(clusterOperator).get else getReadNode(clusterOperator, strategy)
   }
 
   def getDriver(isWriteStatement: Boolean, clusterOperator: ClusterClient): Driver = {

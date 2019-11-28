@@ -106,6 +106,7 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
 
   private def createClusterClient(uri: String): ClusterClient = {
     new ZookeerperBasedClusterClient(uri)
+    //null
   }
 }
 
