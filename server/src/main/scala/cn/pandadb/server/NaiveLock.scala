@@ -25,7 +25,7 @@ class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeerperB
   val register = new ZKServiceRegistry(clusterClient.zkServerAddress)
 
   override def lock(): Unit = {
-    masterNodeAddress = clusterClient.getWriteMasterNode().get
+    masterNodeAddress = clusterClient.getWriteMasterNode("").get
     nodeList.foreach(lockOrdinaryNode(_))
     lockLeaderNode(masterNodeAddress)
   }
