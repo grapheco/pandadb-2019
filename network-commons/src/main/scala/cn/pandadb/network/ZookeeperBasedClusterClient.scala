@@ -19,7 +19,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
 
   val zkServerAddress = zkString
-  private val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkServerAddress,
+  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkServerAddress,
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
 

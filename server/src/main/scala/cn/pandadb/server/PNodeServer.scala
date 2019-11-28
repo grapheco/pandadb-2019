@@ -1,12 +1,12 @@
 package cn.pandadb.server
 
-import java.io.File
-import java.util.Optional
+import java.io.{File, FileInputStream}
+import java.util.{Optional, Properties}
 import java.util.concurrent.CountDownLatch
 
 import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
 import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
-import cn.pandadb.network.ClusterClient
+import cn.pandadb.network.{ClusterClient, ZKPathConfig, ZookeerperBasedClusterClient}
 import cn.pandadb.server.internode.InterNodeRequestHandler
 import cn.pandadb.server.neo4j.Neo4jRequestHandler
 import cn.pandadb.server.rpc.NettyRpcServer
@@ -47,6 +47,8 @@ object PNodeServerContext extends ContextMap {
   def bindClusterClient(client: ClusterClient): Unit =
     this.put[ClusterClient](client)
 
+  def getMasterRole: MasterRole = this.get[MasterRole]
+
   def getClusterClient: ClusterClient = this.get[ClusterClient]
 
   def bindLeaderNode(boolean: Boolean): Unit =
@@ -60,8 +62,16 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   extends LeaderSelectorListenerAdapter with Logging {
   //TODO: we will replace neo4jServer with InterNodeRpcServer someday!!
   val neo4jServer = new CommunityBootstrapper();
-  val client = CuratorFrameworkFactory.newClient("localhost:2181,localhost:2182,localhost:2183", new ExponentialBackoffRetry(1000, 3));
   val runningLock = new CountDownLatch(1)
+
+  val props = new Properties()
+  props.load(new FileInputStream(configFile))
+  val zkString: String = props.getProperty("zkServerAddress")
+  val clusterClient: ZookeerperBasedClusterClient = new ZookeerperBasedClusterClient(zkString)
+  val client = clusterClient.curator
+  var masterRole: MasterRole = null
+  //val client = CuratorFrameworkFactory.newClient("localhost:2181,localhost:2182,localhost:2183", new ExponentialBackoffRetry(1000, 3));
+
 
   val serverKernel = new NettyRpcServer("0.0.0.0", 1224, "inter-node-server");
   serverKernel.accept(Neo4jRequestHandler());
@@ -74,12 +84,9 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
       }
     });
 
-    val clusterClient: ClusterClient = null;
-
     PNodeServerContext.bindClusterClient(clusterClient);
-    client.start();
-    val leaderSelector = new LeaderSelector(client, "/panda/leader", this);
-    //leaderSelector.autoRequeue();
+//    client.start();
+    val leaderSelector = new LeaderSelector(client, "/pandanodes/_leader", this);
     leaderSelector.start();
 
     new Thread() {
@@ -92,6 +99,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     serverKernel.start({
       //scalastyle:off
       println(PNodeServer.logo);
+      new ZKServiceRegistry(zkString).registerAsOrdinaryNode(props.getProperty("localNodeAddress"))
     });
   }
 
@@ -108,7 +116,10 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
 
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
     PNodeServerContext.bindLeaderNode(true);
+
     // here to init master role
+    masterRole = new MasterRole(clusterClient)
+    new ZKServiceRegistry(zkString).registerAsLeader(props.getProperty("localNodeAddress"))
 
     logger.debug(s"taken leader ship...");
     //yes, i won't quit, never!

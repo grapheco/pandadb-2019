@@ -68,6 +68,7 @@ class MasterRole(zkClusterClient: ZookeerperBasedClusterClient) extends Master {
     }
   }
 
+  // TODO finetune the state change mechanism
   override def clusterWrite(cypher: String): Unit = {
     initWriteContext()
     setClusterState(new Writing)
