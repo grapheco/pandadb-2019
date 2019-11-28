@@ -12,10 +12,10 @@ import org.neo4j.driver.{AuthTokens, GraphDatabase}
 class DriverTest {
 
 
-  val configFile = new File("./itest/testdata/gnode0.conf")
+  val configFile = new File("./testdata/gnode0.conf")
   val props = new Properties()
   props.load(new FileInputStream(configFile))
-  val pandaString = s"panda://" + props.getProperty("zkServerAddress")
+  val pandaString = s"panda://" + props.getProperty("zkServerAddress") + s"/db"
 
   //test CRUD
   @Test
