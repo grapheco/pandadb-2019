@@ -26,7 +26,7 @@ object SelectNode {
   val RONDOM_POLICY = 0
   val _POLICY = 1
 
-  private def getWriteNode(clusterOperator: ClusterClient): Option[NodeAddress] = {
+  private def getWriteNode(clusterOperator: ClusterClient): NodeAddress = {
     clusterOperator.getWriteMasterNode()
     //policyDefault
   }
@@ -51,7 +51,7 @@ object SelectNode {
     }
   }
   private def getNode(isWriteStatement: Boolean, clusterOperator: ClusterClient, strategy: Strategy): NodeAddress = {
-    if (isWriteStatement) getWriteNode(clusterOperator).get else getReadNode(clusterOperator, strategy)
+    if (isWriteStatement) getWriteNode(clusterOperator) else getReadNode(clusterOperator, strategy)
   }
 
   def getDriver(isWriteStatement: Boolean, clusterOperator: ClusterClient): Driver = {
@@ -63,6 +63,6 @@ object SelectNode {
     val host = node.host
     val port = node.port
     val uri = s"bolt://$host:$port"
-    GraphDatabase.driver(uri, AuthTokens.basic("neo4j", "123456"))
+    GraphDatabase.driver(uri, AuthTokens.basic("", ""))
   }
 }
