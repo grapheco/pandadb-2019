@@ -35,9 +35,14 @@ class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
   // add listener, to monitor zk nodes change
   addCuratorListener()
 
-  override def getWriteMasterNode(): NodeAddress = {
-    val leaderAddress = curator.getChildren().forPath(ZKPathConfig.leaderNodePath).get(0).toString
-    NodeAddress.fromString(leaderAddress)
+  override def getWriteMasterNode(): Option[NodeAddress] = {
+    val leaderAddress = curator.getChildren().forPath(ZKPathConfig.leaderNodePath)
+
+    if(leaderAddress.isEmpty) {
+      None
+    } else {
+      Some(NodeAddress.fromString(leaderAddress.get(0)))
+    }
   }
 
   // return variable availableNodes, don't query from zk every time.
