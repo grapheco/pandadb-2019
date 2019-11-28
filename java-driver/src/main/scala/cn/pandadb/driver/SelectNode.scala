@@ -55,7 +55,11 @@ object SelectNode {
   }
 
   def getDriver(isWriteStatement: Boolean, clusterOperator: ClusterClient): Driver = {
-    val node = getNode(isWriteStatement, clusterOperator, new DEFAULT_PICK)
+    getDriver(isWriteStatement, clusterOperator, new RANDOM_PICK)
+  }
+  def getDriver(isWriteStatement: Boolean, clusterOperator: ClusterClient, strategy: Strategy): Driver = {
+    //val node = getNode(isWriteStatement, clusterOperator, new DEFAULT_PICK)
+    val node = getNode(isWriteStatement, clusterOperator, strategy)
     val host = node.host
     val port = node.port
     val uri = s"bolt://$host:$port"
