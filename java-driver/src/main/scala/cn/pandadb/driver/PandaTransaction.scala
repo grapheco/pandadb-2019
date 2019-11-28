@@ -90,7 +90,7 @@ class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, 
   }
 
   override def run(statement: Statement): StatementResult = {
-    //transanction could not be closed until
+    //transanction could not be closed until close function
     val tempState = statement.text().toLowerCase()
     val isWriteStatement = CypherPlusUtils.isWriteStatement(tempState)
     getTransactionReady(isWriteStatement)
