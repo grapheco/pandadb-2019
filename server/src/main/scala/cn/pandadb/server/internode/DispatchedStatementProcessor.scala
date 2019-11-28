@@ -122,16 +122,20 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
 
 
       val clusterClient = PNodeServerContext.getClusterClient;
-      val driverList: List[Driver] = null; //selector.chooseAllNodes()
-      val closeList: ArrayBuffer[(Session, Transaction)] = new ArrayBuffer[(Session, Transaction)]()
-      var tempResult: StatementResult = null
-      var tempTransaction: Transaction = null
-      try{
+      //val driverList: List[Driver] = null; //selector.chooseAllNodes()
+      //val closeList: ArrayBuffer[(Session, Transaction)] = new ArrayBuffer[(Session, Transaction)]()
+      //var tempResult: StatementResult = null
+      //var tempTransaction: Transaction = null
+      try {
         masterRole.clusterWrite(statement)
       }
     }
     else {
-      val driver: Driver = null; //selector.chooseReadNode();
+      val clusterClient = PNodeServerContext.getClusterClient;
+      val allNodes = clusterClient.getAllNodes()
+      val nodeAddress = allNodes.iterator.next().getAsStr()
+
+      val driver: Driver = GraphDatabase.driver(nodeAddress)
       val session = driver.session();
       _currentTransaction = session.beginTransaction();
       _currentStatementResult = _currentTransaction.run(statement, mapTrans);
