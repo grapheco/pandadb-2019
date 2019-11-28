@@ -32,8 +32,6 @@ trait Master {
 
   def clusterWrite(cypher: String)
 
-  // async or sync?
-  //def distributeWriteStatement(cypher: String)
 }
 
 class MasterRole(zkClusterClient: ZookeerperBasedClusterClient) extends Master {
