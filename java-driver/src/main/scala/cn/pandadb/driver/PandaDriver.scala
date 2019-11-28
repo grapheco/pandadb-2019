@@ -105,7 +105,7 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
   }
 
   private def createClusterClient(uri: String): ClusterClient = {
-    null
+    new ZookeerperBasedClusterClient(uri)
   }
 }
 
@@ -114,7 +114,6 @@ class PandaSession(sessionConfig: SessionConfig, clusterOperator: ClusterClient)
   var session: Session = null
   var readDriver: Driver = null
   var writeDriver : Driver = null
-
   private def getSession(isWriteStatement: Boolean): Session = {
     if (!(this.session==null)) this.session.close()
     if (isWriteStatement) {
