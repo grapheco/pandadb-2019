@@ -43,7 +43,7 @@ class ZKDiscoveryTest {
   curator.start()
 
   val listenerList: List[FakeListener] = List(new FakeListener(1), new FakeListener(2))
-  val ordinadyNodeRegistry = new ZKServiceRegistry(zkConstants)
+  val ordinadyNodeRegistry = new ZKServiceRegistry(zkConstants.zkServerAddress)
   testZKServiceDiscovery(curator, zkConstants, listenerList)
 
   var funcNum = 0
@@ -60,7 +60,7 @@ class ZKDiscoveryTest {
     funcNum = 11
 
     funcNum = 2
-    ordinadyNodeRegistry.registerAsOrdinaryNode()
+    ordinadyNodeRegistry.registerAsOrdinaryNode(zkConstants.localNodeAddress)
     Thread.sleep(1000)
     for (listener <- listenerList) {
       Assert.assertEquals(1, listener.CHILD_ADDED)
@@ -71,7 +71,7 @@ class ZKDiscoveryTest {
     funcNum = 22
 
     funcNum = 3
-    ordinadyNodeRegistry.unRegister()
+    ordinadyNodeRegistry.unRegisterOrdinaryNode(zkConstants.localNodeAddress)
     Thread.sleep(1000)
 
     for (listener <- listenerList) {

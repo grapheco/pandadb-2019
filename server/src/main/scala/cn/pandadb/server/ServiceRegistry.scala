@@ -117,9 +117,9 @@ class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
 
   def unRegisterLeaderNode(node: NodeAddress): Unit = {
     val nodeAddress = node.getAsStr()
-    val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + nodeAddress
-    if(curator.checkExists().forPath(ordinaryNodePath) != null) {
-      curator.delete().forPath(ordinaryNodePath)
+    val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + nodeAddress
+    if(curator.checkExists().forPath(leaderNodePath) != null) {
+      curator.delete().forPath(leaderNodePath)
     }
   }
 

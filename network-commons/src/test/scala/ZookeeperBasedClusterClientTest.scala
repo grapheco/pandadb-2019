@@ -27,7 +27,7 @@ class ZookeeperBasedClusterClientTest {
   val zkString = zkConstants.zkServerAddress
 
   val clusterClient = new ZookeerperBasedClusterClient(zkString)
-  val register = new ZKServiceRegistry(zkConstants)
+  val register = new ZKServiceRegistry(zkString)
 
   // empty at first
   @Test
@@ -38,7 +38,7 @@ class ZookeeperBasedClusterClientTest {
   // getAllNodes, will get test node
   @Test
   def test2(): Unit = {
-    register.registerAsOrdinaryNode()
+    register.registerAsOrdinaryNode(zkConstants.localNodeAddress)
     Thread.sleep(1000)
     Assert.assertEquals(false, clusterClient.getAllNodes().isEmpty)
     Assert.assertEquals(NodeAddress.fromString("10.0.88.11:1111"), clusterClient.getAllNodes().iterator.next())
@@ -47,16 +47,16 @@ class ZookeeperBasedClusterClientTest {
   // empty after test node unRegister itself
   @Test
   def test3(): Unit = {
-    register.unRegister()
+    register.unRegisterOrdinaryNode(zkConstants.localNodeAddress)
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
   }
 
   // test leader
   @Test
   def test4(): Unit = {
-    register.registerAsLeader()
+    register.registerAsLeader(zkConstants.localNodeAddress)
     Thread.sleep(1000)
-    Assert.assertEquals(NodeAddress.fromString("10.0.88.11:1111"), clusterClient.getWriteMasterNode())
+    Assert.assertEquals(NodeAddress.fromString("10.0.88.11:1111"), clusterClient.getWriteMasterNode().get)
   }
 
 }

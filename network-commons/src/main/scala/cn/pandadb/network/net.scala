@@ -22,7 +22,7 @@ object NodeAddress {
 // used by server & driver
 trait ClusterClient {
 
-  def getWriteMasterNode(): NodeAddress;
+  def getWriteMasterNode(): Option[NodeAddress];
 
   def getAllNodes(): Iterable[NodeAddress];
 
