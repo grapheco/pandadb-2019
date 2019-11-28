@@ -39,12 +39,12 @@ class NaiveLockTest {
   def test1(): Unit = {
     //Assert.assertEquals()
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
-    Assert.assertEquals(true, clusterClient.getWriteMasterNode().isEmpty)
+    Assert.assertEquals(true, clusterClient.getWriteMasterNode("").isEmpty)
 
     nodeList.foreach(register.registerAsOrdinaryNode(_))
     register.registerAsLeader(nodeList.head)
 
-    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode().get.getAsStr())
+    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsStr())
     val a = clusterClient.getAllNodes().map(_.getAsStr()).toList
     Assert.assertEquals(true, compareList(nodeList, clusterClient.getAllNodes()))
 
@@ -55,9 +55,9 @@ class NaiveLockTest {
   def test2(): Unit = {
     master.globalWriteLock.lock()
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
-    Assert.assertEquals(true, clusterClient.getWriteMasterNode().isEmpty)
+    Assert.assertEquals(true, clusterClient.getWriteMasterNode("").isEmpty)
     master.globalWriteLock.unlock()
-    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode().get.getAsStr())
+    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsStr())
     Assert.assertEquals(true, compareList(nodeList, clusterClient.getAllNodes()))
   }
 
@@ -67,10 +67,10 @@ class NaiveLockTest {
     master.globalReadLock.lock()
     Thread.sleep(3000)
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
-    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode().get.getAsStr())
+    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsStr())
     master.globalReadLock.unlock()
     Thread.sleep(3000)
-    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode().get.getAsStr())
+    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsStr())
     Assert.assertEquals(true, compareList(nodeList, clusterClient.getAllNodes()))
 
   }

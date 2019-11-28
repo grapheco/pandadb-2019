@@ -56,7 +56,7 @@ class ZookeeperBasedClusterClientTest {
   def test4(): Unit = {
     register.registerAsLeader(zkConstants.localNodeAddress)
     Thread.sleep(1000)
-    Assert.assertEquals(NodeAddress.fromString("10.0.88.11:1111"), clusterClient.getWriteMasterNode().get)
+    Assert.assertEquals(NodeAddress.fromString("10.0.88.11:1111"), clusterClient.getWriteMasterNode("").get)
   }
 
 }
