@@ -44,6 +44,10 @@ object PNodeServer extends Logging {
 
 object PNodeServerContext extends ContextMap {
 
+  def bindMasterRole(masterRole: MasterRole): Unit =
+    this.put[MasterRole](masterRole)
+
+
   def bindClusterClient(client: ClusterClient): Unit =
     this.put[ClusterClient](client)
 
@@ -119,6 +123,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
 
     // here to init master role
     masterRole = new MasterRole(clusterClient)
+    PNodeServerContext.bindMasterRole(masterRole)
     new ZKServiceRegistry(zkString).registerAsLeader(props.getProperty("localNodeAddress"))
 
     logger.debug(s"taken leader ship...");
