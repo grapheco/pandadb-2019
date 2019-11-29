@@ -20,7 +20,7 @@ import org.neo4j.kernel.configuration.Config
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class ZKResistryTest {
 
-  val configFile = new File(this.getClass.getClassLoader.getResource("test_pnode0.conf").getPath)
+  val configFile = new File("./src/test/resources/test_pnode0.conf")
   val neo4jConfig = Config.builder().withFile(configFile).build()
   val pandaConfig = Neo4jConfigUtils.neo4jConfig2Config(neo4jConfig)
   val pandaConfigEX = ConfigUtils.config2Ex(pandaConfig)
