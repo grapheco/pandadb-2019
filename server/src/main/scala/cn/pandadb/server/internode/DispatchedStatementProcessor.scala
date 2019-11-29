@@ -33,70 +33,6 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
   override def run(statement: String, params: MapValue): StatementMetadata = source.run(statement, params)
 
   var _currentTransaction: Transaction = _
-//  override def run(statement: String, params: MapValue, bookmark: Bookmark, txTimeout: Duration,
-//                   txMetaData: util.Map[String, AnyRef]): StatementMetadata = {
-//
-//    // param transformation, contribute by codeBabyLin
-//    val paramMap = new mutable.HashMap[String, AnyRef]()
-//    val myConsumer = new ThrowingBiConsumer[String, AnyValue, Exception]() {
-//      override def accept(var1: String, var2: AnyValue): Unit = {
-//        val key = var1
-//        val value = ValueUtils.asValue(var2).asObject()
-//        paramMap.update(key, value)
-//      }
-//    }
-//    params.foreach(myConsumer)
-//    val mapTrans = JavaConversions.mapAsJavaMap(paramMap)
-//
-//    //pickup a runnable node
-//    val tempStatement = statement.toLowerCase()
-//    if (CypherPlusUtils.isWriteStatement(tempStatement)) {
-//      //      val driver = selector.chooseWriteNode();
-//      //      val session = driver.session();
-//      //      _currentTransaction = session.beginTransaction();
-//      //      _currentStatementResult =  _currentTransaction.run(statement, mapTrans);
-//      //      _currentTransaction.success();
-//      //      _currentTransaction.close();
-//
-//      val clusterClient = PNodeServerContext.getClusterClient;
-//      val driverList: List[Driver] = null; //selector.chooseAllNodes()
-//      val closeList: ArrayBuffer[(Session, Transaction)] = new ArrayBuffer[(Session, Transaction)]()
-//      var tempResult: StatementResult = null
-//      var tempTransaction: Transaction = null
-//      try{
-//        driverList.foreach(driver => {
-//          val session = driver.session()
-//          val tx = session.beginTransaction()
-//          tempTransaction = tx
-//          tempResult = tx.run(statement, mapTrans)
-//          closeList += Tuple2(session, tx)
-//        })
-//        closeList.foreach(sessionAndTx => {
-//          sessionAndTx._2.success()
-//          sessionAndTx._1.close()
-//        })
-//        _currentTransaction = tempTransaction
-//        _currentStatementResult = tempResult
-//      } catch {
-//        case e: Exception =>
-//          closeList.foreach(sessionAndTx => {
-//            sessionAndTx._2.failure()
-//            sessionAndTx._1.close()
-//          })
-//          _currentTransaction = null
-//          _currentStatementResult = null
-//      }
-//    }
-//    else {
-//      val driver: Driver = null; //selector.chooseReadNode();
-//      val session = driver.session();
-//      _currentTransaction = session.beginTransaction();
-//      _currentStatementResult = _currentTransaction.run(statement, mapTrans);
-//    }
-//
-//    //extract metadata from _currentStatementResult.
-//    new MyStatementMetadata(_currentStatementResult)
-//  }
 
   // 2019.11.28 use Master to write
   override def run(statement: String, params: MapValue, bookmark: Bookmark, txTimeout: Duration,
@@ -116,33 +52,26 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
 
     //pickup a runnable node
     val tempStatement = statement.toLowerCase()
+    val masterRole = PNodeServerContext.getMasterRole
     if (CypherPlusUtils.isWriteStatement(tempStatement)) {
 
-      val masterRole = PNodeServerContext.getMasterRole
-
-
       val clusterClient = PNodeServerContext.getClusterClient;
-      //val driverList: List[Driver] = null; //selector.chooseAllNodes()
-      //val closeList: ArrayBuffer[(Session, Transaction)] = new ArrayBuffer[(Session, Transaction)]()
-      //var tempResult: StatementResult = null
-      //var tempTransaction: Transaction = null
       try {
-        masterRole.clusterWrite(statement)
+
+        _currentStatementResult = masterRole.clusterWrite(statement)
+        source.run(statement, params)
+//        val _statementMetadata = source.run(statement, params)
+//        masterRole.clusterWrite(statement)
+//        _statementMetadata
       }
     }
     else {
-      val clusterClient = PNodeServerContext.getClusterClient;
-      val allNodes = clusterClient.getAllNodes()
-      val nodeAddress = allNodes.iterator.next().getAsStr()
-
-      val driver: Driver = GraphDatabase.driver(nodeAddress)
-      val session = driver.session();
-      _currentTransaction = session.beginTransaction();
-      _currentStatementResult = _currentTransaction.run(statement, mapTrans);
+      _currentStatementResult = masterRole.clusterRead(statement)
+      new MyStatementMetadata(_currentStatementResult)
     }
 
     //extract metadata from _currentStatementResult.
-    new MyStatementMetadata(_currentStatementResult)
+//    new MyStatementMetadata(_currentStatementResult)
   }
 
   override def streamResult(resultConsumer: ThrowingConsumer[BoltResult, Exception]): Bookmark = {
