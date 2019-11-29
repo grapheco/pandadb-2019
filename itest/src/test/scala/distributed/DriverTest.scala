@@ -24,7 +24,7 @@ class DriverTest {
       AuthTokens.basic("", ""));
     val session = driver.session();
     var results1 = session.run("create (n:person{name:'bluejoe'})");
-    val results = session.run("match (n) return n.name");
+    val results = session.run("match (n:person) return n.name");
     val result = results.next();
     Assert.assertEquals("bluejoe", result.get("n.name").asString());
     val results2 = session.run("match (n:person) delete n");
@@ -42,12 +42,19 @@ class DriverTest {
     val transaction = session.beginTransaction()
     var results1 = transaction.run("create (n:person{name:'bluejoe'})");
 
-   // results1 = transaction.run("create (n:people{name:'lin'})");
-    val results = transaction.run("match (n) return n.name");
+    results1 = transaction.run("create (n:people{name:'lin'})");
+    val results = transaction.run("match (n:person) return n.name");
 
     val result = results.next();
     Assert.assertEquals("bluejoe", result.get("n.name").asString());
+
+    val results3 = transaction.run("match (n) return n.name");
+    Assert.assertEquals(2, results3.list().size())
+
     val results2 = transaction.run("match (n) delete n");
+
+    Assert.assertEquals(0, results2.list().size())
+
     transaction.success()
     transaction.close()
     session.close();
@@ -56,7 +63,7 @@ class DriverTest {
 
   @Test
   def test3() {
-    val driver = GraphDatabase.driver("panda://10.0.86.179:2181,10.0.87.45:2181,10.0.87.46:2181/db1",
+    val driver = GraphDatabase.driver(pandaString,
       AuthTokens.basic("", ""));
     var session = driver.session()
 
