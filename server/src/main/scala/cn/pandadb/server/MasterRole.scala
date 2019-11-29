@@ -2,7 +2,7 @@ package cn.pandadb.server
 
 import cn.pandadb.network.{ClusterClient, ClusterState, Finished, NodeAddress, UnlockedServing, Writing, ZKClusterEventListener, ZKPathConfig, ZookeerperBasedClusterClient}
 import org.apache.curator.framework.CuratorFramework
-import org.neo4j.driver.{AuthToken, AuthTokens, GraphDatabase}
+import org.neo4j.driver.{AuthToken, AuthTokens, GraphDatabase, StatementResult}
 
 /**
   * @Author: Airzihao
@@ -30,7 +30,7 @@ trait Master {
 
   def addListener(listener: ZKClusterEventListener)
 
-  def clusterWrite(cypher: String)
+  def clusterWrite(cypher: String): StatementResult
 
 }
 
@@ -41,6 +41,7 @@ class MasterRole(zkClusterClient: ZookeerperBasedClusterClient) extends Master {
   private var currentState: ClusterState = new ClusterState {}
 
   override val clusterClient = zkClusterClient
+  val masterNodeAddress = clusterClient.getWriteMasterNode("").get.getAsStr()
   override var allNodes: Iterable[NodeAddress] = clusterClient.getAllNodes()
 
   override var globalReadLock: NaiveLock = new NaiveReadLock(allNodes, clusterClient)
@@ -56,27 +57,48 @@ class MasterRole(zkClusterClient: ZookeerperBasedClusterClient) extends Master {
     currentState = state
   }
 
-  private def distributeWriteStatement(cypher: String): Unit = {
+  private def distributeWriteStatement(cypher: String): StatementResult = {
+
+    var tempResult: StatementResult = null
     for (nodeAddress <- allNodes) {
-      val driver = GraphDatabase.driver(nodeAddress.getAsStr(),
-        AuthTokens.basic("", ""))
-      val session = driver.session()
-      val tx = session.beginTransaction()
-      tx.run(cypher)
-      tx.success()
-      session.close()
+      if (nodeAddress.getAsStr() != masterNodeAddress) {
+        val uri = s"bolt://" + nodeAddress.getAsStr()
+        val driver = GraphDatabase.driver(uri,
+          AuthTokens.basic("", ""))
+        val session = driver.session()
+        val tx = session.beginTransaction()
+        tempResult = tx.run(cypher)
+        tx.success()
+        session.close()
+      }
     }
+    tempResult
   }
 
   // TODO finetune the state change mechanism
-  override def clusterWrite(cypher: String): Unit = {
+  override def clusterWrite(cypher: String): StatementResult = {
     initWriteContext()
     setClusterState(new Writing)
     globalWriteLock.lock()
-    distributeWriteStatement(cypher)
+    val tempResult = distributeWriteStatement(cypher)
     globalWriteLock.unlock()
     setClusterState(new Finished)
     setClusterState(new UnlockedServing)
+    tempResult
+  }
+
+  def clusterRead(cypher: String): StatementResult = {
+    val iter = allNodes.iterator
+    var statementResult: StatementResult = null;
+    while (iter.hasNext) {
+      val str = iter.next().getAsStr()
+      if( str != masterNodeAddress) {
+        val uri = s"bolt://" + str
+        val driver = GraphDatabase.driver(uri)
+        statementResult = driver.session().run(cypher)
+      }
+    }
+    statementResult
   }
 
   override def addListener(listener: ZKClusterEventListener): Unit = {

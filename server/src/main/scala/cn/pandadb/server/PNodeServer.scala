@@ -122,9 +122,10 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     PNodeServerContext.bindLeaderNode(true);
 
     // here to init master role
+    new ZKServiceRegistry(zkString).registerAsLeader(props.getProperty("localNodeAddress"))
     masterRole = new MasterRole(clusterClient)
     PNodeServerContext.bindMasterRole(masterRole)
-    new ZKServiceRegistry(zkString).registerAsLeader(props.getProperty("localNodeAddress"))
+
 
     logger.debug(s"taken leader ship...");
     //yes, i won't quit, never!
