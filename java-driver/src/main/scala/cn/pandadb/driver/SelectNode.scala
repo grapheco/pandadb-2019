@@ -27,8 +27,8 @@ object SelectNode {
   val _POLICY = 1
 
   private def getWriteNode(clusterOperator: ClusterClient): NodeAddress = {
-    //clusterOperator.getWriteMasterNode()
-    policyDefault
+    clusterOperator.getWriteMasterNode()
+    //policyDefault
   }
 
   private def policyRandom(clusterOperator: ClusterClient): NodeAddress = {
@@ -58,11 +58,11 @@ object SelectNode {
     getDriver(isWriteStatement, clusterOperator, new RANDOM_PICK)
   }
   def getDriver(isWriteStatement: Boolean, clusterOperator: ClusterClient, strategy: Strategy): Driver = {
-    val node = getNode(isWriteStatement, clusterOperator, new DEFAULT_PICK)
-    //val node = getNode(isWriteStatement, clusterOperator, strategy)
+    //val node = getNode(isWriteStatement, clusterOperator, new DEFAULT_PICK)
+    val node = getNode(isWriteStatement, clusterOperator, strategy)
     val host = node.host
     val port = node.port
     val uri = s"bolt://$host:$port"
-    GraphDatabase.driver(uri, AuthTokens.basic("neo4j", "123456"))
+    GraphDatabase.driver(uri, AuthTokens.basic("", ""))
   }
 }
