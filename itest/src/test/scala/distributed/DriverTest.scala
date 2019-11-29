@@ -4,7 +4,7 @@ import java.io.{File, FileInputStream}
 import java.util.Properties
 
 import org.junit.{Assert, Test}
-import org.neo4j.driver.{AuthTokens, GraphDatabase}
+import org.neo4j.driver.{AuthTokens, GraphDatabase, Transaction, TransactionWork}
 
 /**
   * Created by bluejoe on 2019/11/21.
@@ -42,7 +42,7 @@ class DriverTest {
     val transaction = session.beginTransaction()
     var results1 = transaction.run("create (n:person{name:'bluejoe'})");
 
-    results1 = transaction.run("create (n:people{name:'lin'})");
+   // results1 = transaction.run("create (n:people{name:'lin'})");
     val results = transaction.run("match (n) return n.name");
 
     val result = results.next();
@@ -54,29 +54,35 @@ class DriverTest {
     driver.close();
   }
 
-//  //test
-//  @Test
-//  def test3() {
-//    val driver = GraphDatabase.driver("bolt://10.0.86.179:7687",
-//      AuthTokens.basic("neo4j", "123456"));
-//    val session = driver.session();
-//    val transaction = session.beginTransaction()
-//    //val transaction2 = session.beginTransaction()
-//    //session.close()
-//    val results1 = transaction.run("create (n:person{name:'bluejoe'})");
-//
-//    val results3 = transaction.run("create (n:people{name:'lin'})");
-//
-//    val results = transaction.run("match (n:person) return n.name");
-//
-//    val result = results.next();
-//    Assert.assertEquals("bluejoe", result.get("n.name").asString());
-//    val results2 = transaction.run("match (n) delete n");
-//    transaction.success()
-//    transaction.close()
-//    session.close();
-//    driver.close();
-//  }
+  @Test
+  def test3() {
+    val driver = GraphDatabase.driver("panda://10.0.86.179:2181,10.0.87.45:2181,10.0.87.46:2181/db1",
+      AuthTokens.basic("", ""));
+    var session = driver.session()
+
+
+    val result = session.writeTransaction(new TransactionWork[Unit] {
+      override def execute(transaction: Transaction): Unit = {
+        val res1 = transaction.run("create (n:person{name:'bluejoe'})")
+      }
+    })
+    //session = driver.session()
+    val result2 = session.readTransaction(new TransactionWork[Unit] {
+      override def execute(transaction: Transaction): Unit = {
+        val res2 = transaction.run("match (n:person) return n.name")
+        Assert.assertEquals("bluejoe", res2.next().get("n.name").asString());
+      }
+    })
+    //session = driver.session()
+    val result3 = session.writeTransaction(new TransactionWork[Unit] {
+      override def execute(transaction: Transaction): Unit = {
+        val res3 = transaction.run("match (n) delete n")
+        //Assert.assertEquals("bluejoe", res2.next().get("name").asString());
+      }
+    })
+    session.close();
+    driver.close();
+  }
 
 
 }
