@@ -1,6 +1,7 @@
 package org.neo4j.kernel.impl
 
 import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext}
+import cn.pandadb.util.PandaException
 import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 import org.neo4j.values.storable.{Value, Values}
 import org.neo4j.values.virtual.{NodeValue, VirtualValues}
@@ -13,19 +14,53 @@ trait PropertyStoreFactory {
 }
 
 trait CustomPropertyNodeStore extends InstanceBoundService {
+  /*
   def deleteNodes(docsToBeDeleted: Iterable[Long]);
 
-  def addNodes(docsToAdded: Iterable[CustomPropertyNode]);
+  def addNodes(docsToAdded: Iterable[NodeWithProperties]);
 
   def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]);
+  */
+  def beginTransaction(): ExternalPropertyStoreTransaction;
 
-  def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode];
+  def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties];
 
-  def getNodesByLabel(label: String): Iterable[CustomPropertyNode];
+  def getNodesByLabel(label: String): Iterable[NodeWithProperties];
 
-  def getNodeById(id: Long): Option[CustomPropertyNode];
+  def getNodeById(id: Long): Option[NodeWithProperties];
 }
 
+trait ExternalPropertyStoreTransaction {
+  def deleteNodes(docsToBeDeleted: Iterable[Long]);
+
+  def addNodes(docsToAdded: Iterable[NodeWithProperties]);
+
+  def addProperty(nodeId: Long, properties: (String, Value)*);
+
+  def removeProperty(nodeId: Long, propertyNames: String*);
+
+  def updateProperty(nodeId: Long, properties: (String, Value)*);
+
+  @throws[FailedToPrepareTransaction]
+  def prepare(): PreparedExternalPropertyStoreTransaction;
+}
+
+trait PreparedExternalPropertyStoreTransaction {
+  @throws[FailedToCommitTransaction]
+  def commit(): Unit;
+
+  def rollback(): Unit;
+}
+
+class FailedToPrepareTransaction(tx: ExternalPropertyStoreTransaction) extends PandaException("failed to prepare transaction: $tx") {
+
+}
+
+class FailedToCommitTransaction(tx: PreparedExternalPropertyStoreTransaction) extends PandaException("failed to commit transaction: $tx") {
+
+}
+
+/*
 case class CustomPropertyNodeModification(
                                            id: Long,
                                            fieldsAdded: Map[String, Value],
@@ -35,8 +70,9 @@ case class CustomPropertyNodeModification(
                                            labelsRemoved: Iterable[String]) {
 
 }
+*/
 
-case class CustomPropertyNode(id: Long, var fields: Map[String, Value], var labels: Iterable[String]) {
+case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labels: Iterable[String]) {
   def field(name: String): Option[Value] = fields.get(name)
 
   def toNeo4jNodeValue(): NodeValue = {

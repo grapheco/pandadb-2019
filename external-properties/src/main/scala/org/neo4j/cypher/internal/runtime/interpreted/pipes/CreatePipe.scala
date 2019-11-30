@@ -30,7 +30,7 @@ import org.neo4j.values.virtual.{NodeValue, RelationshipValue}
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.cypher.internal.v3_5.util.{CypherTypeException, InternalException, InvalidSemanticsException}
 
-import org.neo4j.kernel.impl.{CustomPropertyNodeStore, CustomPropertyNode}
+import org.neo4j.kernel.impl.{CustomPropertyNodeStore, NodeWithProperties}
 
 /**
   * Extends PipeWithSource with methods for setting properties and labels on entities.
@@ -112,7 +112,7 @@ abstract class EntityCreatePipe(src: Pipe) extends BaseCreatePipe(src) {
       })
 
       maybeStore.get.addNodes(Some(
-        new CustomPropertyNode(node.id(), customProperties.toMap, data.labels.map(_.name))))
+        new NodeWithProperties(node.id(), customProperties.toMap, data.labels.map(_.name))))
     }
     // END-NOTE
     data.idName -> node
