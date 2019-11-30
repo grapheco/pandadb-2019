@@ -126,7 +126,6 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     masterRole = new MasterRole(clusterClient)
     PNodeServerContext.bindMasterRole(masterRole)
 
-
     logger.debug(s"taken leader ship...");
     //yes, i won't quit, never!
     runningLock.await()
