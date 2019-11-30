@@ -1,25 +1,12 @@
 package distributed
 
-import org.junit.Test
-
+/**
+  * @Author: Airzihao
+  * @Description:
+  * @Date: Created at 13:41 2019/11/30
+  * @Modified By:
+  */
 class WriteTest {
 
-
-  @Test
-  def testCreate(): Unit = {
-
-  }
-
-  @Test
-  def testMerge(): Unit = {
-
-  }
-
-
-  // May not work. Involved in data dispatch problem.
-  @Test
-  def testLoadCSV(): Unit = {
-
-  }
 
 }

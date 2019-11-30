@@ -54,24 +54,16 @@ class DispatchedStatementProcessor(source: StatementProcessor, spi: TransactionS
     val tempStatement = statement.toLowerCase()
     val masterRole = PNodeServerContext.getMasterRole
     if (CypherPlusUtils.isWriteStatement(tempStatement)) {
-
       val clusterClient = PNodeServerContext.getClusterClient;
       try {
-
         _currentStatementResult = masterRole.clusterWrite(statement)
         source.run(statement, params)
-//        val _statementMetadata = source.run(statement, params)
-//        masterRole.clusterWrite(statement)
-//        _statementMetadata
       }
-    }
-    else {
+    } else {
       _currentStatementResult = masterRole.clusterRead(statement)
       new MyStatementMetadata(_currentStatementResult)
     }
 
-    //extract metadata from _currentStatementResult.
-//    new MyStatementMetadata(_currentStatementResult)
   }
 
   override def streamResult(resultConsumer: ThrowingConsumer[BoltResult, Exception]): Bookmark = {
