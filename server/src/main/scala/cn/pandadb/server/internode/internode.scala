@@ -1,7 +1,7 @@
 package cn.pandadb.server.internode
 
 import cn.pandadb.network.internal.message.{InternalRpcRequest, InternalRpcResponse}
-import cn.pandadb.server.LogDetail
+import cn.pandadb.server.DataLogDetail
 import cn.pandadb.server.rpc.{NettyRpcServer, RequestHandler}
 
 /**
@@ -19,6 +19,6 @@ case class GetLogDetailsRequest(sinceVersion: Int) extends InternalRpcRequest {
 
 }
 
-case class GetLogDetailsResponse(logs: Array[LogDetail]) extends InternalRpcResponse {
+case class GetLogDetailsResponse(logs: Array[DataLogDetail]) extends InternalRpcResponse {
 
 }
