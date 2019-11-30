@@ -1,4 +1,4 @@
-package org.neo4j.kernel.impl
+package cn.pandadb.externalprops
 
 import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext}
 import cn.pandadb.util.PandaException
@@ -153,3 +153,4 @@ case class RemoveProperty(nodeId: Long, key: String) extends BufferCommand {
 case class AddProperty(nodeId: Long, key: String, value: Value) extends BufferCommand {
 
 }
+

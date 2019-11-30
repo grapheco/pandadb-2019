@@ -1,4 +1,4 @@
-package org.neo4j.kernel.impl
+package cn.pandadb.externalprops
 
 import cn.pandadb.context.InstanceBoundServiceContext
 import org.neo4j.cypher.internal.runtime.interpreted._
