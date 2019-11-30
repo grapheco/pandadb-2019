@@ -31,7 +31,7 @@ import org.neo4j.values.virtual._
 
 import scala.collection.Map
 import scala.collection.mutable.ArrayBuffer
-import org.neo4j.kernel.impl.{CustomPropertyNode, CustomPropertyNodeModification, CustomPropertyNodeStore}
+import org.neo4j.kernel.impl.{NodeWithProperties, CustomPropertyNodeModification, CustomPropertyNodeStore}
 import org.neo4j.values.storable.{TextValue, Value}
 
 

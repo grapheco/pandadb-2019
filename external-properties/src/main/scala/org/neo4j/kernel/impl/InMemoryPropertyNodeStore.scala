@@ -19,9 +19,9 @@ class InMemoryPropertyNodeStoreFactory extends PropertyStoreFactory {
   * used for unit test
   */
 object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
-  val nodes = mutable.Map[Long, CustomPropertyNode]();
+  val nodes = mutable.Map[Long, NodeWithProperties]();
 
-  def filterNodes(expr: NFPredicate): Iterable[CustomPropertyNode] = {
+  def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
     expr match {
       case NFGreaterThan(fieldName: String, value: AnyValue) => {
         nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() >
@@ -54,13 +54,13 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     nodes --= docsToBeDeleted
   }
 
-  override def addNodes(docsToAdded: Iterable[CustomPropertyNode]): Unit = {
+  override def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
     nodes ++= docsToAdded.map(x => x.id -> x)
   }
 
   override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
     docsToUpdated.foreach(d => {
-      val n: CustomPropertyNode = nodes(d.id)
+      val n: NodeWithProperties = nodes(d.id)
       if (d.fieldsAdded != null && d.fieldsAdded.size>0) {
         nodes(d.id).fields ++= d.fieldsAdded
       }
@@ -82,8 +82,8 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     })
   }
 
-  override def getNodesByLabel(label: String): Iterable[CustomPropertyNode] = {
-    val res = mutable.ArrayBuffer[CustomPropertyNode]()
+  override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
+    val res = mutable.ArrayBuffer[NodeWithProperties]()
     nodes.map(n => {
       if (n._2.labels.toArray.contains(label)) {
         res.append(n._2)
@@ -93,7 +93,7 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     res
   }
 
-  override def getNodeById(id: Long): Option[CustomPropertyNode] = {
+  override def getNodeById(id: Long): Option[NodeWithProperties] = {
     nodes.get(id)
   }
 
