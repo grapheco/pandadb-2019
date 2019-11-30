@@ -16,6 +16,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * @Modified By:
   */
 
+
+// support reselect leader. (perhaps in the addCurator func.)
+// modify this class to support local address and port.
 class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
 
   val zkServerAddress = zkString
@@ -42,7 +45,7 @@ class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
     var leaderAddress = curator.getChildren().forPath(ZKPathConfig.leaderNodePath)
 
     while (leaderAddress.isEmpty) {
-      Thread.sleep(1000)
+      Thread.sleep(500)
       leaderAddress = curator.getChildren().forPath(ZKPathConfig.leaderNodePath)
     }
     NodeAddress.fromString(leaderAddress.get(0))
