@@ -21,7 +21,7 @@ trait CustomPropertyNodeStore extends InstanceBoundService {
 
   def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]);
   */
-  def beginTransaction(): ExternalPropertyStoreTransaction;
+  def beginWriteTransaction(): ExternalPropertyWriteTransaction;
 
   def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties];
 
@@ -30,7 +30,7 @@ trait CustomPropertyNodeStore extends InstanceBoundService {
   def getNodeById(id: Long): Option[NodeWithProperties];
 }
 
-trait ExternalPropertyStoreTransaction {
+trait ExternalPropertyWriteTransaction {
   def deleteNodes(docsToBeDeleted: Iterable[Long]);
 
   def addNodes(docsToAdded: Iterable[NodeWithProperties]);
@@ -42,21 +42,21 @@ trait ExternalPropertyStoreTransaction {
   def updateProperty(nodeId: Long, properties: (String, Value)*);
 
   @throws[FailedToPrepareTransaction]
-  def prepare(): PreparedExternalPropertyStoreTransaction;
+  def prepare(): PreparedExternalPropertyWriteTransaction;
 }
 
-trait PreparedExternalPropertyStoreTransaction {
+trait PreparedExternalPropertyWriteTransaction {
   @throws[FailedToCommitTransaction]
   def commit(): Unit;
 
   def rollback(): Unit;
 }
 
-class FailedToPrepareTransaction(tx: ExternalPropertyStoreTransaction) extends PandaException("failed to prepare transaction: $tx") {
+class FailedToPrepareTransaction(tx: ExternalPropertyWriteTransaction) extends PandaException("failed to prepare transaction: $tx") {
 
 }
 
-class FailedToCommitTransaction(tx: PreparedExternalPropertyStoreTransaction) extends PandaException("failed to commit transaction: $tx") {
+class FailedToCommitTransaction(tx: PreparedExternalPropertyWriteTransaction) extends PandaException("failed to commit transaction: $tx") {
 
 }
 
