@@ -13,6 +13,7 @@
 ### Rule 3: Do not keep useless comments!!!
 > * wrong comments/validated comments will lead people to a wrong way!
 > * please write your comments in English!
+> * pay attention to blank lines, remove unnecessary blank lines please.
 
 ### Rule 4: Use s"" to format string
 > * use: `s"hello, $name"`, do not use: `"hello, "+name`
