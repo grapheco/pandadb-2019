@@ -20,12 +20,12 @@
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import cn.pandadb.context.InstanceContext
+import cn.pandadb.externalprops.CustomPropertyNodeStore
 import org.neo4j.cypher.internal.v3_5.util.CypherTypeException
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.Expression
 import org.neo4j.cypher.internal.runtime.interpreted.GraphElementPropertyFunctions
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
-import org.neo4j.kernel.impl.CustomPropertyNodeStore
 import org.neo4j.values.storable.Values
 import org.neo4j.values.virtual.{RelationshipValue, NodeValue, PathValue}
 
@@ -73,7 +73,7 @@ case class DeletePipe(src: Pipe, expression: Expression, forced: Boolean)
       if (forced) maybeStore.get.deleteNodes(List(n.id()))
       else maybeStore.get.deleteNodes(List(n.id()))
     }
-    // END-NOTE
+    // END-NOTEß
   }
 
   private def deleteRelationship(r: RelationshipValue, state: QueryState) =

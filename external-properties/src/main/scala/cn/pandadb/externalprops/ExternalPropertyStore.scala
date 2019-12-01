@@ -11,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by bluejoe on 2019/10/7.
   */
-trait PropertyStoreFactory {
+trait ExternalPropertyStoreFactory {
   def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore;
 }
 
@@ -33,15 +33,15 @@ trait CustomPropertyNodeStore extends InstanceBoundService {
 }
 
 trait ExternalPropertyWriteTransaction {
-  def deleteNode(nodeIds: Long*);
+  def deleteNode(nodeIds: Array[Long]);
 
-  def addNode(nodes: NodeWithProperties*);
+  def addNode(nodes: Array[NodeWithProperties]);
 
-  def addProperty(nodeId: Long, properties: (String, Value)*);
+  def addProperty(nodeId: Long, properties: Map[String, Value]);
 
-  def removeProperty(nodeId: Long, propertyNames: String*);
+  def removeProperty(nodeId: Long, propertyNames: Array[String]);
 
-  def updateProperty(nodeId: Long, properties: (String, Value)*);
+  def updateProperty(nodeId: Long, properties: Map[String, Value]);
 
   @throws[FailedToPrepareTransaction]
   def prepare(): PreparedExternalPropertyWriteTransaction;
@@ -93,20 +93,20 @@ case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labe
 abstract class BufferedExternalPropertyWriteTransaction() extends ExternalPropertyWriteTransaction {
   val buffer = ArrayBuffer[BufferCommand]();
 
-  override def deleteNode(nodeIds: Long*): Unit =
-    buffer ++= nodeIds.map(DeleteNode(_))
+  override def deleteNode(nodeIds: Array[Long]): Unit =
+    buffer ++= nodeIds.map(DeleteNodeCommand(_))
 
-  override def updateProperty(nodeId: Long, properties: (String, Value)*): Unit =
-    buffer ++= properties.map(prop => UpdateProperty(nodeId, prop._1, prop._2))
+  override def updateProperty(nodeId: Long, properties: Map[String, Value]): Unit =
+    buffer ++= properties.map(prop => UpdatePropertyCommand(nodeId, prop._1, prop._2))
 
-  override def addNode(nodes: NodeWithProperties*): Unit =
-    buffer ++= nodes.map(AddNode(_))
+  override def addNode(nodes: Array[NodeWithProperties]): Unit =
+    buffer ++= nodes.map(AddNodeCommand(_))
 
-  override def addProperty(nodeId: Long, properties: (String, Value)*): Unit =
-    buffer ++= properties.map(prop => AddProperty(nodeId, prop._1, prop._2))
+  override def addProperty(nodeId: Long, properties: Map[String, Value]): Unit =
+    buffer ++= properties.map(prop => AddPropertyCommand(nodeId, prop._1, prop._2))
 
-  override def removeProperty(nodeId: Long, propertyNames: String*): Unit =
-    buffer ++= propertyNames.map(RemoveProperty(nodeId, _))
+  override def removeProperty(nodeId: Long, propertyNames: Array[String]): Unit =
+    buffer ++= propertyNames.map(RemovePropertyCommand(nodeId, _))
 
   @throws[FailedToPrepareTransaction]
   override def prepare(): PreparedExternalPropertyWriteTransaction = {
@@ -134,23 +134,23 @@ trait BufferCommand {
 
 }
 
-case class DeleteNode(nodeId: Long) extends BufferCommand {
+case class DeleteNodeCommand(nodeId: Long) extends BufferCommand {
 
 }
 
-case class AddNode(node: NodeWithProperties) extends BufferCommand {
+case class AddNodeCommand(node: NodeWithProperties) extends BufferCommand {
 
 }
 
-case class UpdateProperty(nodeId: Long, key: String, value: Value) extends BufferCommand {
+case class UpdatePropertyCommand(nodeId: Long, key: String, value: Value) extends BufferCommand {
 
 }
 
-case class RemoveProperty(nodeId: Long, key: String) extends BufferCommand {
+case class RemovePropertyCommand(nodeId: Long, key: String) extends BufferCommand {
 
 }
 
-case class AddProperty(nodeId: Long, key: String, value: Value) extends BufferCommand {
+case class AddPropertyCommand(nodeId: Long, key: String, value: Value) extends BufferCommand {
 
 }
 
