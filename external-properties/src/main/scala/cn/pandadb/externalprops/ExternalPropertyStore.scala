@@ -8,7 +8,6 @@ import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 import org.neo4j.values.storable.{Value, Values}
 import org.neo4j.values.virtual.{NodeValue, VirtualValues}
 
-import scala.collection.JavaConversions
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -36,21 +35,19 @@ trait CustomPropertyNodeStore extends InstanceBoundService {
 }
 
 trait ExternalPropertyWriteTransaction {
-  def deleteNode(nodeIds: Array[Long]);
+  def deleteNode(nodeId: Long);
 
-  def addNode(nodes: Array[NodeWithProperties]);
+  def addNode(nodeId: Long);
 
-  def addProperty(nodeId: Long, properties: Map[String, Value]): Unit;
+  def addProperty(nodeId: Long, key: String, value: Value): Unit;
 
-  def addProperty(nodeId: Long, properties: JMap[String, Value]): Unit =
-    addProperty(nodeId, JavaConversions.mapAsScalaMap(properties).toMap);
+  def removeProperty(nodeId: Long, key: String);
 
-  def removeProperty(nodeId: Long, propertyNames: Array[String]);
+  def updateProperty(nodeId: Long, key: String, value: Value): Unit;
 
-  def updateProperty(nodeId: Long, properties: Map[String, Value]): Unit;
+  def addLabel(nodeId: Long, label: String): Unit;
 
-  def updateProperty(nodeId: Long, properties: JMap[String, Value]): Unit =
-    updateProperty(nodeId, JavaConversions.mapAsScalaMap(properties).toMap);
+  def removeLabel(nodeId: Long, label: String): Unit;
 
   @throws[FailedToPrepareTransaction]
   def prepare(): PreparedExternalPropertyWriteTransaction;
@@ -100,22 +97,21 @@ case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labe
   * this is a template class which should be derived
   */
 abstract class BufferedExternalPropertyWriteTransaction() extends ExternalPropertyWriteTransaction {
-  val buffer = ArrayBuffer[BufferCommand]();
+  val buffer = ArrayBuffer[PropertyModificationCommand]();
 
-  override def deleteNode(nodeIds: Array[Long]): Unit =
-    buffer ++= nodeIds.map(DeleteNodeCommand(_))
+  override def deleteNode(nodeId: Long): Unit = buffer += DeleteNodeCommand(nodeId)
 
-  override def updateProperty(nodeId: Long, properties: Map[String, Value]): Unit =
-    buffer ++= properties.map(prop => UpdatePropertyCommand(nodeId, prop._1, prop._2))
+  override def addNode(nodeId: Long): Unit = buffer += AddNodeCommand(nodeId)
 
-  override def addNode(nodes: Array[NodeWithProperties]): Unit =
-    buffer ++= nodes.map(AddNodeCommand(_))
+  override def addProperty(nodeId: Long, key: String, value: Value): Unit = buffer += AddPropertyCommand(nodeId, key, value)
 
-  override def addProperty(nodeId: Long, properties: Map[String, Value]): Unit =
-    buffer ++= properties.map(prop => AddPropertyCommand(nodeId, prop._1, prop._2))
+  override def removeProperty(nodeId: Long, key: String): Unit = buffer += RemovePropertyCommand(nodeId, key)
 
-  override def removeProperty(nodeId: Long, propertyNames: Array[String]): Unit =
-    buffer ++= propertyNames.map(RemovePropertyCommand(nodeId, _))
+  override def updateProperty(nodeId: Long, key: String, value: Value): Unit = buffer += UpdatePropertyCommand(nodeId, key, value)
+
+  override def addLabel(nodeId: Long, label: String): Unit = buffer += AddLabelCommand(label)
+
+  override def removeLabel(nodeId: Long, label: String): Unit = buffer += RemoveLabelCommand(label)
 
   @throws[FailedToPrepareTransaction]
   override def prepare(): PreparedExternalPropertyWriteTransaction = {
@@ -132,34 +128,41 @@ abstract class BufferedExternalPropertyWriteTransaction() extends ExternalProper
     }
   }
 
-  def internalCommit(commands: Array[BufferCommand]);
+  def internalCommit(commands: Array[PropertyModificationCommand]);
 
-  def internalRollback(commands: Array[BufferCommand]);
+  def internalRollback(commands: Array[PropertyModificationCommand]);
 
-  def internalCheck(commands: Array[BufferCommand]): Option[Throwable];
+  def internalCheck(commands: Array[PropertyModificationCommand]): Option[Throwable];
 }
 
-trait BufferCommand {
-
-}
-
-case class DeleteNodeCommand(nodeId: Long) extends BufferCommand {
+trait PropertyModificationCommand {
 
 }
 
-case class AddNodeCommand(node: NodeWithProperties) extends BufferCommand {
+case class DeleteNodeCommand(nodeId: Long) extends PropertyModificationCommand {
 
 }
 
-case class UpdatePropertyCommand(nodeId: Long, key: String, value: Value) extends BufferCommand {
+case class AddNodeCommand(nodeId: Long) extends PropertyModificationCommand {
 
 }
 
-case class RemovePropertyCommand(nodeId: Long, key: String) extends BufferCommand {
+case class UpdatePropertyCommand(nodeId: Long, key: String, value: Value) extends PropertyModificationCommand {
 
 }
 
-case class AddPropertyCommand(nodeId: Long, key: String, value: Value) extends BufferCommand {
+case class RemovePropertyCommand(nodeId: Long, key: String) extends PropertyModificationCommand {
 
 }
 
+case class AddPropertyCommand(nodeId: Long, key: String, value: Value) extends PropertyModificationCommand {
+
+}
+
+case class AddLabelCommand(nodeId: Long, key: String) extends PropertyModificationCommand {
+
+}
+
+case class RemoveLabelCommand(nodeId: Long, key: String) extends PropertyModificationCommand {
+
+}
