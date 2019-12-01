@@ -109,9 +109,9 @@ abstract class BufferedExternalPropertyWriteTransaction() extends ExternalProper
 
   override def updateProperty(nodeId: Long, key: String, value: Value): Unit = buffer += UpdatePropertyCommand(nodeId, key, value)
 
-  override def addLabel(nodeId: Long, label: String): Unit = buffer += AddLabelCommand(label)
+  override def addLabel(nodeId: Long, label: String): Unit = buffer += AddLabelCommand(nodeId, label)
 
-  override def removeLabel(nodeId: Long, label: String): Unit = buffer += RemoveLabelCommand(label)
+  override def removeLabel(nodeId: Long, label: String): Unit = buffer += RemoveLabelCommand(nodeId, label)
 
   @throws[FailedToPrepareTransaction]
   override def prepare(): PreparedExternalPropertyWriteTransaction = {
