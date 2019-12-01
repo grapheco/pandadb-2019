@@ -11,7 +11,7 @@ import scala.collection.mutable
 /**
   * Created by bluejoe on 2019/10/7.
   */
-class InMemoryPropertyNodeStoreFactory extends PropertyStoreFactory {
+class InMemoryPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore = InMemoryPropertyNodeStore;
 }
 

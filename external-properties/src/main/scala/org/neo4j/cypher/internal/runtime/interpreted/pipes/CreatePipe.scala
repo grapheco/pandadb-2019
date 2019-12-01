@@ -20,6 +20,7 @@
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import cn.pandadb.context.InstanceContext
+import cn.pandadb.externalprops.{NodeWithProperties, CustomPropertyNodeStore}
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.Expression
 import org.neo4j.cypher.internal.runtime.{LenientCreateRelationship, Operations, QueryContext}
@@ -29,8 +30,6 @@ import org.neo4j.values.storable.{Value, Values}
 import org.neo4j.values.virtual.{NodeValue, RelationshipValue}
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.cypher.internal.v3_5.util.{CypherTypeException, InternalException, InvalidSemanticsException}
-
-import org.neo4j.kernel.impl.{CustomPropertyNodeStore, NodeWithProperties}
 
 /**
   * Extends PipeWithSource with methods for setting properties and labels on entities.
