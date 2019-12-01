@@ -1,11 +1,14 @@
 package cn.pandadb.externalprops
 
+import java.util.{Map => JMap}
+
 import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext}
 import cn.pandadb.util.PandaException
 import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 import org.neo4j.values.storable.{Value, Values}
 import org.neo4j.values.virtual.{NodeValue, VirtualValues}
 
+import scala.collection.JavaConversions
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -37,11 +40,17 @@ trait ExternalPropertyWriteTransaction {
 
   def addNode(nodes: Array[NodeWithProperties]);
 
-  def addProperty(nodeId: Long, properties: Map[String, Value]);
+  def addProperty(nodeId: Long, properties: Map[String, Value]): Unit;
+
+  def addProperty(nodeId: Long, properties: JMap[String, Value]): Unit =
+    addProperty(nodeId, JavaConversions.mapAsScalaMap(properties).toMap);
 
   def removeProperty(nodeId: Long, propertyNames: Array[String]);
 
-  def updateProperty(nodeId: Long, properties: Map[String, Value]);
+  def updateProperty(nodeId: Long, properties: Map[String, Value]): Unit;
+
+  def updateProperty(nodeId: Long, properties: JMap[String, Value]): Unit =
+    updateProperty(nodeId, JavaConversions.mapAsScalaMap(properties).toMap);
 
   @throws[FailedToPrepareTransaction]
   def prepare(): PreparedExternalPropertyWriteTransaction;
