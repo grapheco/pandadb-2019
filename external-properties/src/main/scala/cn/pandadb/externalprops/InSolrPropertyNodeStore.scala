@@ -12,7 +12,7 @@ import cn.pandadb.util.ConfigUtils._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
-class InSolrPropertyNodeStoreFactory extends PropertyStoreFactory {
+class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore =
   new InSolrPropertyNodeStore(
     ctx.configuration.getRequiredValueAsString("external.properties.store.solr.zk"),

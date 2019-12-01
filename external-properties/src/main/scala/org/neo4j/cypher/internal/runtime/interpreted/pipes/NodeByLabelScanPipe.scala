@@ -20,11 +20,11 @@
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import cn.pandadb.context.InstanceContext
+import cn.pandadb.externalprops.CustomPropertyNodeStore
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 
 import scala.collection.mutable
-import org.neo4j.kernel.impl.{CustomPropertyNodeStore}
 import org.neo4j.values.virtual.NodeValue
 
 case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
