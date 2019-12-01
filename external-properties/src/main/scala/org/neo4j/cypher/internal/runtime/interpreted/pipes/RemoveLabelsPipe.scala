@@ -20,13 +20,13 @@
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import cn.pandadb.context.InstanceContext
+import cn.pandadb.externalprops.CustomPropertyNodeStore
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.runtime.interpreted.CastSupport
 import org.neo4j.cypher.internal.runtime.interpreted.GraphElementPropertyFunctions
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.values.storable.Values
 import org.neo4j.values.virtual.VirtualNodeValue
-import org.neo4j.kernel.impl.{CustomPropertyNodeStore, CustomPropertyNodeModification}
 
 case class RemoveLabelsPipe(src: Pipe, variable: String, labels: Seq[LazyLabel])
                            (val id: Id = Id.INVALID_ID)

@@ -20,6 +20,7 @@
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import cn.pandadb.context.InstanceContext
+import cn.pandadb.externalprops.CustomPropertyNodeStore
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.Expression
 import org.neo4j.cypher.internal.runtime.{Operations, QueryContext}
@@ -31,7 +32,6 @@ import org.neo4j.values.virtual._
 
 import scala.collection.Map
 import scala.collection.mutable.ArrayBuffer
-import org.neo4j.kernel.impl.{NodeWithProperties, CustomPropertyNodeModification, CustomPropertyNodeStore}
 import org.neo4j.values.storable.{TextValue, Value}
 
 
