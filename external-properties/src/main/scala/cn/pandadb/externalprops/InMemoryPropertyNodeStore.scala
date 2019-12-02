@@ -15,6 +15,7 @@ class InMemoryPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore = InMemoryPropertyNodeStore;
 }
 
+
 /**
   * used for unit test
   */
@@ -23,42 +24,42 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
 
   def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
     expr match {
-      case NFGreaterThan(fieldName: String, value: AnyValue) => {
+      case NFGreaterThan(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() >
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
-      }
 
-      case NFLessThan(fieldName: String, value: AnyValue) => {
+
+      case NFLessThan(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
-      }
 
-      case NFLessThanOrEqual(fieldName: String, value: AnyValue) => {
+
+      case NFLessThanOrEqual(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <=
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
-      }
 
-      case NFGreaterThanOrEqual(fieldName: String, value: AnyValue) => {
+
+      case NFGreaterThanOrEqual(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() >=
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
-      }
 
-      case NFEquals(fieldName: String, value: AnyValue) => {
+
+      case NFEquals(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() ==
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
-      }
+
     }
   }
 
-  override def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
+  def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
     nodes --= docsToBeDeleted
   }
 
-  override def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
+  def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
     nodes ++= docsToAdded.map(x => x.id -> x)
   }
 
-  override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
+  /*override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
     docsToUpdated.foreach(d => {
       val n: NodeWithProperties = nodes(d.id)
       if (d.fieldsAdded != null && d.fieldsAdded.size>0) {
@@ -80,7 +81,7 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
       }
 
     })
-  }
+  }*/
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val res = mutable.ArrayBuffer[NodeWithProperties]()
@@ -104,4 +105,6 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   override def stop(ctx: InstanceBoundServiceContext): Unit = {
     nodes.clear()
   }
+
+  override def prepareWriteTransaction(): PreparedPropertyWriteTransaction = null
 }

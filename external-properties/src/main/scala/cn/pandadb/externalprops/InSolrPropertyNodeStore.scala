@@ -33,12 +33,12 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
       client
     }
 
-  override def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
+  def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
     _solrClient.deleteById(docsToBeDeleted.map(_.toString).toList);
     _solrClient.commit();
   }
 
-  override def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
+  def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
     _solrClient.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
       x.fields.foreach(y => doc.addField(y._1, y._2.asObject));
@@ -52,74 +52,59 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   def predicate2SolrQuery(expr: NFPredicate): String = {
     var q: Option[String] = None
     expr match {
-      case expr: NFGreaterThan => {
+      case expr: NFGreaterThan =>
         val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"$paramKey:{ $paramValue TO * }")
-      }
-      case expr: NFGreaterThanOrEqual => {
+      case expr: NFGreaterThanOrEqual =>
         val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"$paramKey:[ $paramValue TO * ]")
-      }
-      case expr: NFLessThan => {
+      case expr: NFLessThan =>
         val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"$paramKey:{ * TO $paramValue}")
-      }
-      case expr: NFLessThanOrEqual => {
+      case expr: NFLessThanOrEqual =>
         val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"$paramKey:[ * TO $paramValue]")
-      }
-      case expr: NFEquals => {
+      case expr: NFEquals =>
         val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"$paramKey:$paramValue")
-      }
-      case expr: NFNotEquals => {
+      case expr: NFNotEquals =>
         val paramValue = expr.value.asInstanceOf[Value].asObject()
         val paramKey = expr.propName
         q = Some(s"-$paramKey:$paramValue")
-      }
-      case expr: NFNotNull => {
+      case expr: NFNotNull =>
         val paramKey = expr.propName
         q = Some(s"$paramKey:*")
-      }
-      case expr: NFIsNull => {
+      case expr: NFIsNull =>
         val paramKey = expr.propName
         q = Some(s"-$paramKey:*")
-      }
-      case expr: NFTrue => {
+      case expr: NFTrue =>
         q = Some(s"*:*")
-      }
-      case expr: NFFalse => {
+      case expr: NFFalse =>
         q = Some(s"-*:*")
-      }
-      case expr: NFStartsWith => {
+      case expr: NFStartsWith =>
         val paramValue = expr.text
         val paramKey = expr.propName
         q = Some(s"$paramKey:$paramValue*")
-      }
-      case expr: NFEndsWith => {
+      case expr: NFEndsWith =>
         val paramValue = expr.text
         val paramKey = expr.propName
         q = Some(s"$paramKey:*$paramValue")
-      }
-      case expr: NFHasProperty => {
+      case expr: NFHasProperty =>
         val paramKey = expr.propName
         q = Some(s"$paramKey:[* TO *]")
-      }
-      case expr: NFContainsWith => {
+      case expr: NFContainsWith =>
         val paramValue = expr.text
         val paramKey = expr.propName
         q = Some(s"$paramKey:*$paramValue*")
-      }
-      case expr: NFRegexp => {
+      case expr: NFRegexp =>
         val paramValue = expr.text.replace(".", "")
         val paramKey = expr.propName
         q = Some(s"$paramKey:$paramValue")
-      }
       case _ => q = None
     }
     q.get
@@ -129,24 +114,23 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     val nodeArray = ArrayBuffer[NodeWithProperties]()
     var q: Option[String] = None;
     expr match {
-      case expr: NFAnd => {
+      case expr: NFAnd =>
         val q1 = predicate2SolrQuery(expr.a)
         val q2 = predicate2SolrQuery(expr.b)
         q = Some(s"$q1 and $q2")
-      }
-      case expr: NFOr => {
+      case expr: NFOr =>
         val q1 = predicate2SolrQuery(expr.a)
         val q2 = predicate2SolrQuery(expr.b)
         q = Some(s"$q1 or $q2")
-      }
-      case expr: NFNot => {
+
+      case expr: NFNot =>
         val q1 = predicate2SolrQuery(expr.a)
         q = if (q1.indexOf("-") >= 0) Some(s"${q1.substring(q1.indexOf("-") + 1)}") else Some(s"-$q1")
-      }
-      case _ => {
+
+      case _ =>
         val q1 = predicate2SolrQuery(expr)
         q = Some(s"$q1")
-      }
+
     }
     _solrClient.query(new SolrQuery().setQuery(q.get)).getResults().foreach(
       x => {
@@ -165,7 +149,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     _solrClient.getById(id.toString)
   }
 
-  def modif2node(node: CustomPropertyNodeModification): NodeWithProperties = {
+  /*def modif2node(node: CustomPropertyNodeModification): NodeWithProperties = {
     val doc = getCustomPropertyNodeByid(node.id)
     val labels = if (doc.get("labels") == null) ArrayBuffer[String]()
     else {
@@ -183,19 +167,19 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     node.fieldsRemoved.foreach(fd => fieldMap -= fd)
     node.fieldsUpdated.foreach(fd => fieldMap += fd)
     NodeWithProperties(node.id, fieldMap, labels)
-  }
+  }*/
 
-  override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
+  /*override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
     val docsToAdded = for (doc <- docsToUpdated) yield (modif2node(doc))
     addNodes(docsToAdded)
-  }
+  }*/
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val propName = "labels"
     filterNodes(NFContainsWith(propName, label))
   }
 
-  override def getNodeById(id: Long): Option[NodeWithProperties] = ???
+  override def getNodeById(id: Long): Option[NodeWithProperties] = null
 
   override def start(ctx: InstanceBoundServiceContext): Unit = {
 
@@ -204,4 +188,6 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   override def stop(ctx: InstanceBoundServiceContext): Unit = {
     _solrClient.close()
   }
+
+  override def prepareWriteTransaction(): PreparedPropertyWriteTransaction = null
 }
