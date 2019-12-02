@@ -1,7 +1,5 @@
 package cn.pandadb.externalprops
 
-import java.util.{Map => JMap}
-
 import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext}
 import cn.pandadb.util.PandaException
 import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
@@ -18,13 +16,6 @@ trait ExternalPropertyStoreFactory {
 }
 
 trait CustomPropertyNodeStore extends InstanceBoundService {
-  /*
-  def deleteNodes(docsToBeDeleted: Iterable[Long]);
-
-  def addNodes(docsToAdded: Iterable[NodeWithProperties]);
-
-  def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]);
-  */
   def beginWriteTransaction(): ExternalPropertyWriteTransaction;
 
   def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties];
@@ -49,7 +40,6 @@ trait ExternalPropertyWriteTransaction {
 
   def removeLabel(nodeId: Long, label: String): Unit;
 
-  @throws[FailedToPrepareTransaction]
   def prepare(): PreparedExternalPropertyWriteTransaction;
 }
 
@@ -57,30 +47,19 @@ trait PreparedExternalPropertyWriteTransaction {
   @throws[FailedToCommitTransaction]
   def commit(): Unit;
 
+  @throws[FailedToRollbackTransaction]
   def rollback(): Unit;
 }
 
-class FailedToPrepareTransaction(tx: ExternalPropertyWriteTransaction, cause: Throwable)
-  extends PandaException("failed to prepare transaction: $tx") {
-
-}
-
-class FailedToCommitTransaction(tx: PreparedExternalPropertyWriteTransaction, cause: Throwable)
+class FailedToCommitTransaction(tx: ExternalPropertyWriteTransaction, cause: Throwable)
   extends PandaException("failed to commit transaction: $tx") {
 
 }
 
-/*
-case class CustomPropertyNodeModification(
-                                           id: Long,
-                                           fieldsAdded: Map[String, Value],
-                                           fieldsRemoved: Iterable[String],
-                                           fieldsUpdated: Map[String, Value],
-                                           labelsAdded: Iterable[String],
-                                           labelsRemoved: Iterable[String]) {
+class FailedToRollbackTransaction(tx: ExternalPropertyWriteTransaction, cause: Throwable)
+  extends PandaException("failed to roll back transaction: $tx") {
 
 }
-*/
 
 case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labels: Iterable[String]) {
   def field(name: String): Option[Value] = fields.get(name)
@@ -113,26 +92,60 @@ abstract class BufferedExternalPropertyWriteTransaction() extends ExternalProper
 
   override def removeLabel(nodeId: Long, label: String): Unit = buffer += RemoveLabelCommand(nodeId, label)
 
-  @throws[FailedToPrepareTransaction]
-  override def prepare(): PreparedExternalPropertyWriteTransaction = {
-    val combinedCommands = buffer.toArray;
-    internalCheck(combinedCommands).map { e =>
-      throw new FailedToPrepareTransaction(this, e);
-    }.getOrElse {
-      new PreparedExternalPropertyWriteTransaction() {
-        @throws[FailedToCommitTransaction]
-        override def commit(): Unit = internalCommit(combinedCommands)
+  override def prepare(): PreparedExternalPropertyWriteTransaction =
+    new VisitorPreparedTransaction(combinedCommands(), commitPerformer(), rollbackPerformer())
 
-        override def rollback(): Unit = internalRollback(combinedCommands)
-      }
-    }
+  def combinedCommands(): CombinedTransactionCommands = {
+    null
   }
 
-  def internalCommit(commands: Array[PropertyModificationCommand]);
+  def commitPerformer(): CombinedTransactionCommandVisitor;
 
-  def internalRollback(commands: Array[PropertyModificationCommand]);
+  def rollbackPerformer(): CombinedTransactionCommandVisitor;
+}
 
-  def internalCheck(commands: Array[PropertyModificationCommand]): Option[Throwable];
+class VisitorPreparedTransaction(
+                                  combinedCommands: CombinedTransactionCommands,
+                                  commitPerformer: CombinedTransactionCommandVisitor,
+                                  rollbackPerformer: CombinedTransactionCommandVisitor)
+  extends PreparedExternalPropertyWriteTransaction {
+
+  @throws[FailedToCommitTransaction]
+  override def commit(): Unit = {
+    commitPerformer.start(combinedCommands)
+    combinedCommands.accepts(commitPerformer)
+    commitPerformer.end(combinedCommands)
+  }
+
+  @throws[FailedToRollbackTransaction]
+  override def rollback(): Unit = {
+    rollbackPerformer.start(combinedCommands)
+    combinedCommands.accepts(rollbackPerformer)
+    rollbackPerformer.end(combinedCommands)
+  }
+
+  def combineCommands(commands: Array[PropertyModificationCommand]): CombinedTransactionCommands = {
+    null
+  }
+}
+
+case class CombinedTransactionCommands() {
+  def accepts(visitor: CombinedTransactionCommandVisitor): Unit = {
+
+  }
+}
+
+trait CombinedTransactionCommandVisitor {
+  def start(commands: CombinedTransactionCommands);
+
+  def end(commands: CombinedTransactionCommands);
+
+  def visitAddNode(nodeId: Long, props: Map[String, Value], labels: Array[String]);
+
+  def visitDeleteNode(nodeId: Long);
+
+  def visitUpdateNode(nodeId: Long, addedProps: Map[String, Value], updateProps: Map[String, Value], removeProps: Array[String],
+                      addedLabels: Array[String], removedLabels: Array[String]);
 }
 
 trait PropertyModificationCommand {
@@ -165,4 +178,8 @@ case class AddLabelCommand(nodeId: Long, key: String) extends PropertyModificati
 
 case class RemoveLabelCommand(nodeId: Long, key: String) extends PropertyModificationCommand {
 
+}
+
+trait CombinedTransactionCommand {
+  def accepts(visitor: CombinedTransactionCommandVisitor);
 }
