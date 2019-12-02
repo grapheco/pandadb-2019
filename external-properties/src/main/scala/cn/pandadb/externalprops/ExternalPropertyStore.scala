@@ -39,7 +39,7 @@ trait PreparedPropertyWriteTransaction {
 
   def addLabel(nodeId: Long, label: String): Unit;
 
-  def removeLabel(nodeId: Long, label: String): Unit;s
+  def removeLabel(nodeId: Long, label: String): Unit;
 
   def startWriteTransaction(): PropertyWriteTransaction;
 }
