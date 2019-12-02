@@ -16,7 +16,7 @@ trait ExternalPropertyStoreFactory {
 }
 
 trait CustomPropertyNodeStore extends InstanceBoundService {
-  def beginWriteTransaction(): ExternalPropertyWriteTransaction;
+  def prepareWriteTransaction(): PreparedPropertyWriteTransaction;
 
   def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties];
 
@@ -25,7 +25,7 @@ trait CustomPropertyNodeStore extends InstanceBoundService {
   def getNodeById(id: Long): Option[NodeWithProperties];
 }
 
-trait ExternalPropertyWriteTransaction {
+trait PreparedPropertyWriteTransaction {
   def deleteNode(nodeId: Long);
 
   def addNode(nodeId: Long);
@@ -40,10 +40,10 @@ trait ExternalPropertyWriteTransaction {
 
   def removeLabel(nodeId: Long, label: String): Unit;
 
-  def prepare(): PreparedExternalPropertyWriteTransaction;
+  def startWriteTransaction(): PropertyWriteTransaction;
 }
 
-trait PreparedExternalPropertyWriteTransaction {
+trait PropertyWriteTransaction {
   @throws[FailedToCommitTransaction]
   def commit(): Unit;
 
@@ -51,12 +51,12 @@ trait PreparedExternalPropertyWriteTransaction {
   def rollback(): Unit;
 }
 
-class FailedToCommitTransaction(tx: ExternalPropertyWriteTransaction, cause: Throwable)
+class FailedToCommitTransaction(tx: PreparedPropertyWriteTransaction, cause: Throwable)
   extends PandaException("failed to commit transaction: $tx") {
 
 }
 
-class FailedToRollbackTransaction(tx: ExternalPropertyWriteTransaction, cause: Throwable)
+class FailedToRollbackTransaction(tx: PreparedPropertyWriteTransaction, cause: Throwable)
   extends PandaException("failed to roll back transaction: $tx") {
 
 }
@@ -75,7 +75,7 @@ case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labe
   * buffer based implementation of ExternalPropertyWriteTransaction
   * this is a template class which should be derived
   */
-abstract class BufferedExternalPropertyWriteTransaction() extends ExternalPropertyWriteTransaction {
+abstract class BufferedExternalPropertyWriteTransaction() extends PreparedPropertyWriteTransaction {
   val buffer = ArrayBuffer[PropertyModificationCommand]();
 
   override def deleteNode(nodeId: Long): Unit = buffer += DeleteNodeCommand(nodeId)
@@ -92,7 +92,7 @@ abstract class BufferedExternalPropertyWriteTransaction() extends ExternalProper
 
   override def removeLabel(nodeId: Long, label: String): Unit = buffer += RemoveLabelCommand(nodeId, label)
 
-  override def prepare(): PreparedExternalPropertyWriteTransaction =
+  override def startWriteTransaction(): PropertyWriteTransaction =
     new VisitorPreparedTransaction(combinedCommands(), commitPerformer(), rollbackPerformer())
 
   def combinedCommands(): CombinedTransactionCommands = {
@@ -108,7 +108,7 @@ class VisitorPreparedTransaction(
                                   combinedCommands: CombinedTransactionCommands,
                                   commitPerformer: CombinedTransactionCommandVisitor,
                                   rollbackPerformer: CombinedTransactionCommandVisitor)
-  extends PreparedExternalPropertyWriteTransaction {
+  extends PropertyWriteTransaction {
 
   @throws[FailedToCommitTransaction]
   override def commit(): Unit = {
@@ -125,11 +125,12 @@ class VisitorPreparedTransaction(
   }
 
   def combineCommands(commands: Array[PropertyModificationCommand]): CombinedTransactionCommands = {
-    null
+    CombinedTransactionCommands(commands)
   }
 }
 
-case class CombinedTransactionCommands() {
+case class CombinedTransactionCommands(commands: Array[PropertyModificationCommand]) {
+  //commands-->combined
   def accepts(visitor: CombinedTransactionCommandVisitor): Unit = {
 
   }
