@@ -192,7 +192,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     _solrClient.close()
   }
 
-  override def prepareWriteTransaction(): PreparedPropertyWriteTransaction = {
+  override def beginWriteTransaction(): PropertyWriteTransaction = {
     new BufferedExternalPropertyWriteTransaction() {
       override def commitPerformer(): GroupedOpVisitor = {
 
