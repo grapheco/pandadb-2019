@@ -6,6 +6,7 @@ import java.util.concurrent.CountDownLatch
 
 import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
 import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
+import cn.pandadb.externalprops.CustomPropertyNodeStoreHolderFactory
 import cn.pandadb.network.{ClusterClient, ZKPathConfig, ZookeerperBasedClusterClient}
 import cn.pandadb.server.internode.InterNodeRequestHandler
 import cn.pandadb.server.neo4j.Neo4jRequestHandler
