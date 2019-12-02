@@ -15,9 +15,7 @@ import cn.pandadb.util.Ctrl._
 import cn.pandadb.util.{ContextMap, Logging}
 import org.apache.commons.io.IOUtils
 import org.apache.curator.framework.recipes.leader.{LeaderSelector, LeaderSelectorListenerAdapter}
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
-import org.apache.curator.retry.ExponentialBackoffRetry
-import org.neo4j.kernel.impl.CustomPropertyNodeStoreHolderFactory
+import org.apache.curator.framework.{CuratorFramework}
 import org.neo4j.kernel.impl.blob.{BlobStorageServiceFactory, DefaultBlobFunctionsServiceFactory}
 import org.neo4j.server.CommunityBootstrapper
 
