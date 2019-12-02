@@ -62,7 +62,7 @@ import org.neo4j.cypher.internal.v3_5.expressions.SemanticDirection
 import org.neo4j.cypher.internal.v3_5.expressions.SemanticDirection.{BOTH, INCOMING, OUTGOING}
 import org.neo4j.cypher.internal.v3_5.util.{EntityNotFoundException, FailedIndexException}
 // NOTE: pandadb
-import org.neo4j.kernel.impl.CustomPropertyNodeStore
+import cn.pandadb.externalprops.CustomPropertyNodeStore
 import cn.pandadb.context.InstanceContext
 // END-NOTE
 
