@@ -122,8 +122,11 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   }
 }
 class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeWithProperties]) extends GroupedOpVisitor {
-  override def start(ops: GroupedOps): Unit = {
 
+
+
+
+  override def start(ops: GroupedOps): Unit = {
   }
 
   override def end(ops: GroupedOps): Unit = {
@@ -131,7 +134,10 @@ class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeW
   }
 
   override def visitAddNode(nodeId: Long, props: Map[String, Value], labels: Array[String]): Unit = {
-    InMemoryPropertyNodeStore.addNodes(Iterable(NodeWithProperties(nodeId, props, labels)))
+
+      InMemoryPropertyNodeStore.addNodes(Iterable(NodeWithProperties(nodeId, props, labels)))
+
+
   }
 
   override def visitDeleteNode(nodeId: Long): Unit = {

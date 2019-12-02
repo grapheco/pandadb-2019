@@ -107,18 +107,20 @@ class VisitorPreparedTransaction(
                                   rollbackPerformer: GroupedOpVisitor)
   extends PropertyWriteTransaction {
 
+  private def doPerformerWork(performer: GroupedOpVisitor): Unit = {
+    performer.start(ops)
+    ops.accepts(performer)
+    performer.end(ops)
+  }
+
   @throws[FailedToCommitTransaction]
   override def commit(): Unit = {
-    commitPerformer.start(ops)
-    ops.accepts(commitPerformer)
-    commitPerformer.end(ops)
+    doPerformerWork(commitPerformer)
   }
 
   @throws[FailedToRollbackTransaction]
   override def rollback(): Unit = {
-    rollbackPerformer.start(ops)
-    ops.accepts(rollbackPerformer)
-    rollbackPerformer.end(ops)
+    doPerformerWork(rollbackPerformer)
   }
 }
 
