@@ -48,6 +48,8 @@ case class RemoveLabelsPipe(src: Pipe, variable: String, labels: Seq[LazyLabel])
     // NOTE: pandadb
     val maybeStore = InstanceContext.of(state).getOption[CustomPropertyNodeStore]();
 
+    val maybeStore = PNodeServerContext.getOption[CustomPropertyNodeStore]();
+
     if(!maybeStore.isDefined) {
       val labelIds = labels.flatMap(_.getOptId(state.query)).map(_.id)
       state.query.removeLabelsFromNode(nodeId, labelIds.iterator)
