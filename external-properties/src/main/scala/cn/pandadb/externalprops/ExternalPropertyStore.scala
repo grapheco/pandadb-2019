@@ -17,7 +17,7 @@ trait ExternalPropertyStoreFactory {
 }
 
 trait CustomPropertyNodeStore extends InstanceBoundService {
-  def prepareWriteTransaction(): PreparedPropertyWriteTransaction;
+  def beginWriteTransaction(): PropertyWriteTransaction;
 
   def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties];
 
@@ -26,7 +26,7 @@ trait CustomPropertyNodeStore extends InstanceBoundService {
   def getNodeById(id: Long): Option[NodeWithProperties];
 }
 
-trait PreparedPropertyWriteTransaction {
+trait PropertyWriter {
   def deleteNode(nodeId: Long);
 
   def addNode(nodeId: Long);
@@ -40,24 +40,24 @@ trait PreparedPropertyWriteTransaction {
   def addLabel(nodeId: Long, label: String): Unit;
 
   def removeLabel(nodeId: Long, label: String): Unit;
-
-  def startWriteTransaction(): PropertyWriteTransaction;
 }
 
-trait PropertyWriteTransaction {
+trait PropertyWriteTransaction extends PropertyWriter {
   @throws[FailedToCommitTransaction]
-  def commit(): Unit;
+  def commit(): mutable.Undoable;
 
   @throws[FailedToRollbackTransaction]
   def rollback(): Unit;
+
+  def close(): Unit;
 }
 
-class FailedToCommitTransaction(tx: PreparedPropertyWriteTransaction, cause: Throwable)
+class FailedToCommitTransaction(tx: PropertyWriteTransaction, cause: Throwable)
   extends PandaException("failed to commit transaction: $tx") {
 
 }
 
-class FailedToRollbackTransaction(tx: PreparedPropertyWriteTransaction, cause: Throwable)
+class FailedToRollbackTransaction(tx: PropertyWriteTransaction, cause: Throwable)
   extends PandaException("failed to roll back transaction: $tx") {
 
 }
@@ -76,7 +76,8 @@ case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labe
   * buffer based implementation of ExternalPropertyWriteTransaction
   * this is a template class which should be derived
   */
-abstract class BufferedExternalPropertyWriteTransaction() extends PreparedPropertyWriteTransaction {
+class BufferedExternalPropertyWriteTransaction(commitPerformer: GroupedOpVisitor, undoPerformer: GroupedOpVisitor)
+  extends PropertyWriteTransaction {
   val bufferedOps = ArrayBuffer[BufferedPropertyOp]();
 
   override def deleteNode(nodeId: Long): Unit = bufferedOps += BufferedDeleteNodeOp(nodeId)
@@ -93,39 +94,31 @@ abstract class BufferedExternalPropertyWriteTransaction() extends PreparedProper
 
   override def removeLabel(nodeId: Long, label: String): Unit = bufferedOps += BufferedRemoveLabelOp(nodeId, label)
 
-  override def startWriteTransaction(): PropertyWriteTransaction =
-    new VisitorPreparedTransaction(GroupedOps(bufferedOps.toArray), commitPerformer(), rollbackPerformer())
+  @throws[FailedToCommitTransaction]
+  def commit(): mutable.Undoable = {
+    doPerformerWork(GroupedOps(bufferedOps.toArray), commitPerformer)
+    new mutable.Undoable() {
+      def undo(): Unit = {
+        doPerformerWork(GroupedOps(bufferedOps.toArray), undoPerformer)
+      }
+    }
+  }
 
-  def commitPerformer(): GroupedOpVisitor;
+  @throws[FailedToRollbackTransaction]
+  def rollback(): Unit = {
+  }
 
-  def rollbackPerformer(): GroupedOpVisitor;
-}
+  def close(): Unit = {
+  }
 
-class VisitorPreparedTransaction(
-                                  ops: GroupedOps,
-                                  commitPerformer: GroupedOpVisitor,
-                                  rollbackPerformer: GroupedOpVisitor)
-  extends PropertyWriteTransaction {
-
-  private def doPerformerWork(performer: GroupedOpVisitor): Unit = {
+  private def doPerformerWork(ops: GroupedOps, performer: GroupedOpVisitor): Unit = {
     performer.start(ops)
     ops.accepts(performer)
     performer.end(ops)
   }
-
-  @throws[FailedToCommitTransaction]
-  override def commit(): Unit = {
-    doPerformerWork(commitPerformer)
-  }
-
-  @throws[FailedToRollbackTransaction]
-  override def rollback(): Unit = {
-    doPerformerWork(rollbackPerformer)
-  }
 }
 
 case class GroupedOps(ops: Array[BufferedPropertyOp]) {
-
   //commands-->combined
   val addedNodes = mutable.Map[Long, GroupedAddNodeOp]();
   val updatedNodes = mutable.Map[Long, GroupedUpdateNodeOp]();
@@ -256,7 +249,8 @@ case class GroupedUpdateNodeOp(nodeId: Long) extends GroupedOp {
   val removedLabels = mutable.Set[String]();
 
   def accepts(visitor: GroupedOpVisitor): Unit = {
-    visitor.visitUpdateNode(nodeId, addedProps.toMap, updatedProps.toMap, removedProps.toArray, addedLabels.toArray, removedLabels.toArray)
+    visitor.visitUpdateNode(nodeId, addedProps.toMap, updatedProps.toMap,
+      removedProps.toArray, addedLabels.toArray, removedLabels.toArray)
   }
 }
 
