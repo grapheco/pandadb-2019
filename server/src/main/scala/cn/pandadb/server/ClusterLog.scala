@@ -4,7 +4,7 @@ import java.io.{File, FileReader, FileWriter}
 
 import com.google.gson.Gson
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
   * @Author: Airzihao
@@ -13,16 +13,8 @@ import scala.collection.mutable.ArrayBuffer
   * @Modified By:
   */
 
-class DataLogDetail(versionNum: Int, command: String) {
-  private val version: Int = versionNum
-  private val cypher: String = command
+case class DataLogDetail(val versionNum: Int, val command: String) {
 
-  def getVersion(): Int = {
-    version
-  }
-  def getCypher: String = {
-    cypher
-  }
 }
 
 trait DataLogWriter {
@@ -33,11 +25,13 @@ trait DataLogReader {
   def consume[T](consumer: (DataLogDetail) => T, sinceVersion: Int = -1): Iterable[T];
 }
 
+// a template class for standard json format.
 class DataLog(arrayBuffer: ArrayBuffer[DataLogDetail]) {
   val dataLog: Array[DataLogDetail] = arrayBuffer.toArray
 }
 
-class JsonDataLog(logFile: File) extends DataLogWriter {
+// main class for deal with data log.
+class JsonDataLog(logFile: File) extends DataLogWriter with DataLogReader {
   val gson = new Gson()
 
   var dataLog: ArrayBuffer[DataLogDetail] = {
@@ -49,14 +43,17 @@ class JsonDataLog(logFile: File) extends DataLogWriter {
     }
   }
 
+  override def consume[T](consumer: DataLogDetail => T, sinceVersion: Int): Iterable[T] = {
+    dataLog.toStream.filter(_.versionNum > sinceVersion)
+      .map(consumer(_))
+  }
+
   override def write(row: DataLogDetail): Unit = {
     dataLog.append(row)
     val fileWriter = new FileWriter(logFile)
     val logStr = gson.toJson(new DataLog(dataLog))
-
     fileWriter.write(logStr)
     fileWriter.flush();
     fileWriter.close();
   }
-
 }
