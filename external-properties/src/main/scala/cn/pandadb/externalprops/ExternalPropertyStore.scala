@@ -6,6 +6,7 @@ import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 import org.neo4j.values.storable.{Value, Values}
 import org.neo4j.values.virtual.{NodeValue, VirtualValues}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -76,70 +77,115 @@ case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labe
   * this is a template class which should be derived
   */
 abstract class BufferedExternalPropertyWriteTransaction() extends PreparedPropertyWriteTransaction {
-  val buffer = ArrayBuffer[PropertyModificationCommand]();
+  val bufferedOps = ArrayBuffer[BufferedPropertyOp]();
 
-  override def deleteNode(nodeId: Long): Unit = buffer += DeleteNodeCommand(nodeId)
+  override def deleteNode(nodeId: Long): Unit = bufferedOps += BufferedDeleteNodeOp(nodeId)
 
-  override def addNode(nodeId: Long): Unit = buffer += AddNodeCommand(nodeId)
+  override def addNode(nodeId: Long): Unit = bufferedOps += BufferedAddNodeOp(nodeId)
 
-  override def addProperty(nodeId: Long, key: String, value: Value): Unit = buffer += AddPropertyCommand(nodeId, key, value)
+  override def addProperty(nodeId: Long, key: String, value: Value): Unit = bufferedOps += BufferedAddPropertyOp(nodeId, key, value)
 
-  override def removeProperty(nodeId: Long, key: String): Unit = buffer += RemovePropertyCommand(nodeId, key)
+  override def removeProperty(nodeId: Long, key: String): Unit = bufferedOps += BufferedRemovePropertyOp(nodeId, key)
 
-  override def updateProperty(nodeId: Long, key: String, value: Value): Unit = buffer += UpdatePropertyCommand(nodeId, key, value)
+  override def updateProperty(nodeId: Long, key: String, value: Value): Unit = bufferedOps += BufferedUpdatePropertyOp(nodeId, key, value)
 
-  override def addLabel(nodeId: Long, label: String): Unit = buffer += AddLabelCommand(nodeId, label)
+  override def addLabel(nodeId: Long, label: String): Unit = bufferedOps += BufferedAddLabelOp(nodeId, label)
 
-  override def removeLabel(nodeId: Long, label: String): Unit = buffer += RemoveLabelCommand(nodeId, label)
+  override def removeLabel(nodeId: Long, label: String): Unit = bufferedOps += BufferedRemoveLabelOp(nodeId, label)
 
   override def startWriteTransaction(): PropertyWriteTransaction =
-    new VisitorPreparedTransaction(combinedCommands(), commitPerformer(), rollbackPerformer())
+    new VisitorPreparedTransaction(GroupedOps(bufferedOps.toArray), commitPerformer(), rollbackPerformer())
 
-  def combinedCommands(): CombinedTransactionCommands = {
-    null
-  }
+  def commitPerformer(): GroupedOpVisitor;
 
-  def commitPerformer(): CombinedTransactionCommandVisitor;
-
-  def rollbackPerformer(): CombinedTransactionCommandVisitor;
+  def rollbackPerformer(): GroupedOpVisitor;
 }
 
 class VisitorPreparedTransaction(
-                                  combinedCommands: CombinedTransactionCommands,
-                                  commitPerformer: CombinedTransactionCommandVisitor,
-                                  rollbackPerformer: CombinedTransactionCommandVisitor)
+                                  ops: GroupedOps,
+                                  commitPerformer: GroupedOpVisitor,
+                                  rollbackPerformer: GroupedOpVisitor)
   extends PropertyWriteTransaction {
 
   @throws[FailedToCommitTransaction]
   override def commit(): Unit = {
-    commitPerformer.start(combinedCommands)
-    combinedCommands.accepts(commitPerformer)
-    commitPerformer.end(combinedCommands)
+    commitPerformer.start(ops)
+    ops.accepts(commitPerformer)
+    commitPerformer.end(ops)
   }
 
   @throws[FailedToRollbackTransaction]
   override def rollback(): Unit = {
-    rollbackPerformer.start(combinedCommands)
-    combinedCommands.accepts(rollbackPerformer)
-    rollbackPerformer.end(combinedCommands)
-  }
-
-  def combineCommands(commands: Array[PropertyModificationCommand]): CombinedTransactionCommands = {
-    CombinedTransactionCommands(commands)
+    rollbackPerformer.start(ops)
+    ops.accepts(rollbackPerformer)
+    rollbackPerformer.end(ops)
   }
 }
 
-case class CombinedTransactionCommands(commands: Array[PropertyModificationCommand]) {
+case class GroupedOps(ops: Array[BufferedPropertyOp]) {
+
   //commands-->combined
-  def accepts(visitor: CombinedTransactionCommandVisitor): Unit = {
+  val addedNodes = mutable.Map[Long, GroupedAddNodeOp]();
+  val updatedNodes = mutable.Map[Long, GroupedUpdateNodeOp]();
+  val deleteNodes = ArrayBuffer[GroupedDeleteNodeOp]();
 
+  ops.foreach {
+    _ match {
+      case BufferedAddNodeOp(nodeId: Long) => addedNodes += nodeId -> GroupedAddNodeOp(nodeId)
+      case BufferedDeleteNodeOp(nodeId: Long) => deleteNodes += GroupedDeleteNodeOp(nodeId)
+      case BufferedDeleteNodeOp(nodeId: Long) =>
+        addedNodes -= nodeId
+        updatedNodes -= nodeId
+        deleteNodes += GroupedDeleteNodeOp(nodeId)
+      case BufferedUpdatePropertyOp(nodeId: Long, key: String, value: Value) =>
+        if (addedNodes.isDefinedAt(nodeId)) {
+          addedNodes(nodeId).addedProps += key -> value
+        }
+        if (updatedNodes.isDefinedAt(nodeId)) {
+          updatedNodes(nodeId).updatedProps += key -> value
+        }
+      case BufferedRemovePropertyOp(nodeId: Long, key: String) =>
+        if (addedNodes.isDefinedAt(nodeId)) {
+          addedNodes(nodeId).addedProps -= key
+        }
+        if (updatedNodes.isDefinedAt(nodeId)) {
+          updatedNodes(nodeId).updatedProps -= key
+        }
+      case BufferedAddPropertyOp(nodeId: Long, key: String, value: Value) =>
+        if (addedNodes.isDefinedAt(nodeId)) {
+          addedNodes(nodeId).addedProps += key -> value
+        }
+        if (updatedNodes.isDefinedAt(nodeId)) {
+          updatedNodes(nodeId).addedProps += key -> value
+        }
+      case BufferedAddLabelOp(nodeId: Long, label: String) =>
+        if (addedNodes.isDefinedAt(nodeId)) {
+          addedNodes(nodeId).addedLabels += label
+        }
+        if (updatedNodes.isDefinedAt(nodeId)) {
+          updatedNodes(nodeId).addedLabels += label
+        }
+      case BufferedRemoveLabelOp(nodeId: Long, label: String) =>
+        if (addedNodes.isDefinedAt(nodeId)) {
+          addedNodes(nodeId).addedLabels -= label
+        }
+        if (updatedNodes.isDefinedAt(nodeId)) {
+          updatedNodes(nodeId).removedLabels += label
+        }
+    }
+  }
+
+  def accepts(visitor: GroupedOpVisitor): Unit = {
+    addedNodes.values.foreach(_.accepts(visitor))
+    updatedNodes.values.foreach(_.accepts(visitor))
+    deleteNodes.foreach(_.accepts(visitor))
   }
 }
 
-trait CombinedTransactionCommandVisitor {
-  def start(commands: CombinedTransactionCommands);
+trait GroupedOpVisitor {
+  def start(ops: GroupedOps);
 
-  def end(commands: CombinedTransactionCommands);
+  def end(ops: GroupedOps);
 
   def visitAddNode(nodeId: Long, props: Map[String, Value], labels: Array[String]);
 
@@ -149,38 +195,71 @@ trait CombinedTransactionCommandVisitor {
                       addedLabels: Array[String], removedLabels: Array[String]);
 }
 
-trait PropertyModificationCommand {
+/**
+  * buffered operation within a prepared transaction
+  */
+trait BufferedPropertyOp {
 
 }
 
-case class DeleteNodeCommand(nodeId: Long) extends PropertyModificationCommand {
+case class BufferedDeleteNodeOp(nodeId: Long) extends BufferedPropertyOp {
 
 }
 
-case class AddNodeCommand(nodeId: Long) extends PropertyModificationCommand {
+case class BufferedAddNodeOp(nodeId: Long) extends BufferedPropertyOp {
 
 }
 
-case class UpdatePropertyCommand(nodeId: Long, key: String, value: Value) extends PropertyModificationCommand {
+case class BufferedUpdatePropertyOp(nodeId: Long, key: String, value: Value) extends BufferedPropertyOp {
 
 }
 
-case class RemovePropertyCommand(nodeId: Long, key: String) extends PropertyModificationCommand {
+case class BufferedRemovePropertyOp(nodeId: Long, key: String) extends BufferedPropertyOp {
 
 }
 
-case class AddPropertyCommand(nodeId: Long, key: String, value: Value) extends PropertyModificationCommand {
+case class BufferedAddPropertyOp(nodeId: Long, key: String, value: Value) extends BufferedPropertyOp {
 
 }
 
-case class AddLabelCommand(nodeId: Long, key: String) extends PropertyModificationCommand {
+case class BufferedAddLabelOp(nodeId: Long, label: String) extends BufferedPropertyOp {
 
 }
 
-case class RemoveLabelCommand(nodeId: Long, key: String) extends PropertyModificationCommand {
+case class BufferedRemoveLabelOp(nodeId: Long, label: String) extends BufferedPropertyOp {
 
 }
 
-trait CombinedTransactionCommand {
-  def accepts(visitor: CombinedTransactionCommandVisitor);
+/**
+  * grouped operation to be committed
+  */
+trait GroupedOp {
+  def accepts(visitor: GroupedOpVisitor): Unit;
+}
+
+case class GroupedAddNodeOp(nodeId: Long) extends GroupedOp {
+  val addedProps = mutable.Map[String, Value]();
+  val addedLabels = mutable.Set[String]();
+
+  def accepts(visitor: GroupedOpVisitor): Unit = {
+    visitor.visitAddNode(nodeId, addedProps.toMap, addedLabels.toArray)
+  }
+}
+
+case class GroupedUpdateNodeOp(nodeId: Long) extends GroupedOp {
+  val addedProps = mutable.Map[String, Value]();
+  val updatedProps = mutable.Map[String, Value]();
+  val removedProps = mutable.Set[String]();
+  val addedLabels = mutable.Set[String]();
+  val removedLabels = mutable.Set[String]();
+
+  def accepts(visitor: GroupedOpVisitor): Unit = {
+    visitor.visitUpdateNode(nodeId, addedProps.toMap, updatedProps.toMap, removedProps.toArray, addedLabels.toArray, removedLabels.toArray)
+  }
+}
+
+case class GroupedDeleteNodeOp(nodeId: Long) extends GroupedOp {
+  def accepts(visitor: GroupedOpVisitor): Unit = {
+    visitor.visitDeleteNode(nodeId)
+  }
 }
