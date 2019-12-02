@@ -59,29 +59,30 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     nodes ++= docsToAdded.map(x => x.id -> x)
   }
 
-  /*override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
-    docsToUpdated.foreach(d => {
-      val n: NodeWithProperties = nodes(d.id)
-      if (d.fieldsAdded != null && d.fieldsAdded.size>0) {
-        nodes(d.id).fields ++= d.fieldsAdded
+  def updateNodes(nodeId: Long, addedProps: Map[String, Value],
+                           updateProps: Map[String, Value], removeProps: Array[String],
+                           addedLabels: Array[String], removedLabels: Array[String]): Unit = {
+
+      val n: NodeWithProperties = nodes(nodeId)
+      if (addedProps != null && addedProps.size>0) {
+        nodes(nodeId).fields ++= addedProps
       }
-      if (d.fieldsUpdated != null && d.fieldsUpdated.size>0) {
-        nodes(d.id).fields ++= d.fieldsUpdated
+      if (updateProps != null && updateProps.size>0) {
+        nodes(nodeId).fields ++= updateProps
       }
-      if (d.fieldsRemoved != null && d.fieldsRemoved.size>0) {
-        d.fieldsRemoved.foreach(f => nodes(d.id).fields -= f)
+      if (removeProps != null && removeProps.size>0) {
+        removeProps.foreach(f => nodes(nodeId).fields -= f)
       }
-      if (d.labelsAdded != null && d.labelsAdded.size>0) {
-        nodes(d.id).labels ++= d.labelsAdded
-        nodes(d.id).labels = nodes(d.id).labels.toSet
+      if (addedLabels != null && addedLabels.size>0) {
+        nodes(nodeId).labels ++= addedLabels
+        nodes(nodeId).labels = nodes(nodeId).labels.toSet
       }
-      if (d.labelsRemoved != null && d.labelsRemoved.size>0) {
-        val tmpLabels = nodes(d.id).labels.toSet
-        nodes(d.id).labels = tmpLabels -- d.labelsRemoved.toSet
+      if (removedLabels != null && removedLabels.size>0) {
+        val tmpLabels = nodes(nodeId).labels.toSet
+        nodes(nodeId).labels = tmpLabels -- removedLabels
       }
 
-    })
-  }*/
+  }
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val res = mutable.ArrayBuffer[NodeWithProperties]()
@@ -106,5 +107,43 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     nodes.clear()
   }
 
-  override def prepareWriteTransaction(): PreparedPropertyWriteTransaction = null
+  override def prepareWriteTransaction(): PreparedPropertyWriteTransaction = {
+    new BufferedExternalPropertyWriteTransaction() {
+      override def commitPerformer(): GroupedOpVisitor = {
+
+        new InMemoryGroupedOpVisitor(true, nodes)
+
+      }
+
+      override def rollbackPerformer(): GroupedOpVisitor = {
+        new InMemoryGroupedOpVisitor(false, nodes)
+      }
+    }
+  }
+}
+class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeWithProperties]) extends GroupedOpVisitor {
+  override def start(ops: GroupedOps): Unit = {
+
+  }
+
+  override def end(ops: GroupedOps): Unit = {
+
+  }
+
+  override def visitAddNode(nodeId: Long, props: Map[String, Value], labels: Array[String]): Unit = {
+    InMemoryPropertyNodeStore.addNodes(Iterable(NodeWithProperties(nodeId, props, labels)))
+  }
+
+  override def visitDeleteNode(nodeId: Long): Unit = {
+    InMemoryPropertyNodeStore.deleteNodes(Iterable(nodeId))
+  }
+
+  override def visitUpdateNode(nodeId: Long, addedProps: Map[String, Value],
+                               updateProps: Map[String, Value], removeProps: Array[String],
+                               addedLabels: Array[String], removedLabels: Array[String]): Unit = {
+
+    InMemoryPropertyNodeStore.updateNodes(nodeId: Long, addedProps: Map[String, Value],
+      updateProps: Map[String, Value], removeProps: Array[String],
+      addedLabels: Array[String], removedLabels: Array[String])
+  }
 }
