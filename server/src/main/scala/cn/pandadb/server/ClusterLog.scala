@@ -56,4 +56,8 @@ class JsonDataLog(logFile: File) extends DataLogWriter with DataLogReader {
     fileWriter.flush();
     fileWriter.close();
   }
+
+  def getLastVersion(): Int = {
+    dataLog.last.versionNum
+  }
 }
