@@ -195,13 +195,17 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   }
 
   override def beginWriteTransaction(): PropertyWriteTransaction = {
-    new BufferedExternalPropertyWriteTransaction(new InSolrGroupedOpVisitor(true, _solrClient), new InSolrGroupedOpVisitor(false, _solrClient))
+    new BufferedExternalPropertyWriteTransaction(this, new InSolrGroupedOpVisitor(true, _solrClient), new InSolrGroupedOpVisitor(false, _solrClient))
   }
 }
 
 class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) extends GroupedOpVisitor{
 
-  var nodeDeleted = mutable.Map[Long, NodeWithProperties]()
+  var oldState = mutable.Map[Long, MutableNodeWithProperties]();
+
+  def setOldState(oldState: mutable.Map[Long, MutableNodeWithProperties]): Unit = {
+    this.oldState = oldState
+  }
   //val nodeUpdated = mutable.Map[Long, NodeWithProperties]
   //var isCommit = iscommit
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
@@ -250,11 +254,11 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
   }
 
   override def visitDeleteNode(nodeId: Long): Unit = {
-    if (isCommit) {
-      nodeDeleted.add(nodeId, getNodeWithPropertiesById(nodeId))
-      deleteNodes(Iterable(nodeId))
+    if (isCommit) deleteNodes(Iterable(nodeId))
+    else {
+      val oldNode = oldState.get(nodeId).head
+      addNodes(Iterable(NodeWithProperties(nodeId, oldNode.props.toMap, oldNode.labels)))
     }
-    else addNodes(nodeDeleted.get(nodeId))
   }
   def getSolrNodeById(id: Long): SolrDocument = {
     _solrClient.getById(id.toString)
@@ -266,7 +270,7 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
     if (isCommit) {
         val propName = "labels"
         val doc = getSolrNodeById(nodeId)
-        nodeDeleted.add(nodeId, getNodeWithPropertiesById(nodeId))
+
         addedProps.foreach(prop => doc.addField(prop._1, prop._2))
         updateProps.foreach(prop => doc.setField(prop._1, prop._2))
         removeProps.foreach(prop => doc.removeFields(prop))
@@ -289,7 +293,8 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
 
     else {
         visitDeleteNode(nodeId)
-        addNodes(nodeDeleted.get(nodeId))
+        val oldNode = oldState.get(nodeId).head
+        addNodes(Iterable(NodeWithProperties(nodeId, oldNode.props.toMap, oldNode.labels)))
     }
 
 
