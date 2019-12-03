@@ -45,7 +45,7 @@ trait PropertyWriter {
 }
 
 trait PropertyReaderWithinTransaction {
-  def getNodeLabels(nodeId: Long): Option[Array[String]];
+  def getNodeLabels(nodeId: Long): Array[String];
 
   def getPropertyValue(nodeId: Long, key: String): Option[Value];
 }
