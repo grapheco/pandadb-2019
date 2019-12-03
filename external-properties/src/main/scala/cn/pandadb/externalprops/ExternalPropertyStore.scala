@@ -16,14 +16,16 @@ trait ExternalPropertyStoreFactory {
   def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore;
 }
 
-trait CustomPropertyNodeStore extends InstanceBoundService {
-  def beginWriteTransaction(): PropertyWriteTransaction;
-
+trait CustomPropertyNodeReader {
   def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties];
 
   def getNodesByLabel(label: String): Iterable[NodeWithProperties];
 
   def getNodeById(id: Long): Option[NodeWithProperties];
+}
+
+trait CustomPropertyNodeStore extends InstanceBoundService with CustomPropertyNodeReader {
+  def beginWriteTransaction(): PropertyWriteTransaction;
 }
 
 trait PropertyWriter {
@@ -68,13 +70,20 @@ class FailedToRollbackTransaction(tx: PropertyWriteTransaction, cause: Throwable
 
 }
 
-case class NodeWithProperties(id: Long, fields: Map[String, Value], labels: Array[String]) {
-  def field(name: String): Option[Value] = fields.get(name)
+case class NodeWithProperties(id: Long, props: Map[String, Value], labels: Iterable[String]) {
+  def field(name: String): Option[Value] = props.get(name)
 
   def toNeo4jNodeValue(): NodeValue = {
     VirtualValues.nodeValue(id,
       Values.stringArray(labels.toArray: _*),
-      VirtualValues.map(fields.keys.toArray, fields.values.toArray))
+      VirtualValues.map(props.keys.toArray, props.values.toArray))
+  }
+
+  def mutable(): MutableNodeWithProperties = {
+    val m = MutableNodeWithProperties(id);
+    m.props ++= props;
+    m.labels ++= labels;
+    m;
   }
 }
 
@@ -87,7 +96,10 @@ case class MutableNodeWithProperties(id: Long) {
   * buffer based implementation of ExternalPropertyWriteTransaction
   * this is a template class which should be derived
   */
-class BufferedExternalPropertyWriteTransaction(commitPerformer: GroupedOpVisitor, undoPerformer: GroupedOpVisitor)
+class BufferedExternalPropertyWriteTransaction(
+                                                nodeReader: CustomPropertyNodeReader,
+                                                commitPerformer: GroupedOpVisitor,
+                                                undoPerformer: GroupedOpVisitor)
   extends PropertyWriteTransaction {
   val bufferedOps = ArrayBuffer[BufferedPropertyOp]();
   val snapshot = mutable.Map[Long, MutableNodeWithProperties]();
@@ -97,6 +109,13 @@ class BufferedExternalPropertyWriteTransaction(commitPerformer: GroupedOpVisitor
     snapshot.remove(nodeId)
   }
 
+  //get node related info when required
+  private def getPopulatedNode(nodeId: Long): MutableNodeWithProperties = {
+    snapshot.getOrElseUpdate(nodeId,
+       nodeReader.getNodeById(nodeId).get.mutable()
+    )
+  }
+
   override def addNode(nodeId: Long): Unit = {
     bufferedOps += BufferedAddNodeOp(nodeId)
     snapshot += nodeId -> MutableNodeWithProperties(nodeId)
@@ -104,35 +123,35 @@ class BufferedExternalPropertyWriteTransaction(commitPerformer: GroupedOpVisitor
 
   override def addProperty(nodeId: Long, key: String, value: Value): Unit = {
     bufferedOps += BufferedAddPropertyOp(nodeId, key, value)
-    snapshot.getOrElseUpdate(nodeId, MutableNodeWithProperties(nodeId)).props += (key -> value);
+    getPopulatedNode(nodeId).props += (key -> value);
   }
 
   override def removeProperty(nodeId: Long, key: String): Unit = {
     bufferedOps += BufferedRemovePropertyOp(nodeId, key)
-    snapshot.get(nodeId).foreach(_.props -= key)
+    getPopulatedNode(nodeId).props -= key;
   }
 
   override def updateProperty(nodeId: Long, key: String, value: Value): Unit = {
     bufferedOps += BufferedUpdatePropertyOp(nodeId, key, value)
-    snapshot.getOrElseUpdate(nodeId, MutableNodeWithProperties(nodeId)).props += (key -> value);
+    getPopulatedNode(nodeId).props += (key -> value);
   }
 
   override def addLabel(nodeId: Long, label: String): Unit = {
     bufferedOps += BufferedAddLabelOp(nodeId, label)
-    snapshot.getOrElseUpdate(nodeId, MutableNodeWithProperties(nodeId)).labels += label;
-    snapshot.get(nodeId).foreach(_.labels -= label)
+    getPopulatedNode(nodeId).labels += label
   }
 
   override def removeLabel(nodeId: Long, label: String): Unit = {
     bufferedOps += BufferedRemoveLabelOp(nodeId, label)
+    getPopulatedNode(nodeId).labels -= label
   }
 
-  def getNodeLabels(nodeId: Long): Option[Array[String]] = {
-    snapshot.get(nodeId).map(_.labels.toArray)
+  def getNodeLabels(nodeId: Long): Array[String] = {
+    getPopulatedNode(nodeId).labels.toArray
   }
 
   def getPropertyValue(nodeId: Long, key: String): Option[Value] = {
-    snapshot.get(nodeId).flatMap(_.props.get(key))
+    getPopulatedNode(nodeId).props.get(key)
   }
 
   @throws[FailedToCommitTransaction]
