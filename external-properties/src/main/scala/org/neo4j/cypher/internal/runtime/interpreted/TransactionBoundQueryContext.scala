@@ -561,7 +561,7 @@ sealed class TransactionBoundQueryContext(val transactionalContext: Transactiona
             val tmpNode = maybeStore.get.getNodeById(id)
             if (tmpNode != None){
               val propertyName = tokenNameLookup.propertyKeyGetName(propertyKeyId)
-              val propertyValue = tmpNode.get.fields.get(propertyName)
+              val propertyValue = tmpNode.get.props.get(propertyName)
               if (propertyValue != None){
                 return propertyValue.get
               }
