@@ -71,8 +71,6 @@ class FailedToRollbackTransaction(tx: PropertyWriteTransaction, cause: Throwable
 }
 
 case class NodeWithProperties(id: Long, props: Map[String, Value], labels: Iterable[String]) {
-  def field(name: String): Option[Value] = props.get(name)
-
   def toNeo4jNodeValue(): NodeValue = {
     VirtualValues.nodeValue(id,
       Values.stringArray(labels.toArray: _*),
