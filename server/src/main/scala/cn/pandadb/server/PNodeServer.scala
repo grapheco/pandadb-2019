@@ -43,9 +43,12 @@ object PNodeServer extends Logging {
 
 object PNodeServerContext extends ContextMap {
 
+  def putStoreDir(storeDir: File): Unit = {
+    this.put[File]("pnode.store.dir", storeDir)
+  }
+
   def bindMasterRole(masterRole: MasterRole): Unit =
     this.put[MasterRole](masterRole)
-
 
   def bindClusterClient(client: ClusterClient): Unit =
     this.put[ClusterClient](client)
@@ -53,6 +56,8 @@ object PNodeServerContext extends ContextMap {
   def getMasterRole: MasterRole = this.get[MasterRole]
 
   def getClusterClient: ClusterClient = this.get[ClusterClient]
+
+  def getStoreDir: File = this.get[File]("pnode.store.dir")
 
   def bindLeaderNode(boolean: Boolean): Unit =
     this.put("is.leader.node", boolean)
@@ -67,18 +72,18 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   val neo4jServer = new CommunityBootstrapper();
   val runningLock = new CountDownLatch(1)
 
+  //prepare args for ZKClusterClient
   val props = new Properties()
   props.load(new FileInputStream(configFile))
   val zkString: String = props.getProperty("zkServerAddress")
   val clusterClient: ZookeerperBasedClusterClient = new ZookeerperBasedClusterClient(zkString)
   val client = clusterClient.curator
   var masterRole: MasterRole = null
-  //val client = CuratorFrameworkFactory.newClient("localhost:2181,localhost:2182,localhost:2183", new ExponentialBackoffRetry(1000, 3));
-
 
   val serverKernel = new NettyRpcServer("0.0.0.0", 1224, "inter-node-server");
   serverKernel.accept(Neo4jRequestHandler());
   serverKernel.accept(InterNodeRequestHandler());
+  PNodeServerContext.putStoreDir(dbDir)
 
   def start(): Unit = {
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -88,7 +93,6 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     });
 
     PNodeServerContext.bindClusterClient(clusterClient);
-//    client.start();
     val leaderSelector = new LeaderSelector(client, "/pandanodes/_leader", this);
     leaderSelector.start();
 
@@ -107,12 +111,6 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   }
 
   def shutdown(): Unit = {
-    /*
-    if (neo4jServer.isRunning) {
-      neo4jServer.stop();
-    }
-    */
-
     runningLock.countDown()
     serverKernel.shutdown();
   }
@@ -129,6 +127,5 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     //yes, i won't quit, never!
     runningLock.await()
     logger.debug(s"shutdown...");
-
   }
 }
