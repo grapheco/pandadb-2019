@@ -43,7 +43,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
     _solrClient.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
-      x.fields.foreach(y => doc.addField(y._1, y._2.asObject));
+      x.props.foreach(y => doc.addField(y._1, y._2.asObject));
       doc.addField("id", x.id);
       doc.addField("labels", x.labels.mkString(","));
       doc
@@ -207,7 +207,7 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
     _solrClient.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
-      x.fields.foreach(y => doc.addField(y._1, y._2.asObject));
+      x.props.foreach(y => doc.addField(y._1, y._2.asObject));
       doc.addField("id", x.id);
       doc.addField("labels", x.labels.mkString(","));
       doc

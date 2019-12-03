@@ -65,13 +65,13 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
 
       val n: NodeWithProperties = nodes(nodeId)
       if (addedProps != null && addedProps.size>0) {
-        nodes(nodeId).fields ++= addedProps
+        nodes(nodeId).props ++= addedProps
       }
       if (updateProps != null && updateProps.size>0) {
-        nodes(nodeId).fields ++= updateProps
+        nodes(nodeId).props ++= updateProps
       }
       if (removeProps != null && removeProps.size>0) {
-        removeProps.foreach(f => nodes(nodeId).fields -= f)
+        removeProps.foreach(f => nodes(nodeId).props -= f)
       }
       if (addedLabels != null && addedLabels.size>0) {
         nodes(nodeId).labels ++= addedLabels
