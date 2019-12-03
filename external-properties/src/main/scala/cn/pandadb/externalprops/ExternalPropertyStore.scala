@@ -100,23 +100,27 @@ class BufferedExternalPropertyWriteTransaction(
                                                 undoPerformer: GroupedOpVisitor)
   extends PropertyWriteTransaction {
   val bufferedOps = ArrayBuffer[BufferedPropertyOp]();
-  val snapshot = mutable.Map[Long, MutableNodeWithProperties]();
+  val oldState = mutable.Map[Long, MutableNodeWithProperties]();
+  val newState = mutable.Map[Long, MutableNodeWithProperties]();
 
   override def deleteNode(nodeId: Long): Unit = {
     bufferedOps += BufferedDeleteNodeOp(nodeId)
-    snapshot.remove(nodeId)
+    newState.remove(nodeId)
   }
 
   //get node related info when required
   private def getPopulatedNode(nodeId: Long): MutableNodeWithProperties = {
-    snapshot.getOrElseUpdate(nodeId,
-       nodeReader.getNodeById(nodeId).get.mutable()
+    oldState.getOrElseUpdate(nodeId, {
+      val state = nodeReader.getNodeById(nodeId).get;
+      newState += nodeId -> state.mutable()
+      state.mutable()
+    }
     )
   }
 
   override def addNode(nodeId: Long): Unit = {
     bufferedOps += BufferedAddNodeOp(nodeId)
-    snapshot += nodeId -> MutableNodeWithProperties(nodeId)
+    newState += nodeId -> MutableNodeWithProperties(nodeId)
   }
 
   override def addProperty(nodeId: Long, key: String, value: Value): Unit = {
@@ -169,7 +173,7 @@ class BufferedExternalPropertyWriteTransaction(
 
   def close(): Unit = {
     bufferedOps.clear()
-    snapshot.clear()
+    newState.clear()
   }
 
   private def doPerformerWork(ops: GroupedOps, performer: GroupedOpVisitor): Unit = {
