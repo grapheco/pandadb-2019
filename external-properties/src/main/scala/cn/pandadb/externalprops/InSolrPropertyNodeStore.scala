@@ -1,6 +1,6 @@
 package cn.pandadb.externalprops
 
-import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceFactory, InstanceBoundServiceContext}
+import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
 import cn.pandadb.util.Ctrl
 import cn.pandadb.util.Ctrl._
 import org.apache.solr.client.solrj.SolrQuery
@@ -9,7 +9,9 @@ import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
 import org.neo4j.values.storable.{Value, Values}
 import cn.pandadb.util.ConfigUtils._
+
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
@@ -193,22 +195,15 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   }
 
   override def beginWriteTransaction(): PropertyWriteTransaction = {
-    new BufferedExternalPropertyWriteTransaction() {
-      override def commitPerformer(): GroupedOpVisitor = {
-
-        new InSolrGroupedOpVisitor(true, _solrClient)
-
-      }
-
-      override def rollbackPerformer(): GroupedOpVisitor = {
-        new InSolrGroupedOpVisitor(false, _solrClient)
-      }
-    }
+    new BufferedExternalPropertyWriteTransaction(new InSolrGroupedOpVisitor(true, _solrClient), new InSolrGroupedOpVisitor(false, _solrClient))
   }
 }
 
 class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) extends GroupedOpVisitor{
 
+  var nodeDeleted = mutable.Map[Long, NodeWithProperties]()
+  //val nodeUpdated = mutable.Map[Long, NodeWithProperties]
+  //var isCommit = iscommit
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
     _solrClient.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
@@ -219,7 +214,22 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
     })
     _solrClient.commit();
   }
+  def getNodeWithPropertiesById(nodeId: Long): NodeWithProperties = {
 
+    val doc = _solrClient.getById(nodeId.toString)
+    val labels = if (doc.get("labels") == null) ArrayBuffer[String]()
+    else {
+      val labelsq = doc.get("labels").toString
+      val labelsTemp = labelsq.substring(labelsq.indexOf('[') + 1, labelsq.indexOf(']'))
+      labelsTemp.split(",").toBuffer
+    }
+
+    val tik = "id,labels,_version_"
+    val fieldsName = doc.getFieldNames
+    val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(doc.get(y).toString))
+
+    NodeWithProperties(nodeId, fields.toMap, labels)
+  }
   def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
     _solrClient.deleteById(docsToBeDeleted.map(_.toString).toList);
     _solrClient.commit();
@@ -235,11 +245,16 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
   }
 
   override def visitAddNode(nodeId: Long, props: Map[String, Value], labels: Array[String]): Unit = {
-    addNodes(Iterable(NodeWithProperties(nodeId, props, labels)))
+    if (isCommit) addNodes(Iterable(NodeWithProperties(nodeId, props, labels)))
+    else visitDeleteNode(nodeId)
   }
 
   override def visitDeleteNode(nodeId: Long): Unit = {
-    deleteNodes(Iterable(nodeId))
+    if (isCommit) {
+      nodeDeleted.add(nodeId, getNodeWithPropertiesById(nodeId))
+      deleteNodes(Iterable(nodeId))
+    }
+    else addNodes(nodeDeleted.get(nodeId))
   }
   def getSolrNodeById(id: Long): SolrDocument = {
     _solrClient.getById(id.toString)
@@ -248,28 +263,34 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
                                updateProps: Map[String, Value], removeProps: Array[String],
                                addedLabels: Array[String], removedLabels: Array[String]): Unit = {
 
+    if (isCommit) {
+        val propName = "labels"
+        val doc = getSolrNodeById(nodeId)
+        nodeDeleted.add(nodeId, getNodeWithPropertiesById(nodeId))
+        addedProps.foreach(prop => doc.addField(prop._1, prop._2))
+        updateProps.foreach(prop => doc.setField(prop._1, prop._2))
+        removeProps.foreach(prop => doc.removeFields(prop))
+        val labels = if (doc.get(propName) == null) ArrayBuffer[String]()
+        else {
+          val labelsq = doc.get(propName).toString
+          val labelsTemp = labelsq.substring(labelsq.indexOf('[') + 1, labelsq.indexOf(']'))
+          labelsTemp.split(",").toBuffer
+        }
 
-    val propName = "labels"
-    val doc = getSolrNodeById(nodeId)
-    addedProps.foreach(prop => doc.addField(prop._1, prop._2))
-    updateProps.foreach(prop => doc.setField(prop._1, prop._2))
-    removeProps.foreach(prop => doc.removeFields(prop))
-    val labels = if (doc.get(propName) == null) ArrayBuffer[String]()
-    else {
-      val labelsq = doc.get(propName).toString
-      val labelsTemp = labelsq.substring(labelsq.indexOf('[') + 1, labelsq.indexOf(']'))
-      labelsTemp.split(",").toBuffer
+        addedLabels.foreach(label => if (!labels.contains(label)) labels += label)
+        removedLabels.foreach(label => labels -= label)
+
+        doc.setField(propName, labels.mkString(","))
+        val tik = "id,labels,_version_"
+        val fieldsName = doc.getFieldNames
+        val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(doc.get(y).toString))
+        visitAddNode(nodeId, fields.toMap, labels.toArray)
     }
 
-    addedLabels.foreach(label => if (!labels.contains(label)) labels += label)
-    removedLabels.foreach(label => labels -= label)
-
-    doc.setField(propName, labels.mkString(","))
-    val tik = "id,labels,_version_"
-    val fieldsName = doc.getFieldNames
-    val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(doc.get(y).toString))
-    visitAddNode(nodeId, fields.toMap, labels.toArray)
-
+    else {
+        visitDeleteNode(nodeId)
+        addNodes(nodeDeleted.get(nodeId))
+    }
 
 
   }
