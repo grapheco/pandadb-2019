@@ -42,7 +42,13 @@ trait PropertyWriter {
   def removeLabel(nodeId: Long, label: String): Unit;
 }
 
-trait PropertyWriteTransaction extends PropertyWriter {
+trait PropertyReaderWithinTransaction {
+  def getNodeLabels(nodeId: Long): Option[Array[String]];
+
+  def getPropertyValue(nodeId: Long, key: String): Option[Value];
+}
+
+trait PropertyWriteTransaction extends PropertyWriter with PropertyReaderWithinTransaction {
   @throws[FailedToCommitTransaction]
   def commit(): mutable.Undoable;
 
@@ -62,7 +68,7 @@ class FailedToRollbackTransaction(tx: PropertyWriteTransaction, cause: Throwable
 
 }
 
-case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labels: Iterable[String]) {
+case class NodeWithProperties(id: Long, fields: Map[String, Value], labels: Array[String]) {
   def field(name: String): Option[Value] = fields.get(name)
 
   def toNeo4jNodeValue(): NodeValue = {
@@ -72,6 +78,11 @@ case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labe
   }
 }
 
+case class MutableNodeWithProperties(id: Long) {
+  val props = mutable.Map[String, Value]();
+  val labels = ArrayBuffer[String]();
+}
+
 /**
   * buffer based implementation of ExternalPropertyWriteTransaction
   * this is a template class which should be derived
@@ -79,27 +90,58 @@ case class NodeWithProperties(id: Long, var fields: Map[String, Value], var labe
 class BufferedExternalPropertyWriteTransaction(commitPerformer: GroupedOpVisitor, undoPerformer: GroupedOpVisitor)
   extends PropertyWriteTransaction {
   val bufferedOps = ArrayBuffer[BufferedPropertyOp]();
+  val snapshot = mutable.Map[Long, MutableNodeWithProperties]();
 
-  override def deleteNode(nodeId: Long): Unit = bufferedOps += BufferedDeleteNodeOp(nodeId)
+  override def deleteNode(nodeId: Long): Unit = {
+    bufferedOps += BufferedDeleteNodeOp(nodeId)
+    snapshot.remove(nodeId)
+  }
 
-  override def addNode(nodeId: Long): Unit = bufferedOps += BufferedAddNodeOp(nodeId)
+  override def addNode(nodeId: Long): Unit = {
+    bufferedOps += BufferedAddNodeOp(nodeId)
+    snapshot += nodeId -> MutableNodeWithProperties(nodeId)
+  }
 
-  override def addProperty(nodeId: Long, key: String, value: Value): Unit = bufferedOps += BufferedAddPropertyOp(nodeId, key, value)
+  override def addProperty(nodeId: Long, key: String, value: Value): Unit = {
+    bufferedOps += BufferedAddPropertyOp(nodeId, key, value)
+    snapshot.getOrElseUpdate(nodeId, MutableNodeWithProperties(nodeId)).props += (key -> value);
+  }
 
-  override def removeProperty(nodeId: Long, key: String): Unit = bufferedOps += BufferedRemovePropertyOp(nodeId, key)
+  override def removeProperty(nodeId: Long, key: String): Unit = {
+    bufferedOps += BufferedRemovePropertyOp(nodeId, key)
+    snapshot.get(nodeId).foreach(_.props -= key)
+  }
 
-  override def updateProperty(nodeId: Long, key: String, value: Value): Unit = bufferedOps += BufferedUpdatePropertyOp(nodeId, key, value)
+  override def updateProperty(nodeId: Long, key: String, value: Value): Unit = {
+    bufferedOps += BufferedUpdatePropertyOp(nodeId, key, value)
+    snapshot.getOrElseUpdate(nodeId, MutableNodeWithProperties(nodeId)).props += (key -> value);
+  }
 
-  override def addLabel(nodeId: Long, label: String): Unit = bufferedOps += BufferedAddLabelOp(nodeId, label)
+  override def addLabel(nodeId: Long, label: String): Unit = {
+    bufferedOps += BufferedAddLabelOp(nodeId, label)
+    snapshot.getOrElseUpdate(nodeId, MutableNodeWithProperties(nodeId)).labels += label;
+    snapshot.get(nodeId).foreach(_.labels -= label)
+  }
 
-  override def removeLabel(nodeId: Long, label: String): Unit = bufferedOps += BufferedRemoveLabelOp(nodeId, label)
+  override def removeLabel(nodeId: Long, label: String): Unit = {
+    bufferedOps += BufferedRemoveLabelOp(nodeId, label)
+  }
+
+  def getNodeLabels(nodeId: Long): Option[Array[String]] = {
+    snapshot.get(nodeId).map(_.labels.toArray)
+  }
+
+  def getPropertyValue(nodeId: Long, key: String): Option[Value] = {
+    snapshot.get(nodeId).flatMap(_.props.get(key))
+  }
 
   @throws[FailedToCommitTransaction]
   def commit(): mutable.Undoable = {
-    doPerformerWork(GroupedOps(bufferedOps.toArray), commitPerformer)
+    val ops: GroupedOps = GroupedOps(bufferedOps.toArray)
+    doPerformerWork(ops, commitPerformer)
     new mutable.Undoable() {
       def undo(): Unit = {
-        doPerformerWork(GroupedOps(bufferedOps.toArray), undoPerformer)
+        doPerformerWork(ops, undoPerformer)
       }
     }
   }
@@ -109,6 +151,8 @@ class BufferedExternalPropertyWriteTransaction(commitPerformer: GroupedOpVisitor
   }
 
   def close(): Unit = {
+    bufferedOps.clear()
+    snapshot.clear()
   }
 
   private def doPerformerWork(ops: GroupedOps, performer: GroupedOpVisitor): Unit = {
