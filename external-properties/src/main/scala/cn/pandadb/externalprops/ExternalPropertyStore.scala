@@ -162,6 +162,7 @@ class BufferedExternalPropertyWriteTransaction(
     doPerformerWork(ops, commitPerformer)
     new mutable.Undoable() {
       def undo(): Unit = {
+        undoPerformer.setOldState(oldState)
         doPerformerWork(ops, undoPerformer)
       }
     }
@@ -243,6 +244,8 @@ case class GroupedOps(ops: Array[BufferedPropertyOp]) {
 }
 
 trait GroupedOpVisitor {
+  //add a new function to keep oldState
+  def setOldState(oldState: mutable.Map[Long, MutableNodeWithProperties]);
   def start(ops: GroupedOps);
 
   def end(ops: GroupedOps);
