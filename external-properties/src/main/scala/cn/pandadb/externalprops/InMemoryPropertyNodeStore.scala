@@ -64,24 +64,27 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
                            updateProps: Map[String, Value], removeProps: Array[String],
                            addedLabels: Array[String], removedLabels: Array[String]): Unit = {
 
-      val n: NodeWithProperties = nodes(nodeId)
+      val n: MutableNodeWithProperties = nodes(nodeId).mutable()
       if (addedProps != null && addedProps.size>0) {
-        nodes(nodeId).props ++= addedProps
+        n.props ++= addedProps
       }
       if (updateProps != null && updateProps.size>0) {
-        nodes(nodeId).props ++= updateProps
+        n.props ++= updateProps
       }
       if (removeProps != null && removeProps.size>0) {
-        removeProps.foreach(f => nodes(nodeId).props -= f)
+        removeProps.foreach(f => n.props -= f)
       }
       if (addedLabels != null && addedLabels.size>0) {
-        nodes(nodeId).labels ++= addedLabels
+        n.labels ++= addedLabels
        // nodes(nodeId).labels = nodes(nodeId).labels.toSet
       }
       if (removedLabels != null && removedLabels.size>0) {
-        val tmpLabels = nodes(nodeId).labels.toSet
-       // nodes(nodeId).labels = tmpLabels -- removedLabels
+        //val tmpLabels = nodes(nodeId).labels.toSet
+        n.labels  --= removedLabels
       }
+    deleteNodes(Iterable(nodeId))
+    addNodes(Iterable(NodeWithProperties(nodeId, n.props.toMap, n.labels)))
+
 
   }
 
