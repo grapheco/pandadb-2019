@@ -7,6 +7,7 @@ import org.neo4j.values.storable.Value
 import org.neo4j.values.storable.NumberValue
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * Created by bluejoe on 2019/10/7.
@@ -118,17 +119,21 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
 class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeWithProperties]) extends GroupedOpVisitor {
 
   var oldState = mutable.Map[Long, MutableNodeWithProperties]();
+  var newState = mutable.Map[Long, MutableNodeWithProperties]();
 
 
   override def start(ops: GroupedOps): Unit = {
 
-    if (!isCommit) this.oldState = ops.oldState
+
+    this.oldState = ops.oldState
+    this.newState = ops.newState
 
   }
 
   override def end(ops: GroupedOps): Unit = {
 
-    if (!isCommit) this.oldState.clear()
+   // this.oldState.clear()
+   // this.newState.clear()
 
   }
 
@@ -166,5 +171,23 @@ class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeW
       }
   }
 
+  override def work(): Unit = {
 
+    val nodeToAdd = ArrayBuffer[NodeWithProperties]()
+    val nodeToDelete = ArrayBuffer[Long]()
+    if (isCommit) {
+
+      newState.foreach(tle => nodeToAdd += NodeWithProperties(tle._1, tle._2.props.toMap, tle._2.labels))
+      oldState.foreach(tle => {if (!newState.contains(tle._1)) nodeToDelete += tle._1})
+    }
+    else {
+
+      oldState.foreach(tle => nodeToAdd += NodeWithProperties(tle._1, tle._2.props.toMap, tle._2.labels))
+      newState.foreach(tle => {if (!oldState.contains(tle._1)) nodeToDelete += tle._1})
+    }
+
+    InMemoryPropertyNodeStore.addNodes(nodeToAdd)
+    InMemoryPropertyNodeStore.deleteNodes(nodeToDelete)
+
+  }
 }

@@ -202,6 +202,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
 class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) extends GroupedOpVisitor{
 
   var oldState = mutable.Map[Long, MutableNodeWithProperties]();
+  var newState = mutable.Map[Long, MutableNodeWithProperties]();
 
 
 
@@ -238,14 +239,16 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
 
   override def start(ops: GroupedOps): Unit = {
 
-    if (!isCommit) this.oldState = ops.oldState
+    this.oldState = ops.oldState
+    this.newState = ops.newState
 
 
   }
 
   override def end(ops: GroupedOps): Unit = {
 
-    if (!isCommit) this.oldState.clear()
+    //this.oldState.clear()
+    //this.newState.clear()
 
   }
 
@@ -299,5 +302,23 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
     }
 
 
+  }
+
+  override def work(): Unit = {
+    val nodeToAdd = ArrayBuffer[NodeWithProperties]()
+    val nodeToDelete = ArrayBuffer[Long]()
+    if (isCommit) {
+
+      newState.foreach(tle => nodeToAdd += NodeWithProperties(tle._1, tle._2.props.toMap, tle._2.labels))
+      oldState.foreach(tle => {if (!newState.contains(tle._1)) nodeToDelete += tle._1})
+    }
+    else {
+
+      oldState.foreach(tle => nodeToAdd += NodeWithProperties(tle._1, tle._2.props.toMap, tle._2.labels))
+      newState.foreach(tle => {if (!oldState.contains(tle._1)) nodeToDelete += tle._1})
+    }
+
+    this.addNodes(nodeToAdd)
+    this.deleteNodes(nodeToDelete)
   }
 }
