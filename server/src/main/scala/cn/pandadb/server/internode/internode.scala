@@ -1,7 +1,7 @@
 package cn.pandadb.server.internode
 
 import cn.pandadb.network.internal.message.{InternalRpcRequest, InternalRpcResponse}
-import cn.pandadb.server.DataLogDetail
+import cn.pandadb.server.{DataLogDetail, PNodeServerContext}
 import cn.pandadb.server.rpc.{NettyRpcServer, RequestHandler}
 
 /**
@@ -9,15 +9,16 @@ import cn.pandadb.server.rpc.{NettyRpcServer, RequestHandler}
   */
 case class InterNodeRequestHandler() extends RequestHandler {
   override val logic: PartialFunction[InternalRpcRequest, InternalRpcResponse] = {
-    //example code
     case GetLogDetailsRequest(sinceVersion: Int) =>
-      GetLogDetailsResponse(Array())
+      GetLogDetailsResponse(PNodeServerContext.getJsonDataLog.consume(logItem => logItem, sinceVersion).toArray)
   }
 }
+
 
 case class GetLogDetailsRequest(sinceVersion: Int) extends InternalRpcRequest {
 
 }
+
 
 case class GetLogDetailsResponse(logs: Array[DataLogDetail]) extends InternalRpcResponse {
 
