@@ -1,7 +1,7 @@
 import java.io.File
 
 import cn.pandadb.context.Neo4jConfigUtils
-import cn.pandadb.network.{NodeAddress, ZKConstants, ZookeerperBasedClusterClient}
+import cn.pandadb.network.{NodeAddress, ZKConstants, ZookeeperBasedClusterClient}
 import cn.pandadb.server.ZKServiceRegistry
 import cn.pandadb.util.ConfigUtils
 import org.junit.runners.MethodSorters
@@ -26,7 +26,7 @@ class ZookeeperBasedClusterClientTest {
 
   val zkString = zkConstants.zkServerAddress
 
-  val clusterClient = new ZookeerperBasedClusterClient(zkString)
+  val clusterClient = new ZookeeperBasedClusterClient(zkString)
   val register = new ZKServiceRegistry(zkString)
 
   // empty at first

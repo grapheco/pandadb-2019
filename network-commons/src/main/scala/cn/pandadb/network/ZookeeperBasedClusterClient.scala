@@ -5,6 +5,8 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode
 import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
+import org.apache.zookeeper.data.Stat
+import org.apache.zookeeper.{CreateMode, ZooDefs}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -19,7 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 // support reselect leader. (perhaps in the addCurator func.)
 // modify this class to support local address and port.
-class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
+class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
 
   val zkServerAddress = zkString
   val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkServerAddress,
@@ -81,6 +83,33 @@ class ZookeerperBasedClusterClient(zkString: String) extends ClusterClient {
   def getCurator(): CuratorFramework = {
     curator
   }
+
+  def getFreshNodeIp(): String = {
+    curator.getChildren.forPath(ZKPathConfig.freshNodePath).get(0)
+  }
+
+  def getClusterDataVersion(): Int = {
+    if (curator.checkExists().forPath(ZKPathConfig.dataVersionPath) == null) {
+      curator.create()
+        .creatingParentsIfNeeded()
+        .withMode(CreateMode.PERSISTENT)
+        .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+        .forPath(ZKPathConfig.dataVersionPath)
+      curator.setData().forPath(ZKPathConfig.dataVersionPath, BytesTransform.serialize(-1))
+      BytesTransform.deserialize(curator.getData.forPath(ZKPathConfig.dataVersionPath))
+    } else {
+      // stat.version == 0, means not init
+      val stat = new Stat()
+      val version = curator.getData.storingStatIn(stat).forPath(ZKPathConfig.dataVersionPath)
+      if (stat.getVersion == 0) {
+        curator.setData().forPath(ZKPathConfig.dataVersionPath, BytesTransform.serialize(-1))
+        BytesTransform.deserialize(curator.getData.forPath(ZKPathConfig.dataVersionPath))
+      } else {
+        BytesTransform.deserialize(version)
+      }
+    }
+  }
+
 
   def addCuratorListener(): Unit = {
 

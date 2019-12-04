@@ -1,6 +1,6 @@
 package cn.pandadb.server
 
-import cn.pandadb.network.{NodeAddress, ZookeerperBasedClusterClient}
+import cn.pandadb.network.{NodeAddress, ZookeeperBasedClusterClient}
 
 /**
   * @Author: Airzihao
@@ -18,7 +18,7 @@ trait NaiveLock {
 
 }
 
-class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeerperBasedClusterClient) extends NaiveLock {
+class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeeperBasedClusterClient) extends NaiveLock {
 
   val nodeList = allNodes.toList
   val masterNodeAddress: NodeAddress = clusterClient.getWriteMasterNode("").get
@@ -49,7 +49,7 @@ class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeerperB
   }
 }
 
-class NaiveReadLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeerperBasedClusterClient) extends NaiveLock {
+class NaiveReadLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeeperBasedClusterClient) extends NaiveLock {
 
 //  val nodeList = allNodes.toList
   val register = new ZKServiceRegistry(clusterClient.zkServerAddress)

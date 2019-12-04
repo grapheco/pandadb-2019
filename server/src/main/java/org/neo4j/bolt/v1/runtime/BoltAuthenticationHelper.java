@@ -20,7 +20,7 @@
 package org.neo4j.bolt.v1.runtime;
 
 import cn.pandadb.server.PNodeServerContext;
-import cn.pandadb.server.internode.DispatchedStatementProcessor;
+import cn.pandadb.server.internode.PNodeStatementProcessor;
 import org.neo4j.bolt.runtime.BoltConnectionFatality;
 import org.neo4j.bolt.runtime.BoltStateMachineSPI;
 import org.neo4j.bolt.runtime.StateMachineContext;
@@ -43,9 +43,8 @@ public class BoltAuthenticationHelper {
             StatementProcessor statementProcessor = new TransactionStateMachine(boltSpi.transactionSpi(), authResult, context.clock());
 
             //NOTE: pandadb
-            if (PNodeServerContext.isLeaderNode()) {
-                statementProcessor = new DispatchedStatementProcessor(statementProcessor, boltSpi.transactionSpi());
-            }
+            statementProcessor = new PNodeStatementProcessor(statementProcessor, boltSpi.transactionSpi());
+
             //NOTE
 
             context.connectionState().setStatementProcessor(statementProcessor);

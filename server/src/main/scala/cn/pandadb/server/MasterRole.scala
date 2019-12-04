@@ -1,7 +1,8 @@
 package cn.pandadb.server
 
-import cn.pandadb.network.{ClusterClient, ClusterState, Finished, NodeAddress, UnlockedServing, Writing, ZKClusterEventListener, ZKPathConfig, ZookeerperBasedClusterClient}
+import cn.pandadb.network._
 import org.apache.curator.framework.CuratorFramework
+import org.apache.zookeeper.{CreateMode, ZooDefs}
 import org.neo4j.driver.{AuthToken, AuthTokens, GraphDatabase, StatementResult}
 
 /**
@@ -34,16 +35,15 @@ trait Master {
 
 }
 
-class MasterRole(zkClusterClient: ZookeerperBasedClusterClient) extends Master {
+class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: NodeAddress) extends Master {
 
+  val localNodeAddress = localAddress
   override var listenerList: List[ZKClusterEventListener] = _
   // how to init it?
   private var currentState: ClusterState = new ClusterState {}
-
   override val clusterClient = zkClusterClient
   val masterNodeAddress = clusterClient.getWriteMasterNode("").get.getAsStr()
   override var allNodes: Iterable[NodeAddress] = clusterClient.getAllNodes()
-
   override var globalReadLock: NaiveLock = new NaiveReadLock(allNodes, clusterClient)
   override var globalWriteLock: NaiveLock = new NaiveWriteLock(allNodes, clusterClient)
 
@@ -77,6 +77,8 @@ class MasterRole(zkClusterClient: ZookeerperBasedClusterClient) extends Master {
 
   // TODO finetune the state change mechanism
   override def clusterWrite(cypher: String): StatementResult = {
+
+    val preVersion = zkClusterClient.getClusterDataVersion()
     initWriteContext()
     setClusterState(new Writing)
     globalWriteLock.lock()
@@ -84,6 +86,12 @@ class MasterRole(zkClusterClient: ZookeerperBasedClusterClient) extends Master {
     globalWriteLock.unlock()
     setClusterState(new Finished)
     setClusterState(new UnlockedServing)
+
+    // had better put these operations to FINISH state
+    val curVersion = preVersion + 1
+    _setDataVersion(curVersion)
+    _updateFreshNode()
+
     tempResult
   }
 
@@ -103,6 +111,36 @@ class MasterRole(zkClusterClient: ZookeerperBasedClusterClient) extends Master {
 
   override def addListener(listener: ZKClusterEventListener): Unit = {
     listenerList = listener :: listenerList
+  }
+
+  private def _setDataVersion(curVersion: Int): Unit = {
+    clusterClient.curator.setData().forPath(ZKPathConfig.dataVersionPath, BytesTransform.serialize(curVersion))
+    val oldFreshNode = clusterClient.curator.getChildren.forPath(ZKPathConfig.freshNodePath).get(0)
+    val curFreshNodeIp = clusterClient.getWriteMasterNode().host
+    clusterClient.curator.delete().forPath(oldFreshNode)
+    clusterClient.curator.create().creatingParentsIfNeeded()
+      .withMode(CreateMode.PERSISTENT)
+      .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+      .forPath(ZKPathConfig.freshNodePath + s"/" + curFreshNodeIp)
+  }
+
+  private def _updateFreshNode(): Unit = {
+
+    val children = clusterClient.curator.getChildren.forPath(ZKPathConfig.freshNodePath)
+    // delete old node
+    if(children.isEmpty == false) {
+      val child = children.iterator()
+      while (child.hasNext) {
+        val fullPath = ZKPathConfig.freshNodePath + "/" + child.next()
+        clusterClient.curator.delete().forPath(fullPath)
+      }
+    }
+
+    val curFreshNodeIp = clusterClient.getWriteMasterNode().host
+    clusterClient.curator.create().creatingParentsIfNeeded()
+      .withMode(CreateMode.PERSISTENT)
+      .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+      .forPath(ZKPathConfig.freshNodePath + s"/" + curFreshNodeIp)
   }
 
 }

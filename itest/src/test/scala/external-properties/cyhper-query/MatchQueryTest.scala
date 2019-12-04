@@ -1,12 +1,13 @@
 
 import java.io.File
 import org.junit.{After, Before, Test}
+import scala.collection.JavaConverters._
 
 import cn.pandadb.server.PNodeServer
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.{GraphDatabaseService}
 import org.neo4j.io.fs.FileUtils
-import org.neo4j.kernel.impl.InMemoryPropertyNodeStoreFactory
+import cn.pandadb.externalprops.InMemoryPropertyNodeStoreFactory
 
 
 trait MatchQueryTestBase {
@@ -71,6 +72,13 @@ class MatchQueryTest extends MatchQueryTestBase {
 
       assert(row.get("n.xx") == null)
     }
+  }
+
+
+  @Test
+  def test2(): Unit = {
+    val query = "create (n: Person{name:'test', age:10}) with n delete n"
+    db.execute(query)
   }
 
 }

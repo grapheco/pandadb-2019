@@ -1,5 +1,7 @@
 package cn.pandadb.cypherplus.utils
 
+import java.util.Locale
+
 /**
   * @Author: Airzihao
   * @Description:
@@ -9,7 +11,8 @@ package cn.pandadb.cypherplus.utils
 object CypherPlusUtils {
 
   def isWriteStatement(cypherStr: String): Boolean = {
-    if (cypherStr.contains("create") || cypherStr.contains("merge") ||
+    val lowerCypher = cypherStr.toLowerCase(Locale.ROOT)
+    if (lowerCypher.contains("create") || cypherStr.contains("merge") ||
       cypherStr.contains("set") || cypherStr.contains("delete")) {
       true
     } else {
