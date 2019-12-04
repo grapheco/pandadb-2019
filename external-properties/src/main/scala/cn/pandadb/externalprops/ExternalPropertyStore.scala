@@ -159,10 +159,12 @@ class BufferedExternalPropertyWriteTransaction(
   @throws[FailedToCommitTransaction]
   def commit(): mutable.Undoable = {
     val ops: GroupedOps = GroupedOps(bufferedOps.toArray)
+    ops.newState = this.newState
+    ops.oldState = this.oldState
     doPerformerWork(ops, commitPerformer)
     new mutable.Undoable() {
       def undo(): Unit = {
-        undoPerformer.setOldState(oldState)
+
         doPerformerWork(ops, undoPerformer)
       }
     }
@@ -189,6 +191,8 @@ case class GroupedOps(ops: Array[BufferedPropertyOp]) {
   val addedNodes = mutable.Map[Long, GroupedAddNodeOp]();
   val updatedNodes = mutable.Map[Long, GroupedUpdateNodeOp]();
   val deleteNodes = ArrayBuffer[GroupedDeleteNodeOp]();
+  var oldState = mutable.Map[Long, MutableNodeWithProperties]();
+  var newState = mutable.Map[Long, MutableNodeWithProperties]();
 
   ops.foreach {
     _ match {
@@ -245,7 +249,7 @@ case class GroupedOps(ops: Array[BufferedPropertyOp]) {
 
 trait GroupedOpVisitor {
   //add a new function to keep oldState
-  def setOldState(oldState: mutable.Map[Long, MutableNodeWithProperties]);
+  //def setOldState(oldState: mutable.Map[Long, MutableNodeWithProperties]);
   def start(ops: GroupedOps);
 
   def end(ops: GroupedOps);
