@@ -25,8 +25,6 @@ class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
 
-
-
   def registry(servicePath: String, localNodeAddress: String): Unit = {
     val registryPath = ZKPathConfig.registryPath
     val nodeAddress = servicePath + s"/" + localNodeAddress
