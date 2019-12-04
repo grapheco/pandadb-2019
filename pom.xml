@@ -124,6 +124,7 @@
                 <artifactId>kraps-rpc_2.11</artifactId>
                 <version>1.0.0</version>
             </dependency>
+
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
