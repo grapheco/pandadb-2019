@@ -22,6 +22,12 @@
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
+            <artifactId>network-commons</artifactId>
+            <version>${pandadb.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
             <artifactId>neo4j-hacking</artifactId>
             <version>${pandadb.version}</version>
             <scope>compile</scope>

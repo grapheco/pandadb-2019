@@ -19,7 +19,7 @@
  */
 package org.neo4j.kernel.impl.newapi;
 
-import cn.pandadb.context.InstanceContext;
+import cn.pandadb.util.Logging$class;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.internal.kernel.api.CursorFactory;
@@ -80,7 +81,6 @@ import org.neo4j.kernel.api.schema.constraints.UniquenessConstraintDescriptor;
 import org.neo4j.kernel.api.txstate.ExplicitIndexTransactionState;
 import org.neo4j.kernel.api.txstate.TransactionState;
 import org.neo4j.kernel.configuration.Config;
-import org.neo4j.kernel.impl.CustomPropertyNodeStore;
 import org.neo4j.kernel.impl.api.KernelTransactionImplementation;
 import org.neo4j.kernel.impl.api.index.IndexingService;
 import org.neo4j.kernel.impl.api.state.ConstraintIndexCreator;
@@ -94,7 +94,6 @@ import org.neo4j.storageengine.api.schema.IndexDescriptor;
 import org.neo4j.storageengine.api.schema.IndexDescriptorFactory;
 import org.neo4j.values.storable.Value;
 import org.neo4j.values.storable.Values;
-import scala.Option;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -111,6 +110,15 @@ import static org.neo4j.kernel.impl.newapi.IndexTxStateUpdater.LabelChangeType.R
 import static org.neo4j.storageengine.api.EntityType.NODE;
 import static org.neo4j.storageengine.api.schema.IndexDescriptor.Type.UNIQUE;
 import static org.neo4j.values.storable.Values.NO_VALUE;
+
+// NOTE: pandadb
+import org.neo4j.internal.kernel.api.exceptions.LabelNotFoundKernelException;
+import org.neo4j.internal.kernel.api.exceptions.PropertyKeyIdNotFoundKernelException;
+import cn.pandadb.externalprops.CustomPropertyNodeStore;
+import cn.pandadb.externalprops.PropertyWriteTransaction;
+import cn.pandadb.server.GlobalContext;
+import scala.Option;
+// END-NOTE
 
 /**
  * Collects all Kernel API operations and guards them from being used outside of transaction.
@@ -137,6 +145,10 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
     private DefaultPropertyCursor propertyCursor;
     private DefaultRelationshipScanCursor relationshipCursor;
 
+    // NOTE: pandadb
+    private CustomPropertyWriteTransactionFacade customPropWriteTx;
+    // END-NOTE
+
     public Operations( AllStoreHolder allStoreHolder, IndexTxStateUpdater updater, StorageReader statement, KernelTransactionImplementation ktx,
                        KernelToken token, DefaultCursors cursors, AutoIndexing autoIndexing, ConstraintIndexCreator constraintIndexCreator,
                        ConstraintSemantics constraintSemantics, IndexingService indexingService, Config config )
@@ -152,6 +164,9 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         this.constraintSemantics = constraintSemantics;
         this.indexingService = indexingService;
         this.config = config;
+        // NOTE: pandadb
+        this.customPropWriteTx = new CustomPropertyWriteTransactionFacade();
+        // END-NOTE
     }
 
     public void initialize()
@@ -161,12 +176,154 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         this.relationshipCursor = cursors.allocateRelationshipScanCursor();
     }
 
+    // NOTE: pandadb
+    public CustomPropertyWriteTransactionFacade customPropWriteTx()
+    {
+        return this.customPropWriteTx;
+    }
+    public class CustomPropertyWriteTransactionFacade
+    {
+        private Option<CustomPropertyNodeStore> customPropertyStore;
+        private PropertyWriteTransaction customPropWrTx;
+
+        public CustomPropertyWriteTransactionFacade()
+        {
+            this.customPropertyStore = GlobalContext.getOption(
+                    CustomPropertyNodeStore.class.getName());
+            if (this.customPropertyStore.isDefined())
+            {
+                this.customPropWrTx = this.customPropertyStore.get().beginWriteTransaction();
+            }
+        }
+
+        private String getNodeLabelName(int label)
+        {
+            try
+            {
+                return token().nodeLabelName(label);
+            }
+            catch ( LabelNotFoundKernelException e )
+            {
+                throw new IllegalStateException( "Label retrieved through kernel API should exist.", e );
+            }
+        }
+
+        private String getPropertyKeyName(int property)
+        {
+            try
+            {
+                return token().propertyKeyName(property);
+            }
+            catch ( PropertyKeyIdNotFoundKernelException e )
+            {
+                throw new IllegalStateException( "Property key retrieved through kernel API should exist.", e );
+            }
+        }
+
+        private boolean isSavePropertyToCustom()
+        {
+            return this.customPropWrTx != null;
+        }
+
+        public boolean isPreventNeo4jPropStore()
+        {
+            return this.customPropertyStore.isDefined();
+        }
+
+        public void nodeCreate(long nodeId)
+        {
+            if (this.isSavePropertyToCustom()) {
+                this.customPropWrTx.addNode(nodeId);
+            }
+        }
+
+        public void nodeDelete(long nodeId)
+        {
+            if (this.isSavePropertyToCustom()) {
+                this.customPropWrTx.deleteNode(nodeId);
+            }
+        }
+
+        public void nodeCreateWithLabelNames(long nodeId, Iterable<String> labels)
+        {
+            if (this.isSavePropertyToCustom()) {
+                this.customPropWrTx.addNode(nodeId);
+                for (String label: labels){
+                    this.customPropWrTx.addLabel(nodeId,label);
+                }
+            }
+        }
+
+        public void nodeCreateWithLabels(long nodeId, Iterable<Integer> labels)
+        {
+            if (this.isSavePropertyToCustom()) {
+                this.customPropWrTx.addNode(nodeId);
+                for (int labelId : labels) {
+                    this.customPropWrTx.addLabel(nodeId, getNodeLabelName(labelId));
+                }
+            }
+        }
+
+        public void nodeSetLabel(long nodeId, int label)
+        {
+            if (this.isSavePropertyToCustom()) {
+                this.customPropWrTx.addLabel(nodeId, getNodeLabelName(label));
+            }
+        }
+
+        public void nodeRemoveLabel(long nodeId, int label)
+        {
+            if (this.isSavePropertyToCustom()) {
+                this.customPropWrTx.removeLabel(nodeId, getNodeLabelName(label));
+            }
+        }
+
+        public void nodeSetProperty(long nodeId, int property, Value value)
+        {
+            if (this.isSavePropertyToCustom()) {
+                this.customPropWrTx.addProperty(nodeId, getPropertyKeyName(property), value);
+            }
+        }
+
+        public void nodeRemoveProperty(long nodeId, int property)
+        {
+            if (this.isSavePropertyToCustom()) {
+                this.customPropWrTx.removeProperty(nodeId, getPropertyKeyName(property));
+            }
+        }
+
+        public void commit()
+        {
+            if (this.isSavePropertyToCustom()) {
+                this.customPropWrTx.commit();
+            }
+        }
+
+        public void rollback()
+        {
+            if (this.customPropWrTx != null) {
+                this.customPropWrTx.rollback();
+            }
+        }
+
+        public void close()
+        {
+            if (this.customPropWrTx != null) {
+                this.customPropWrTx.close();
+            }
+        }
+    }
+    // END-NOTE
+
     @Override
     public long nodeCreate()
     {
         ktx.assertOpen();
         long nodeId = statement.reserveNode();
         ktx.txState().nodeDoCreate( nodeId );
+        // NOTE: pandadb
+        this.customPropWriteTx.nodeCreate(nodeId);
+        // END-NOTE
         return nodeId;
     }
 
@@ -188,6 +345,9 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         ktx.statementLocks().optimistic().acquireShared( ktx.lockTracer(), ResourceTypes.LABEL, lockingIds );
         long nodeId = statement.reserveNode();
         ktx.txState().nodeDoCreate( nodeId );
+        // NOTE: pandadb
+        this.customPropWriteTx.nodeCreate(nodeId);
+        // END-NOTE
         nodeCursor.single( nodeId, allStoreHolder );
         nodeCursor.next();
 
@@ -199,6 +359,9 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             {
                 checkConstraintsAndAddLabelToNode( nodeId, label );
                 prevLabel = label;
+                // NOTE: pandadb
+                this.customPropWriteTx.nodeSetLabel(nodeId, label);
+                // END-NOTE
             }
         }
         return nodeId;
@@ -267,6 +430,10 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         ktx.assertOpen();
         singleNode( node );
 
+        // NOTE: pandadb
+        this.customPropWriteTx.nodeSetLabel(node, nodeLabel);
+        // END-NOTE
+
         if ( nodeCursor.hasLabel( nodeLabel ) )
         {
             //label already there, nothing to do
@@ -301,6 +468,9 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             }
         }
 
+        // NOTE: pandadb
+        this.customPropWriteTx.nodeSetLabel(node, nodeLabel);
+        // END-NOTE
         //node is there and doesn't already have the label, let's add
         ktx.txState().nodeDoAddLabel( nodeLabel, node );
         updater.onLabelChange( nodeLabel, existingPropertyKeyIds, nodeCursor, propertyCursor, ADDED_LABEL );
@@ -342,6 +512,9 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             if ( ktx.txState().nodeIsAddedInThisTx( node ) )
             {
                 autoIndexing.nodes().entityRemoved( this, node );
+                // NOTE: pandadb
+                this.customPropWriteTx.nodeDelete(node);
+                // END-NOTE
                 ktx.txState().nodeDoDelete( node );
                 return true;
             }
@@ -363,6 +536,9 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             acquireSharedNodeLabelLocks();
 
             autoIndexing.nodes().entityRemoved( this, node );
+            // NOTE: pandadb
+            this.customPropWriteTx.nodeDelete(node);
+            // END-NOTE
             ktx.txState().nodeDoDelete( node );
             return true;
         }
@@ -543,6 +719,11 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         }
 
         sharedSchemaLock( ResourceTypes.LABEL, labelId );
+
+        // NOTE: pandadb
+        this.customPropWriteTx.nodeRemoveLabel(node, labelId);
+        // END-NOTE
+
         ktx.txState().nodeDoRemoveLabel( labelId, node );
         if ( indexingService.hasRelatedSchema( labelId, NODE ) )
         {
@@ -586,11 +767,12 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             autoIndexing.nodes().propertyAdded( this, node, propertyKey, value );
 
             // NOTE: pandadb
-            // ktx.txState().nodeDoAddProperty( node, propertyKey, value );
-            Option<CustomPropertyNodeStore> maybeStore = InstanceContext.of(config).getOption(CustomPropertyNodeStore.class.getName());
-            if(!maybeStore.isDefined()){
+            this.customPropWriteTx.nodeSetProperty(node, propertyKey, value);
+            if(!this.customPropWriteTx.isPreventNeo4jPropStore())
+            {
                 ktx.txState().nodeDoAddProperty( node, propertyKey, value );
             }
+            // ktx.txState().nodeDoAddProperty( node, propertyKey, value );
             // END-NOTE
 
             if ( hasRelatedSchema )
@@ -608,11 +790,12 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
                 //the value has changed to a new value
 
                 // NOTE: pandadb
-                // ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
-                Option<CustomPropertyNodeStore> maybeStore = InstanceContext.of(config).getOption(CustomPropertyNodeStore.class.getName());
-                if(!maybeStore.isDefined()){
-                    ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
+                this.customPropWriteTx.nodeSetProperty(node, propertyKey, value);
+                if(!this.customPropWriteTx.isPreventNeo4jPropStore())
+                {
+                    ktx.txState().nodeDoAddProperty( node, propertyKey, value );
                 }
+                // ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
                 // END-NOTE
 
                 if ( hasRelatedSchema )
@@ -631,6 +814,11 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         acquireExclusiveNodeLock( node );
         ktx.assertOpen();
         singleNode( node );
+
+        // NOTE: pandadb
+        this.customPropWriteTx.nodeRemoveProperty(node, propertyKey);
+        // END-NOTE
+
         Value existingValue = readNodeProperty( propertyKey );
 
         if ( existingValue != NO_VALUE )
