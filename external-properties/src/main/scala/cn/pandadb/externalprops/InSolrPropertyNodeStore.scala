@@ -247,8 +247,8 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
 
   override def end(ops: GroupedOps): Unit = {
 
-    this.oldState.clear()
-    this.newState.clear()
+    //this.oldState.clear()
+    //this.newState.clear()
 
   }
 
