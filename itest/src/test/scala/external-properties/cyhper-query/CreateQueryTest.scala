@@ -1,14 +1,16 @@
 
 import java.io.File
 import java.time.ZoneId
+
+import scala.collection.JavaConverters._
 import cn.pandadb.server.PNodeServer
 import org.junit.{After, Assert, Before, Test}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.{GraphDatabaseService, Result}
 import org.neo4j.io.fs.FileUtils
-import org.neo4j.kernel.impl.{InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
+import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
 import org.neo4j.values.storable.{DateTimeValue, DateValue, LocalDateTimeValue, TimeValue}
-
+import cn.pandadb.server.GlobalContext
 
 trait CreateQueryTestBase {
   var db: GraphDatabaseService = null
@@ -19,8 +21,10 @@ trait CreateQueryTestBase {
     new File("./output/testdb").mkdirs();
     FileUtils.deleteRecursively(new File("./output/testdb"));
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
-      setConfig("external.properties.store.factory",classOf[InMemoryPropertyNodeStoreFactory].getName).
+      setConfig("external.properties.store.factory", classOf[InMemoryPropertyNodeStoreFactory].getName).
       newGraphDatabase()
+    GlobalContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
+
   }
 
   @After
@@ -45,7 +49,6 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
   @Test
   def test1(): Unit = {
     // create one node
-    val tx = db.beginTx()
     val query = "create (n1:Person) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
@@ -55,25 +58,21 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     }
     assert(id1 != -1 )
     assert(tmpns.nodes.size == 1)
-    assert(tmpns.nodes.get(id1).get.fields.size == 0)
+    assert(tmpns.nodes.get(id1).get.props.size == 0)
     assert(tmpns.nodes.get(id1).get.labels.size == 1 && tmpns.nodes.get(id1).get.labels.toList(0) == "Person")
-    tx.success()
-    tx.close()
 
-    val tx2 = db.beginTx()
+
     val query2 = "create (n1) return id(n1)"
     val rs2 = db.execute(query2)
     var id2: Long = -1
-    if(rs2.hasNext){
+    if (rs2.hasNext) {
       val row = rs2.next()
       id2 = row.get("id(n1)").toString.toLong
     }
     assert(id2 != -1)
     assert(tmpns.nodes.size == 2)
-    assert(tmpns.nodes.get(id2).get.fields.size == 0)
+    assert(tmpns.nodes.get(id2).get.props.size == 0)
     assert(tmpns.nodes.get(id2).get.labels.size == 0)
-    tx.success()
-    tx.close()
   }
 
   @Test
@@ -84,7 +83,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     val rs = db.execute(query)
     var id1: Long = 0
     var id2: Long = 0
-    if(rs.hasNext){
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
       id2 = row.get("id(n2)").toString.toLong
@@ -92,9 +91,9 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     assert(id1 != -1 && id2 != -1)
     assert(tmpns.nodes.size == 2)
     assert(tmpns.nodes.get(id1).size == 1 && tmpns.nodes.get(id2).size == 1)
-    assert(tmpns.nodes.get(id1).get.fields.size == 0 )
+    assert(tmpns.nodes.get(id1).get.props.size == 0 )
     assert(tmpns.nodes.get(id1).get.labels.size == 1 && tmpns.nodes.get(id1).get.labels.toList(0) == "Person")
-    assert(tmpns.nodes.get(id2).get.fields.size == 0 )
+    assert(tmpns.nodes.get(id2).get.props.size == 0 )
     assert(tmpns.nodes.get(id2).get.labels.size == 1 && tmpns.nodes.get(id2).get.labels.toList(0) == "Man")
     tx.success()
     tx.close()
@@ -105,7 +104,6 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
   @Test
   def test3(): Unit = {
     // create node with labels and properties
-    val tx = db.beginTx()
     val query =
       """CREATE (n1:Person { name:'test01', age:10, adult:False})
         |CREATE (n2:Person:Man { name:'test02', age:20, adult:True})
@@ -114,7 +112,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     val rs = db.execute(query)
     var id1: Long = -1
     var id2: Long = -1
-    if(rs.hasNext){
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
       id2 = row.get("id(n2)").toString.toLong
@@ -122,18 +120,16 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
 
     assert(tmpns.nodes.get(id1).size == 1 && tmpns.nodes.get(id2).size == 1)
 
-    val fields1 = tmpns.nodes.get(id1).get.fields
+    val fields1 = tmpns.nodes.get(id1).get.props
     assert(fields1.size == 3 && fields1("name").equals("test01") && fields1("age").equals(10) && fields1("adult").equals(false) )
     val labels1 = tmpns.nodes.get(id1).get.labels.toList
     assert(labels1.size == 1 && labels1(0) == "Person")
 
-    val fields2 = tmpns.nodes.get(id2).get.fields
+    val fields2 = tmpns.nodes.get(id2).get.props
     assert(fields2.size == 3 && fields2("name").equals("test02")  && fields2("age").equals(20) && fields2("adult").equals(true)  )
     val labels2 = tmpns.nodes.get(id2).get.labels.toList
     assert(labels2.size == 2 && labels2.contains("Person") && labels2.contains("Man") )
 
-    tx.success();
-    tx.close()
   }
 
   @Test
@@ -149,7 +145,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     var id1: Long = -1
     var id2: Long = -1
     var idNeo: Long = -1
-    if(rs.hasNext){
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
       id2 = row.get("id(n2)").toString.toLong
@@ -158,17 +154,17 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     assert(tmpns.nodes.size == 3)
     assert(tmpns.nodes.get(id1).size == 1 && tmpns.nodes.get(id2).size == 1 && tmpns.nodes.get(idNeo).size == 1)
 
-    val fields1 = tmpns.nodes.get(id1).get.fields
+    val fields1 = tmpns.nodes.get(id1).get.props
     assert(fields1.size == 2 && fields1("name").equals("test01") && fields1("age").equals(10) )
     val labels1 = tmpns.nodes.get(id1).get.labels.toList
     assert(labels1.size == 1 && labels1(0) == "Person")
 
-    val fields2 = tmpns.nodes.get(id2).get.fields
+    val fields2 = tmpns.nodes.get(id2).get.props
     assert(fields2.size == 2 && fields2("name").equals("test02")  && fields2("age").equals(20) )
     val labels2 = tmpns.nodes.get(id2).get.labels.toList
     assert(labels2.size == 1 && labels2.contains("Ceo") )
 
-    val fields3 = tmpns.nodes.get(idNeo).get.fields
+    val fields3 = tmpns.nodes.get(idNeo).get.props
     assert(fields3.size == 1 && fields3("business").equals("Software"))
     val labels3 = tmpns.nodes.get(idNeo).get.labels.toList
     assert(labels3.size == 1 && labels3.contains("Company"))
@@ -188,19 +184,21 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
       """.stripMargin
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext){
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).size == 1 )
 
-    val fields1 = tmpns.nodes.get(id1).get.fields
+    val fields1 = tmpns.nodes.get(id1).get.props
     assert(fields1.size == 5 )
-    val born1 = DateValue.date(2019,1,1)
+    val born1 = DateValue.date(2019, 1, 1)
     val born2 = TimeValue.time(12, 5, 1, 0, "Z")
-    val born3 = DateTimeValue.datetime(2019,1,2,12,5,15,0,"Australia/Eucla")
-    val born4 = DateTimeValue.datetime(2015,6,24,12,50,35,556,ZoneId.of("Z"))
+    val born3 = DateTimeValue.datetime(2019, 1, 2,
+                      12, 5, 15, 0, "Australia/Eucla")
+    val born4 = DateTimeValue.datetime(2015, 6, 24,
+                      12, 50, 35, 556, ZoneId.of("Z"))
 
     assert(fields1("born1").asInstanceOf[DateValue].equals(born1))
     assert(fields1("born2").asInstanceOf[TimeValue].equals(born2))
@@ -221,18 +219,18 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
       """.stripMargin
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext){
-      val row = rs.next()
+    if (rs.hasNext) {
+      val row = rs.next ()
       id1 = row.get("id(n1)").toString.toLong
     }
 
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).size == 1 )
 
-    val fields1 = tmpns.nodes.get(id1).get.fields
+    val fields1 = tmpns.nodes.get(id1).get.props
     assert(fields1.size == 4 )
-    val titles = Array("ceo","ui","dev")
-    val salaries = Array(10000,20000,30597,500954)
+    val titles = Array("ceo", "ui", "dev")
+    val salaries = Array(10000, 20000, 30597, 500954)
     val boolattr = Array(false, true, false, true)
     assert(fields1("titles").equals(titles))
     assert(fields1("salaries").equals(salaries))
@@ -243,5 +241,41 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
   }
 
 
+
+  @Test
+  def test10(): Unit = {
+    // create one node
+    val query = "create (n1:Person{name:'a',b:'b'}) return id(n1)"
+    val rs = db.execute(query)
+    var id1: Long = -1
+    if (rs.hasNext) {
+      val row = rs.next()
+      id1 = row.get("id(n1)").toString.toLong
+    }
+
+
+
+    val query2 = "create (n1:Person{name:'a1',b:'b1'}) return id(n1)"
+    val rs2 = db.execute(query2)
+    var id2: Long = -1
+    if (rs2.hasNext) {
+      val row = rs2.next()
+      id2 = row.get("id(n1)").toString.toLong
+    }
+
+
+    val query3 = "Match (n:Person) delete n return id(n)"
+    val rs3 = db.execute(query3)
+    if (rs3.hasNext) {
+      val row = rs3.next()
+    }
+
+    val query4 = "Match (n:Person) delete n return id(n)"
+    val rs4 = db.execute(query4)
+    if (rs4.hasNext) {
+      val row = rs4.next()
+    }
+
+  }
 
 }

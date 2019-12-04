@@ -8,7 +8,7 @@ import java.{security, util}
 import java.util.concurrent.{CompletableFuture, CompletionStage}
 
 import cn.pandadb.cypherplus.utils.CypherPlusUtils
-import cn.pandadb.network.{ClusterClient, NodeAddress, ZookeerperBasedClusterClient}
+import cn.pandadb.network.{ClusterClient, NodeAddress, ZookeeperBasedClusterClient}
 import org.apache.commons.lang3.NotImplementedException
 import org.neo4j.driver.Config.TrustStrategy
 import org.neo4j.driver.{Transaction, Value, _}
@@ -106,7 +106,7 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
 
   private def createClusterClient(uri: String): ClusterClient = {
     val zkString = uri.substring(uri.indexOf(":") + 3, uri.indexOf("/d") - 1)
-    new ZookeerperBasedClusterClient(zkString)
+    new ZookeeperBasedClusterClient(zkString)
     //null
   }
 }

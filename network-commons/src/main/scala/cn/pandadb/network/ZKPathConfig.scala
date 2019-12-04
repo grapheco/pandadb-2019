@@ -8,7 +8,9 @@ package cn.pandadb.network
   */
 object ZKPathConfig {
   //object
-  val registryPath = s"/pandaNodes"
-  val ordinaryNodesPath = s"/pandaNodes/ordinaryNodes"
-  val leaderNodePath = s"/pandaNodes/leaderNode"
+  val registryPath = s"/testPandaDB"
+  val ordinaryNodesPath = registryPath + s"/ordinaryNodes"
+  val leaderNodePath = registryPath + s"/leaderNode"
+  val dataVersionPath = registryPath + s"/version"
+  val freshNodePath = registryPath + s"/freshNode"
 }
