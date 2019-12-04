@@ -121,9 +121,14 @@ class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeW
 
 
   override def start(ops: GroupedOps): Unit = {
+
+    if (isCommit) this.oldState = ops.oldState
+
   }
 
   override def end(ops: GroupedOps): Unit = {
+
+    if (isCommit) this.oldState.clear()
 
   }
 
@@ -161,9 +166,5 @@ class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeW
       }
   }
 
-  override def setOldState(oldState: mutable.Map[Long, MutableNodeWithProperties]): Unit = {
 
-    this.oldState = oldState
-
-  }
 }
