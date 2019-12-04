@@ -13,7 +13,7 @@ import cn.pandadb.util.ContextMap
   */
 object GlobalContext extends ContextMap {
 
-  def putStoreDir(storeDir: File): Unit = {
+  def bindStoreDir(storeDir: File): Unit = {
     this.put[File]("pnode.store.dir", storeDir)
   }
 
