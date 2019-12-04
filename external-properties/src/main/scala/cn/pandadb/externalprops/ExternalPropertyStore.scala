@@ -90,11 +90,140 @@ case class MutableNodeWithProperties(id: Long) {
   val labels = ArrayBuffer[String]();
 }
 
+
+class BufferedExternalPropertyWriteTransaction(
+                                                   nodeReader: CustomPropertyNodeReader,
+                                                   commitPerformer: GroupedOpVisitor,
+                                                   undoPerformer: GroupedOpVisitor)
+  extends PropertyWriteTransaction {
+  val bufferedOps = ArrayBuffer[BufferedPropertyOp]();
+  val oldState = mutable.Map[Long, MutableNodeWithProperties]();
+  val newState = mutable.Map[Long, MutableNodeWithProperties]();
+
+  override def deleteNode(nodeId: Long): Unit = {
+    getPopulatedNode(nodeId)
+    //bufferedOps += BufferedDeleteNodeOp(nodeId)
+    newState.remove(nodeId)
+  }
+
+  //get node related info when required
+  private def getPopulatedNode(nodeId: Long): MutableNodeWithProperties = {
+    /*oldState.getOrElseUpdate(nodeId, {
+      val state = nodeReader.getNodeById(nodeId).get;
+      newState += nodeId -> state.mutable()
+      state.mutable()
+    }
+    )*/
+    if (isNodeExitInNewState(nodeId)) newState.get(nodeId).get
+    else {
+      if (!isNodeExitInOldState(nodeId)) {
+        val state = nodeReader.getNodeById(nodeId).get //get from database,if failue throw exception no such node
+        oldState += nodeId -> state.mutable()
+        newState += nodeId -> state.mutable()
+        newState.get(nodeId).get
+      }
+      else null  //throw exception ,node deleted
+    }
+
+  }
+  private def isNodeExitInNewState(nodeId: Long): Boolean = {
+    newState.contains(nodeId)
+  }
+  private def isNodeExitInOldState(nodeId: Long): Boolean = {
+    oldState.contains(nodeId)
+  }
+
+
+  override def addNode(nodeId: Long): Unit = {
+    //bufferedOps += BufferedAddNodeOp(nodeId)
+    if (isNodeExitInNewState(nodeId)) null //throw exception node already exist
+    else newState += nodeId -> MutableNodeWithProperties(nodeId)
+  }
+
+  override def addProperty(nodeId: Long, key: String, value: Value): Unit = {
+    //bufferedOps += BufferedAddPropertyOp(nodeId, key, value)
+    val state = getPopulatedNode(nodeId)
+    state.props += (key -> value);
+    newState += nodeId -> state
+  }
+
+  override def removeProperty(nodeId: Long, key: String): Unit = {
+    //bufferedOps += BufferedRemovePropertyOp(nodeId, key)
+    val state = getPopulatedNode(nodeId)
+    state.props -= key;
+    newState += nodeId -> state
+  }
+
+  override def updateProperty(nodeId: Long, key: String, value: Value): Unit = {
+    //bufferedOps += BufferedUpdatePropertyOp(nodeId, key, value)
+    val state = getPopulatedNode(nodeId)
+    state.props += (key -> value);
+    newState += nodeId -> state
+  }
+
+  override def addLabel(nodeId: Long, label: String): Unit = {
+    //bufferedOps += BufferedAddLabelOp(nodeId, label)
+    val state = getPopulatedNode(nodeId)
+    state.labels += label
+    newState += nodeId -> state
+  }
+
+  override def removeLabel(nodeId: Long, label: String): Unit = {
+    //bufferedOps += BufferedRemoveLabelOp(nodeId, label)
+    //getPopulatedNode(nodeId).labels -= label
+    val state = getPopulatedNode(nodeId)
+    state.labels -= label
+    newState += nodeId -> state
+  }
+
+  def getNodeLabels(nodeId: Long): Array[String] = {
+    getPopulatedNode(nodeId).labels.toArray
+  }
+
+  def getPropertyValue(nodeId: Long, key: String): Option[Value] = {
+    getPopulatedNode(nodeId).props.get(key)
+  }
+
+  @throws[FailedToCommitTransaction]
+  def commit(): mutable.Undoable = {
+    val ops: GroupedOps = GroupedOps(bufferedOps.toArray)
+    ops.newState = this.newState
+    ops.oldState = this.oldState
+    doPerformerWork(ops, commitPerformer)
+    new mutable.Undoable() {
+      def undo(): Unit = {
+
+        doPerformerWork(ops, undoPerformer)
+      }
+    }
+  }
+
+  @throws[FailedToRollbackTransaction]
+  def rollback(): Unit = {
+  }
+
+  def close(): Unit = {
+    bufferedOps.clear()
+    newState.clear()
+  }
+
+  private def doPerformerWork(ops: GroupedOps, performer: GroupedOpVisitor): Unit = {
+    performer.start(ops)
+    //ops.accepts(performer)
+    performer.work()
+    performer.end(ops)
+  }
+}
+
+
+
+
+
 /**
   * buffer based implementation of ExternalPropertyWriteTransaction
   * this is a template class which should be derived
   */
-class BufferedExternalPropertyWriteTransaction(
+class BufferedExternalPropertyWriteTransactionOld(
                                                 nodeReader: CustomPropertyNodeReader,
                                                 commitPerformer: GroupedOpVisitor,
                                                 undoPerformer: GroupedOpVisitor)
@@ -251,7 +380,7 @@ trait GroupedOpVisitor {
   //add a new function to keep oldState
   //def setOldState(oldState: mutable.Map[Long, MutableNodeWithProperties]);
   def start(ops: GroupedOps);
-
+  def work();
   def end(ops: GroupedOps);
 
   def visitAddNode(nodeId: Long, props: Map[String, Value], labels: Array[String]);
