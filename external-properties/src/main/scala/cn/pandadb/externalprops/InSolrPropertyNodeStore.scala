@@ -203,11 +203,8 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
 
   var oldState = mutable.Map[Long, MutableNodeWithProperties]();
 
-  def setOldState(oldState: mutable.Map[Long, MutableNodeWithProperties]): Unit = {
-    this.oldState = oldState
-  }
-  //val nodeUpdated = mutable.Map[Long, NodeWithProperties]
-  //var isCommit = iscommit
+
+
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
     _solrClient.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
@@ -241,10 +238,14 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
 
   override def start(ops: GroupedOps): Unit = {
 
+    if (!isCommit) this.oldState = ops.oldState
+
 
   }
 
   override def end(ops: GroupedOps): Unit = {
+
+    if (!isCommit) this.oldState.clear()
 
   }
 
