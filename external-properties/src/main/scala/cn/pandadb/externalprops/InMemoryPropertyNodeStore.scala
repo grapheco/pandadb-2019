@@ -132,8 +132,8 @@ class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeW
 
   override def end(ops: GroupedOps): Unit = {
 
-   // this.oldState.clear()
-   // this.newState.clear()
+    //this.oldState.clear()
+    //this.newState.clear()
 
   }
 
