@@ -90,7 +90,6 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
     // had better put these operations to FINISH state
     val curVersion = preVersion + 1
     _setDataVersion(curVersion)
-    _updateFreshNode()
 
     tempResult
   }
@@ -114,14 +113,8 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   }
 
   private def _setDataVersion(curVersion: Int): Unit = {
+    _updateFreshNode()
     clusterClient.curator.setData().forPath(ZKPathConfig.dataVersionPath, BytesTransform.serialize(curVersion))
-    val oldFreshNode = clusterClient.curator.getChildren.forPath(ZKPathConfig.freshNodePath).get(0)
-    val curFreshNodeIp = clusterClient.getWriteMasterNode().host
-    clusterClient.curator.delete().forPath(oldFreshNode)
-    clusterClient.curator.create().creatingParentsIfNeeded()
-      .withMode(CreateMode.PERSISTENT)
-      .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-      .forPath(ZKPathConfig.freshNodePath + s"/" + curFreshNodeIp)
   }
 
   private def _updateFreshNode(): Unit = {
@@ -136,11 +129,11 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
       }
     }
 
-    val curFreshNodeIp = clusterClient.getWriteMasterNode().host
+    val curFreshNodeRpc = PNodeServerContext.getLocalIpAddress + ":" + PNodeServerContext.getRpcPort.toString
     clusterClient.curator.create().creatingParentsIfNeeded()
       .withMode(CreateMode.PERSISTENT)
       .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-      .forPath(ZKPathConfig.freshNodePath + s"/" + curFreshNodeIp)
+      .forPath(ZKPathConfig.freshNodePath + s"/" + curFreshNodeRpc)
   }
 
 }

@@ -81,17 +81,17 @@ public class TopLevelTransaction implements InternalTransaction
             if ( transaction.isOpen() )
             {
                 // NOTE: pandadb
-                try
-                {
-                    Operations.CustomPropertyWriteTransactionFacade tmpTx = ((Operations)transaction.dataWrite()
-                    ).customPropWriteTx();
-                    tmpTx.commit();
-                    tmpTx.close();
-                }
-                catch ( InvalidTransactionTypeKernelException e )
-                {
-                    throw new ConstraintViolationException( e.getMessage(), e );
-                }
+//                try
+//                {
+//                    Operations.CustomPropertyWriteTransactionFacade tmpTx = ((Operations)transaction.dataWrite()
+//                    ).customPropWriteTx();
+//                    tmpTx.commit();
+//                    tmpTx.close();
+//                }
+//                catch ( InvalidTransactionTypeKernelException e )
+//                {
+//                    throw new ConstraintViolationException( e.getMessage(), e );
+//                }
                 // END-NOTE
 
                 transaction.close();

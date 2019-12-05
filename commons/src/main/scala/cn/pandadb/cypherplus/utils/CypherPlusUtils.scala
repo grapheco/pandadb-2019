@@ -12,7 +12,9 @@ object CypherPlusUtils {
 
   def isWriteStatement(cypherStr: String): Boolean = {
     val lowerCypher = cypherStr.toLowerCase(Locale.ROOT)
-    if (lowerCypher.contains("create") || cypherStr.contains("merge") ||
+    if (lowerCypher.contains("explain")) {
+      false
+    } else if (lowerCypher.contains("create") || cypherStr.contains("merge") ||
       cypherStr.contains("set") || cypherStr.contains("delete")) {
       true
     } else {

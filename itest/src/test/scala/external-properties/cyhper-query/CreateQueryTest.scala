@@ -89,16 +89,21 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
       id2 = row.get("id(n2)").toString.toLong
     }
     assert(id1 != -1 && id2 != -1)
+
+    // before tx close, data haven't flush to store
+    assert(tmpns.nodes.size == 0)
+    tx.success()
+    tx.close()
+
+    // after tx close, data flushed to store
     assert(tmpns.nodes.size == 2)
     assert(tmpns.nodes.get(id1).size == 1 && tmpns.nodes.get(id2).size == 1)
     assert(tmpns.nodes.get(id1).get.props.size == 0 )
     assert(tmpns.nodes.get(id1).get.labels.size == 1 && tmpns.nodes.get(id1).get.labels.toList(0) == "Person")
     assert(tmpns.nodes.get(id2).get.props.size == 0 )
     assert(tmpns.nodes.get(id2).get.labels.size == 1 && tmpns.nodes.get(id2).get.labels.toList(0) == "Man")
-    tx.success()
-    tx.close()
+    assert(tmpns.nodes.get(id2).get.labels.size == 1 && tmpns.nodes.get(id2).get.labels.toList(0) == "Man")
   }
-
 
 
   @Test
@@ -118,6 +123,7 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
       id2 = row.get("id(n2)").toString.toLong
     }
 
+    // Results have been visited, tx closed and data haven flush to store
     assert(tmpns.nodes.get(id1).size == 1 && tmpns.nodes.get(id2).size == 1)
 
     val fields1 = tmpns.nodes.get(id1).get.props
@@ -151,6 +157,13 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
       id2 = row.get("id(n2)").toString.toLong
       idNeo = row.get("id(neo)").toString.toLong
     }
+
+    // before tx close, data haven't flush to store
+    assert(tmpns.nodes.size == 0)
+    tx.success();
+    tx.close()
+
+    // after tx close, data flushed to store
     assert(tmpns.nodes.size == 3)
     assert(tmpns.nodes.get(id1).size == 1 && tmpns.nodes.get(id2).size == 1 && tmpns.nodes.get(idNeo).size == 1)
 
@@ -168,8 +181,6 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     assert(fields3.size == 1 && fields3("business").equals("Software"))
     val labels3 = tmpns.nodes.get(idNeo).get.labels.toList
     assert(labels3.size == 1 && labels3.contains("Company"))
-    tx.success();
-    tx.close()
 
   }
 
@@ -188,6 +199,10 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
+    assert(tmpns.nodes.size == 0)
+    tx.success();
+    tx.close()
+
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).size == 1 )
 
@@ -196,22 +211,19 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     val born1 = DateValue.date(2019, 1, 1)
     val born2 = TimeValue.time(12, 5, 1, 0, "Z")
     val born3 = DateTimeValue.datetime(2019, 1, 2,
-                      12, 5, 15, 0, "Australia/Eucla")
+      12, 5, 15, 0, "Australia/Eucla")
     val born4 = DateTimeValue.datetime(2015, 6, 24,
-                      12, 50, 35, 556, ZoneId.of("Z"))
+      12, 50, 35, 556, ZoneId.of("Z"))
 
     assert(fields1("born1").asInstanceOf[DateValue].equals(born1))
     assert(fields1("born2").asInstanceOf[TimeValue].equals(born2))
     assert(fields1("born3").equals(born3))
     assert(fields1("born4").equals(born4))
-    tx.success();
-    tx.close()
   }
 
   @Test
   def test6(): Unit = {
     // create node with Array type property value
-    val tx = db.beginTx()
     val query =
       """CREATE (n1:Person { name:'test01',titles:["ceo","ui","dev"],
         |salaries:[10000,20000,30597,500954], boolattr:[False,True,false,true]})
@@ -235,46 +247,6 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     assert(fields1("titles").equals(titles))
     assert(fields1("salaries").equals(salaries))
     assert(fields1("boolattr").equals(boolattr))
-    tx.success();
-    tx.close()
-
-  }
-
-
-
-  @Test
-  def test10(): Unit = {
-    // create one node
-    val query = "create (n1:Person{name:'a',b:'b'}) return id(n1)"
-    val rs = db.execute(query)
-    var id1: Long = -1
-    if (rs.hasNext) {
-      val row = rs.next()
-      id1 = row.get("id(n1)").toString.toLong
-    }
-
-
-
-    val query2 = "create (n1:Person{name:'a1',b:'b1'}) return id(n1)"
-    val rs2 = db.execute(query2)
-    var id2: Long = -1
-    if (rs2.hasNext) {
-      val row = rs2.next()
-      id2 = row.get("id(n1)").toString.toLong
-    }
-
-
-    val query3 = "Match (n:Person) delete n return id(n)"
-    val rs3 = db.execute(query3)
-    if (rs3.hasNext) {
-      val row = rs3.next()
-    }
-
-    val query4 = "Match (n:Person) delete n return id(n)"
-    val rs4 = db.execute(query4)
-    if (rs4.hasNext) {
-      val row = rs4.next()
-    }
 
   }
 

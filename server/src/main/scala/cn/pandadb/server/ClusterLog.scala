@@ -58,6 +58,10 @@ class JsonDataLog(logFile: File) extends DataLogWriter with DataLogReader {
   }
 
   def getLastVersion(): Int = {
-    dataLog.last.versionNum
+    if (dataLog.length == 0) {
+      -1
+    } else {
+      dataLog.last.versionNum
+    }
   }
 }

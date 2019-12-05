@@ -1,13 +1,14 @@
 
 import java.io.File
-import org.junit.{After, Before, Test}
-import scala.collection.JavaConverters._
 
-import cn.pandadb.server.PNodeServer
+import org.junit.{After, Before, Test}
+
+import scala.collection.JavaConverters._
+import cn.pandadb.server.{GlobalContext, PNodeServer}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.graphdb.{GraphDatabaseService}
+import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.io.fs.FileUtils
-import cn.pandadb.externalprops.InMemoryPropertyNodeStoreFactory
+import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
 
 
 trait MatchQueryTestBase {
@@ -21,6 +22,7 @@ trait MatchQueryTestBase {
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
       setConfig("external.properties.store.factory", classOf[InMemoryPropertyNodeStoreFactory].getName).
       newGraphDatabase()
+    GlobalContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
   }
 
   @After
