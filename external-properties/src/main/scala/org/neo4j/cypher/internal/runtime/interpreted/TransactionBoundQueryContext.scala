@@ -61,14 +61,15 @@ import org.neo4j.values.{AnyValue, ValueMapper}
 import org.neo4j.cypher.internal.v3_5.expressions.SemanticDirection
 import org.neo4j.cypher.internal.v3_5.expressions.SemanticDirection.{BOTH, INCOMING, OUTGOING}
 import org.neo4j.cypher.internal.v3_5.util.{EntityNotFoundException, FailedIndexException}
-// NOTE: pandadb
-import cn.pandadb.externalprops.CustomPropertyNodeStore
-import cn.pandadb.context.InstanceContext
-// END-NOTE
 
 import scala.collection.Iterator
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
+
+// NOTE: pandadb
+import org.neo4j.kernel.impl.newapi
+// END-NOTE
+
 
 sealed class TransactionBoundQueryContext(val transactionalContext: TransactionalContextWrapper,
                                           val resources: ResourceManager = new ResourceManager)
@@ -537,6 +538,14 @@ sealed class TransactionBoundQueryContext(val transactionalContext: Transactiona
     }
 
     override def getProperty(id: Long, propertyKeyId: Int): Value = {
+      // NOTE: pandadb
+      val tmpTx = transactionalContext.kernelTransaction.dataWrite.
+                            asInstanceOf[newapi.Operations].customPropWriteTx
+      if (tmpTx.isPreventNeo4jPropStore) {
+        return tmpTx.nodeGetProperty(id, propertyKeyId)
+      }
+      // END-NOTE
+
       val node = allocateNodeCursor()
       val property = allocatePropertyCursor()
       try {
@@ -546,28 +555,10 @@ sealed class TransactionBoundQueryContext(val transactionalContext: Transactiona
             s"Node with id $id has been deleted in this transaction")
           else Values.NO_VALUE
         } else {
-          // NOTE: pandadb
-          // node.properties(property)
-          // while (property.next()) {
-          //   if (property.propertyKey() == propertyKeyId) return property.propertyValue()
-          // }
-          val maybeStore: Option[CustomPropertyNodeStore] = InstanceContext.of(transactionalContext.tc).getOption(classOf[CustomPropertyNodeStore].getName)
-          if (!maybeStore.isDefined) {
-            node.properties(property)
-            while (property.next()) {
-              if (property.propertyKey() == propertyKeyId) return property.propertyValue()
-            }
-          } else {
-            val tmpNode = maybeStore.get.getNodeById(id)
-            if (tmpNode != None){
-              val propertyName = tokenNameLookup.propertyKeyGetName(propertyKeyId)
-              val propertyValue = tmpNode.get.props.get(propertyName)
-              if (propertyValue != None){
-                return propertyValue.get
-              }
-            }
+          node.properties(property)
+          while (property.next()) {
+            if (property.propertyKey() == propertyKeyId) return property.propertyValue()
           }
-          // END-NOTE
           Values.NO_VALUE
         }
       } finally {

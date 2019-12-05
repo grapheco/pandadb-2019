@@ -19,7 +19,6 @@
  */
 package org.neo4j.kernel.impl.newapi;
 
-import cn.pandadb.util.Logging$class;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -28,7 +27,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.internal.kernel.api.CursorFactory;
@@ -116,8 +114,11 @@ import org.neo4j.internal.kernel.api.exceptions.LabelNotFoundKernelException;
 import org.neo4j.internal.kernel.api.exceptions.PropertyKeyIdNotFoundKernelException;
 import cn.pandadb.externalprops.CustomPropertyNodeStore;
 import cn.pandadb.externalprops.PropertyWriteTransaction;
+import cn.pandadb.externalprops.NodeWithProperties;
 import cn.pandadb.server.GlobalContext;
+import org.neo4j.values.virtual.NodeValue;
 import scala.Option;
+import scala.collection.mutable.Undoable;
 // END-NOTE
 
 /**
@@ -174,6 +175,10 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         this.nodeCursor = cursors.allocateNodeCursor();
         this.propertyCursor = cursors.allocatePropertyCursor();
         this.relationshipCursor = cursors.allocateRelationshipScanCursor();
+
+        // NOTE: pandadb
+        this.customPropWriteTx = new CustomPropertyWriteTransactionFacade();
+        // END-NOTE
     }
 
     // NOTE: pandadb
@@ -181,10 +186,12 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
     {
         return this.customPropWriteTx;
     }
+
     public class CustomPropertyWriteTransactionFacade
     {
         private Option<CustomPropertyNodeStore> customPropertyStore;
         private PropertyWriteTransaction customPropWrTx;
+        private Undoable commitedTxRes;
 
         public CustomPropertyWriteTransactionFacade()
         {
@@ -235,6 +242,32 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             if (this.isSavePropertyToCustom()) {
                 this.customPropWrTx.addNode(nodeId);
             }
+        }
+
+        public Value nodeGetProperty(long nodeId, int propertyKeyId)
+        {
+            if (this.isPreventNeo4jPropStore()) {
+                return this.customPropWrTx.getPropertyValue(nodeId, getPropertyKeyName(propertyKeyId)).get();
+            }
+            return NO_VALUE;
+        }
+
+        public Value nodeGetProperty(long nodeId, String propertyKey)
+        {
+            if (this.isPreventNeo4jPropStore()) {
+                Value v = this.customPropWrTx.getPropertyValue(nodeId, propertyKey).get();
+                return v.isNaN()? NO_VALUE: v;
+            }
+            return NO_VALUE;
+        }
+
+        public NodeValue getNode(long nodeId)
+        {
+            if (this.isPreventNeo4jPropStore()) {
+                NodeWithProperties node = this.customPropertyStore.get().getNodeById(nodeId).get();
+                return node.toNeo4jNodeValue();
+            }
+            return null;
         }
 
         public void nodeDelete(long nodeId)
@@ -295,7 +328,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         public void commit()
         {
             if (this.isSavePropertyToCustom()) {
-                this.customPropWrTx.commit();
+                this.commitedTxRes = this.customPropWrTx.commit();
             }
         }
 
@@ -303,6 +336,15 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         {
             if (this.customPropWrTx != null) {
                 this.customPropWrTx.rollback();
+            }
+        }
+
+        public void undo()
+        {
+            if (this.isSavePropertyToCustom()) {
+                if (this.commitedTxRes != null) {
+                    this.commitedTxRes.undo();
+                }
             }
         }
 
@@ -359,9 +401,6 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             {
                 checkConstraintsAndAddLabelToNode( nodeId, label );
                 prevLabel = label;
-                // NOTE: pandadb
-                this.customPropWriteTx.nodeSetLabel(nodeId, label);
-                // END-NOTE
             }
         }
         return nodeId;
@@ -429,10 +468,6 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
         ktx.assertOpen();
         singleNode( node );
-
-        // NOTE: pandadb
-        this.customPropWriteTx.nodeSetLabel(node, nodeLabel);
-        // END-NOTE
 
         if ( nodeCursor.hasLabel( nodeLabel ) )
         {
@@ -772,7 +807,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             {
                 ktx.txState().nodeDoAddProperty( node, propertyKey, value );
             }
-            // ktx.txState().nodeDoAddProperty( node, propertyKey, value );
+             //ktx.txState().nodeDoAddProperty( node, propertyKey, value );
             // END-NOTE
 
             if ( hasRelatedSchema )
@@ -795,7 +830,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
                 {
                     ktx.txState().nodeDoAddProperty( node, propertyKey, value );
                 }
-                // ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
+                //ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
                 // END-NOTE
 
                 if ( hasRelatedSchema )

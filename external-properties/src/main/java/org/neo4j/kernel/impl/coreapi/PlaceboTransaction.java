@@ -66,19 +66,21 @@ public class PlaceboTransaction implements InternalTransaction
     @Override
     public void close()
     {
-        // NOTE: pandadb
-        try
-        {
-            Operations.CustomPropertyWriteTransactionFacade tmpTx = ((Operations)currentTransaction.dataWrite()
-                                                                        ).customPropWriteTx();
-            tmpTx.commit();
-            tmpTx.close();
-        }
-        catch ( InvalidTransactionTypeKernelException e )
-        {
-            throw new ConstraintViolationException( e.getMessage(), e );
-        }
-        // END-NOTE
+
+//        // NOTE: pandadb
+//        try
+//        {
+//            Operations.CustomPropertyWriteTransactionFacade tmpTx = ((Operations)currentTransaction.dataWrite()
+//                                                                        ).customPropWriteTx();
+//            tmpTx.commit();
+//            tmpTx.close();
+//            System.out.println("PlaceTx committed");
+//        }
+//        catch ( InvalidTransactionTypeKernelException e )
+//        {
+//            throw new ConstraintViolationException( e.getMessage(), e );
+//        }
+//        // END-NOTE
 
         if ( !success )
         {

@@ -1,13 +1,13 @@
 
 import java.io.File
-import scala.collection.JavaConverters._
 
-import cn.pandadb.server.PNodeServer
+import scala.collection.JavaConverters._
+import cn.pandadb.server.{GlobalContext, PNodeServer}
 import org.junit.{After, Before, Test}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.io.fs.FileUtils
-import cn.pandadb.externalprops.{InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
+import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
 
 
 trait UpdateQueryTestBase {
@@ -21,6 +21,7 @@ trait UpdateQueryTestBase {
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
       setConfig("external.properties.store.factory", classOf[InMemoryPropertyNodeStoreFactory].getName).
       newGraphDatabase()
+    GlobalContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
   }
 
   @After
@@ -202,7 +203,6 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
     // add labels
 
     // create node
-    val tx = db.beginTx()
     val query = "create (n1:Person{name:'xx'}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
@@ -210,19 +210,25 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
-    tx.success()
-    tx.close()
+
     assert(id1 != -1 )
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).get.props.size == 1)
     assert(tmpns.nodes.get(id1).get.labels.size == 1 && tmpns.nodes.get(id1).get.labels.toList(0) == "Person")
 
     // add labels
-    val tx2 = db.beginTx()
+    val tx1 = db.beginTx()
     val query3 = s"match (n1:Person) where id(n1)=$id1 set n1:Man:Boy:Person return labels(n1)"
     db.execute(query3)
-    tx2.success()
-    tx2.close()
+
+    // before tx close, data haven't flush to store
+    assert(tmpns.nodes.size == 1)
+    assert(tmpns.nodes.get(id1).get.props.size == 1)
+    assert(tmpns.nodes.get(id1).get.labels.size == 1 && tmpns.nodes.get(id1).get.labels.toList(0) == "Person")
+    tx1.success()
+    tx1.close()
+
+    // after tx close, data flushed to store
     assert(tmpns.nodes.size == 1)
     val labels = tmpns.nodes.get(id1).get.labels.toList
     assert(labels.size == 3 && labels.contains("Person") && labels.contains("Man") && labels.contains("Boy") )
@@ -246,15 +252,23 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
     assert(id1 != -1 )
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).get.props.size == 1)
-    val labels1 = tmpns.nodes.get(id1).get.labels.toList
+    var labels1 = tmpns.nodes.get(id1).get.labels.toList
     assert(labels1.size == 2 && labels1.contains("Person") && labels1.contains("Man"))
 
     // update labels
     val tx2 = db.beginTx()
     val query3 = s"match (n1:Person) where id(n1)=$id1 remove n1:Person return labels(n1)"
     db.execute(query3)
+
+    // before tx close, data haven't flush to store
+    assert(tmpns.nodes.size == 1)
+    assert(tmpns.nodes.get(id1).get.props.size == 1)
+    labels1 = tmpns.nodes.get(id1).get.labels.toList
+    assert(labels1.size == 2 && labels1.contains("Person") && labels1.contains("Man"))
     tx2.success()
     tx2.close()
+
+    // after tx close, data flushed to store
     assert(tmpns.nodes.size == 1)
     val labels2 = tmpns.nodes.get(id1).get.labels.toList
     assert(labels2.size == 1 && labels2.contains("Man") )
@@ -266,7 +280,7 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
     // remove multi labels
 
     // create node
-    val tx = db.beginTx()
+//    val tx = db.beginTx()
     val query = "create (n1:Person:Man:Boy{name:'xx'}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
@@ -274,20 +288,29 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
-    tx.success()
-    tx.close()
+//    tx.success()
+//    tx.close()
+    // Results have been visited, tx closed and data haven flush to store
     assert(id1 != -1 )
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).get.props.size == 1)
-    val labels1 = tmpns.nodes.get(id1).get.labels.toList
+    var labels1 = tmpns.nodes.get(id1).get.labels.toList
     assert(labels1.size == 3 && labels1.contains("Person") && labels1.contains("Man") && labels1.contains("Boy"))
 
     // update labels
     val tx2 = db.beginTx()
     val query3 = s"match (n1:Person) where id(n1)=$id1 remove n1:Person:Boy return labels(n1)"
     db.execute(query3)
+
+    // before tx close, data haven't flush to store
+    assert(tmpns.nodes.size == 1)
+    assert(tmpns.nodes.get(id1).get.props.size == 1)
+    labels1 = tmpns.nodes.get(id1).get.labels.toList
+    assert(labels1.size == 3 && labels1.contains("Person") && labels1.contains("Man") && labels1.contains("Boy"))
     tx2.success()
     tx2.close()
+
+    // after tx close, data flushed to store
     assert(tmpns.nodes.size == 1)
     val labels2 = tmpns.nodes.get(id1).get.labels.toList
     assert(labels2.size == 1 && labels2.contains("Man") )
