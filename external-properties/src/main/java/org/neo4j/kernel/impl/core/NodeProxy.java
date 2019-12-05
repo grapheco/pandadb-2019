@@ -71,6 +71,13 @@ import static org.neo4j.internal.kernel.api.helpers.RelationshipSelections.outgo
 import static org.neo4j.kernel.api.StatementConstants.NO_SUCH_LABEL;
 import static org.neo4j.kernel.api.StatementConstants.NO_SUCH_RELATIONSHIP_TYPE;
 
+// NOTE: pandadb
+import org.neo4j.kernel.impl.newapi.Operations;
+import org.neo4j.internal.kernel.api.exceptions.InvalidTransactionTypeKernelException;
+import org.neo4j.graphdb.ConstraintViolationException;
+import org.neo4j.values.virtual.NodeValue;
+// END-NOTE
+
 public class NodeProxy implements Node, RelationshipFactory<Relationship>
 {
     private final EmbeddedProxySPI spi;
@@ -307,6 +314,23 @@ public class NodeProxy implements Node, RelationshipFactory<Relationship>
             throw new IllegalArgumentException( "(null) property key is not allowed" );
         }
         KernelTransaction transaction = safeAcquireTransaction();
+
+        // NOTE: pandadb
+        try
+        {
+            Operations.CustomPropertyWriteTransactionFacade tmpTx = ((Operations)transaction.dataWrite()
+                                                                        ).customPropWriteTx();
+            if (tmpTx.isPreventNeo4jPropStore()) {
+                Value value = tmpTx.nodeGetProperty(nodeId, key);
+                return value == Values.NO_VALUE ? defaultValue : value.asObjectCopy();
+            }
+        }
+        catch ( InvalidTransactionTypeKernelException e )
+        {
+            throw new ConstraintViolationException( e.getMessage(), e );
+        }
+        // END-NOTE
+
         NodeCursor nodes = transaction.ambientNodeCursor();
         PropertyCursor properties = transaction.ambientPropertyCursor();
         int propertyKey = transaction.tokenRead().propertyKey( key );
@@ -365,6 +389,27 @@ public class NodeProxy implements Node, RelationshipFactory<Relationship>
 
         int itemsToReturn = keys.length;
         Map<String,Object> properties = new HashMap<>( itemsToReturn );
+
+        // NOTE: pandadb
+        try
+        {
+            Operations.CustomPropertyWriteTransactionFacade tmpTx = ((Operations)transaction.dataWrite()
+            ).customPropWriteTx();
+            if (tmpTx.isPreventNeo4jPropStore()) {
+                for ( int i = 0; i < itemsToReturn; i++ )
+                {
+                    Value value = tmpTx.nodeGetProperty(nodeId, keys[i]);
+                    properties.put( keys[i], value.asObjectCopy() );
+                }
+                return properties;
+            }
+        }
+        catch ( InvalidTransactionTypeKernelException e )
+        {
+            throw new ConstraintViolationException( e.getMessage(), e );
+        }
+        // END-NOTE
+
         TokenRead token = transaction.tokenRead();
 
         //Find ids, note we are betting on that the number of keys
@@ -409,6 +454,26 @@ public class NodeProxy implements Node, RelationshipFactory<Relationship>
         KernelTransaction transaction = safeAcquireTransaction();
         Map<String,Object> properties = new HashMap<>();
 
+        // NOTE: pandadb
+        try
+        {
+            Operations.CustomPropertyWriteTransactionFacade tmpTx = ((Operations)transaction.dataWrite()
+            ).customPropWriteTx();
+            if (tmpTx.isPreventNeo4jPropStore()) {
+                NodeValue nv = tmpTx.getNode(nodeId);
+                for (String k: nv.properties().keySet())
+                {
+                    properties.put(k, ((Value)nv.properties().get(k)).asObjectCopy());
+                }
+                return properties;
+            }
+        }
+        catch ( InvalidTransactionTypeKernelException e )
+        {
+            throw new ConstraintViolationException( e.getMessage(), e );
+        }
+        // END-NOTE
+
         try
         {
             NodeCursor nodes = transaction.ambientNodeCursor();
@@ -437,6 +502,25 @@ public class NodeProxy implements Node, RelationshipFactory<Relationship>
             throw new IllegalArgumentException( "(null) property key is not allowed" );
         }
         KernelTransaction transaction = safeAcquireTransaction();
+        // NOTE: pandadb
+        try
+        {
+            Operations.CustomPropertyWriteTransactionFacade tmpTx = ((Operations)transaction.dataWrite()
+            ).customPropWriteTx();
+            if (tmpTx.isPreventNeo4jPropStore()) {
+                Value value = tmpTx.nodeGetProperty(nodeId, key);
+                if ( value == Values.NO_VALUE )
+                {
+                    throw new NotFoundException( format( "No such property, '%s'.", key ) );
+                }
+                return value.asObjectCopy();
+            }
+        }
+        catch ( InvalidTransactionTypeKernelException e )
+        {
+            throw new ConstraintViolationException( e.getMessage(), e );
+        }
+        // END-NOTE
         int propertyKey = transaction.tokenRead().propertyKey( key );
         if ( propertyKey == TokenRead.NO_TOKEN )
         {

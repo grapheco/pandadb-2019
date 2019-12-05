@@ -64,6 +64,12 @@ import org.neo4j.values.storable.ValueTuple;
 import static org.neo4j.helpers.collection.Iterables.map;
 import static org.neo4j.values.storable.Values.NO_VALUE;
 
+// NOTE: pandadb
+import cn.pandadb.externalprops.CustomPropertyNodeStore;
+import cn.pandadb.server.GlobalContext;
+// END-NOTE
+
+
 /**
  * This class contains transaction-local changes to the graph. These changes can then be used to augment reads from the
  * committed state of the database (to make the local changes appear in local transaction read operations). At commit
@@ -104,6 +110,10 @@ public class TxState implements TransactionState, RelationshipVisitor.Home
     private long revision;
     private long dataRevision;
 
+    // NOTE: pandadb
+    private boolean isPreventNeo4jPropertyStore;
+    // END-NOTE
+
     public TxState()
     {
         this( OnHeapCollectionsFactory.INSTANCE );
@@ -112,6 +122,10 @@ public class TxState implements TransactionState, RelationshipVisitor.Home
     public TxState( CollectionsFactory collectionsFactory )
     {
         this.collectionsFactory = collectionsFactory;
+        // NOTE: pandadb
+        isPreventNeo4jPropertyStore = GlobalContext.getOption(
+                CustomPropertyNodeStore.class.getName()).isDefined();
+        // END-NOTE
     }
 
     @Override
@@ -357,14 +371,24 @@ public class TxState implements TransactionState, RelationshipVisitor.Home
     public void nodeDoAddProperty( long nodeId, int newPropertyKeyId, Value value )
     {
         NodeStateImpl nodeState = getOrCreateNodeState( nodeId );
-        nodeState.addProperty( newPropertyKeyId, value );
+        // NOTE: pandadb
+        if (! this.isPreventNeo4jPropertyStore) {
+            nodeState.addProperty( newPropertyKeyId, value );
+        }
+        // nodeState.addProperty( newPropertyKeyId, value );
+        // END-NOTE
         dataChanged();
     }
 
     @Override
     public void nodeDoChangeProperty( long nodeId, int propertyKeyId, Value newValue )
     {
-        getOrCreateNodeState( nodeId ).changeProperty( propertyKeyId, newValue );
+        // NOTE: pandadb
+        if (! this.isPreventNeo4jPropertyStore) {
+            getOrCreateNodeState(nodeId).changeProperty(propertyKeyId, newValue);
+        }
+        // getOrCreateNodeState(nodeId).changeProperty(propertyKeyId, newValue);
+        // END-NOTE
         dataChanged();
     }
 
@@ -400,7 +424,12 @@ public class TxState implements TransactionState, RelationshipVisitor.Home
     @Override
     public void nodeDoRemoveProperty( long nodeId, int propertyKeyId )
     {
-        getOrCreateNodeState( nodeId ).removeProperty( propertyKeyId );
+        // NOTE: pandadb
+        if (! this.isPreventNeo4jPropertyStore) {
+            getOrCreateNodeState( nodeId ).removeProperty( propertyKeyId );
+        }
+        // getOrCreateNodeState( nodeId ).removeProperty( propertyKeyId );
+        // END-NOTE
         dataChanged();
     }
 
