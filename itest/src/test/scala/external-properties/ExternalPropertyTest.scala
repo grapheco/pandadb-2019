@@ -85,6 +85,8 @@ class ExternalPropertyTest {
     Assert.assertEquals("person", InMemoryPropertyNodeStore.nodes.get(1).get.mutable().labels.head)
 
     redo.undo()
+    transaction.commit()
+    redo.undo()
     transaction.close()
 
     Assert.assertEquals(0, InMemoryPropertyNodeStore.nodes.size)
