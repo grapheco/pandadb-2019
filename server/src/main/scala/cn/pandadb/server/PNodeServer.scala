@@ -107,7 +107,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(zkString)
   val client = clusterClient.curator
   var masterRole: MasterRole = null
-  PNodeServerContext.put(props.getProperty("localIpAddress"))
+  PNodeServerContext.bindLocalIpAddress(props.getProperty("localIpAddress"))
 
   // host?
   PNodeServerContext.bindRpcPort(props.getProperty("rpcPort").toInt)
