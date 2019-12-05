@@ -48,6 +48,14 @@ object PNodeServerContext extends ContextMap {
     GlobalContext.put[File]("pnode.store.dir", storeDir)
   }
 
+  def bindRpcPort(port: Int): Unit = {
+    this.put("pnode.rpc.port", port)
+  }
+
+  def bindLocalIpAddress(address: String): Unit = {
+    this.put("pnode.local.ipAddress", address)
+  }
+
   def bindJsonDataLog(jsonDataLog: JsonDataLog): Unit = {
     this.put[JsonDataLog]("pnode.dataLog", jsonDataLog)
   }
@@ -65,6 +73,10 @@ object PNodeServerContext extends ContextMap {
   def getStoreDir: File = GlobalContext.get[File]("pnode.store.dir")
 
   def getJsonDataLog: JsonDataLog = this.get[JsonDataLog]("pnode.dataLog")
+
+  def getRpcPort: Int = this.get[Int]("pnode.rpc.port")
+
+  def getLocalIpAddress: String = this.get[String]("pnode.local.ipAddress")
 
   def bindLeaderNode(boolean: Boolean): Unit =
     this.put("is.leader.node", boolean)
@@ -95,9 +107,11 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(zkString)
   val client = clusterClient.curator
   var masterRole: MasterRole = null
+  PNodeServerContext.bindLocalIpAddress(props.getProperty("localIpAddress"))
 
   // host?
-  val serverKernel = new NettyRpcServer("0.0.0.0", 1224, "inter-node-server");
+  PNodeServerContext.bindRpcPort(props.getProperty("rpcPort").toInt)
+  val serverKernel = new NettyRpcServer("0.0.0.0", PNodeServerContext.getRpcPort, "inter-node-server");
   serverKernel.accept(Neo4jRequestHandler());
   serverKernel.accept(InterNodeRequestHandler());
   PNodeServerContext.bindStoreDir(dbDir)
@@ -121,13 +135,16 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     serverKernel.start({
       //scalastyle:off
       println(PNodeServer.logo);
-    });
 
-    if(!_isUpToDate()){
-      _updataLocalData()
-    }
-    _joinInLeaderSelection()
-    new ZKServiceRegistry(zkString).registerAsOrdinaryNode(props.getProperty("localNodeAddress"))
+      ZKPathConfig.initZKPath(clusterClient.curator)
+      PNodeServerContext.bindJsonDataLog(_getJsonDataLog())
+      if(_isUpToDate() == false){
+        _updataLocalData()
+      }
+      _joinInLeaderSelection()
+      new ZKServiceRegistry(zkString).registerAsOrdinaryNode(props.getProperty("localNodeAddress"))
+
+    });
 
   }
 
@@ -151,7 +168,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   }
 
   private def _joinInLeaderSelection(): Unit = {
-    val leaderSelector = new LeaderSelector(client, "/pandanodes/_leader", this);
+    val leaderSelector = new LeaderSelector(client, ZKPathConfig.registryPath + "/_leader", this);
     leaderSelector.start();
   }
 
@@ -182,5 +199,17 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     val rpcClient = PNodeRpcClient.connect(lastFreshNodeIP)
     rpcClient.getRemoteLogs(PNodeServerContext.getJsonDataLog.getLastVersion())
   }
+
+  private def _getJsonDataLog(): JsonDataLog = {
+    val logFilePath = PNodeServerContext.getStoreDir.getPath + "/dataVersionLog.json"
+    val storeDir = new File(PNodeServerContext.getStoreDir.getPath)
+    val logFile = new File(logFilePath)
+    if (logFile.exists() == false) {
+      storeDir.mkdirs()
+      logFile.createNewFile()
+    }
+    new JsonDataLog(logFile)
+  }
+
 
 }
