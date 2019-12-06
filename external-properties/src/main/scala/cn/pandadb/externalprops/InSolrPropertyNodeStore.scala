@@ -12,11 +12,39 @@ import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _
 import org.neo4j.values.storable.{Value, Values}
 import cn.pandadb.util.ConfigUtils._
 import org.apache.solr.common.params.SolrParams
+import org.neo4j.function.ThrowingBiConsumer
+
 import scala.collection.JavaConverters._
 import scala.collection.JavaConverters
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+
+object SolrUtil{
+  val idName = "id"
+  val labelName = "labels"
+  val tik = "id,labels,_version_"
+
+  def removeBrackets(value: String): String = {
+    var tempStr = value
+    var retStr: String = null
+    if (value.contains("[")) tempStr = value.replace("[", "")
+    if (tempStr.contains("]")) retStr = tempStr.replace("]", "")
+    retStr
+  }
+
+  def solrDoc2nodeWithProperties(doc: SolrDocument): NodeWithProperties = {
+    val id = doc.get(idName)
+    val labels = if (doc.get(labelName) == null) ArrayBuffer[String]()
+    else removeBrackets(doc.get(labelName).toString).split(",").toBuffer
+    val fieldsName = doc.getFieldNames
+    val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(removeBrackets(doc.get(y).toString)))
+    NodeWithProperties(id.toString.toLong, fields.toMap, labels)
+
+  }
+
+}
+
 
 class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore =
@@ -56,15 +84,13 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     _solrClient.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
       x.props.foreach(y => doc.addField(y._1, y._2.asObject));
-      doc.addField("id", x.id);
-      doc.addField("labels", x.labels.mkString(","));
+      doc.addField(SolrUtil.idName, x.id);
+      doc.addField(SolrUtil.labelName, x.labels.mkString(","));
       doc
     })
     _solrClient.commit();
   }
 
-
-  //private def removeBrackets(): {}
   private def predicate2SolrQuery(expr: NFPredicate): String = {
     var q: Option[String] = None
     expr match {
@@ -150,27 +176,19 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     }
     _solrClient.query(new SolrQuery().setQuery(q.get)).getResults().foreach(
       x => {
-        val id = x.get("id")
-
-        val labels = if (x.get("labels") == null) ArrayBuffer[String]()
-        else x.get("labels").toString.replace("[", "").replace("]", "").split(",").toBuffer
-       // val test = x.ge
-        val tik = "id,labels,_version_"
-        val fieldsName = x.getFieldNames
-        val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(x.get(y).toString))
-        nodeArray += NodeWithProperties(id.toString.toLong, fields.toMap, labels)
+        nodeArray += SolrUtil.solrDoc2nodeWithProperties(x)
       }
     )
     nodeArray
   }
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
-    val propName = "labels"
+    val propName = SolrUtil.labelName
     filterNodes(NFContainsWith(propName, label))
   }
 
   override def getNodeById(id: Long): Option[NodeWithProperties] = {
-    val propName = "id"
+    val propName = SolrUtil.idName
     filterNodes(NFEquals(propName, Values.of(id))).headOption
   }
 
@@ -192,29 +210,19 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
   var oldState = mutable.Map[Long, MutableNodeWithProperties]();
   var newState = mutable.Map[Long, MutableNodeWithProperties]();
 
-
-
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
     _solrClient.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
       x.props.foreach(y => doc.addField(y._1, y._2.asObject));
-      doc.addField("id", x.id);
-      doc.addField("labels", x.labels.mkString(","));
+      doc.addField(SolrUtil.idName, x.id);
+      doc.addField(SolrUtil.labelName, x.labels.mkString(","));
       doc
     })
     _solrClient.commit();
   }
   def getNodeWithPropertiesById(nodeId: Long): NodeWithProperties = {
-
     val doc = _solrClient.getById(nodeId.toString)
-    val labels = if (doc.get("labels") == null) ArrayBuffer[String]()
-    else doc.get("labels").toString.replace("[", "").replace("]", "").split(",").toBuffer
-
-    val tik = "id,labels,_version_"
-    val fieldsName = doc.getFieldNames
-    val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(doc.get(y).toString))
-
-    NodeWithProperties(nodeId, fields.toMap, labels)
+    SolrUtil.solrDoc2nodeWithProperties(doc)
   }
   def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
     _solrClient.deleteById(docsToBeDeleted.map(_.toString).toList);
@@ -225,7 +233,6 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
 
     this.oldState = ops.oldState
     this.newState = ops.newState
-
 
   }
 
@@ -256,27 +263,19 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
                                addedLabels: Array[String], removedLabels: Array[String]): Unit = {
 
     if (isCommit) {
-        val propName = "labels"
-        val doc = getSolrNodeById(nodeId)
 
-        addedProps.foreach(prop => doc.addField(prop._1, prop._2))
-        updateProps.foreach(prop => doc.setField(prop._1, prop._2))
-        removeProps.foreach(prop => doc.removeFields(prop))
-        val labels = if (doc.get(propName) == null) ArrayBuffer[String]()
-        else {
-          val labelsq = doc.get(propName).toString
-          val labelsTemp = labelsq.substring(labelsq.indexOf('[') + 1, labelsq.indexOf(']'))
-          labelsTemp.split(",").toBuffer
-        }
+      val doc = getSolrNodeById(nodeId)
 
-        addedLabels.foreach(label => if (!labels.contains(label)) labels += label)
-        removedLabels.foreach(label => labels -= label)
+      val node = SolrUtil.solrDoc2nodeWithProperties(doc)
+      val mutiNode = node.mutable()
+      mutiNode.props ++= addedProps
+      mutiNode.props ++= updateProps
+      mutiNode.props --= removeProps
+      mutiNode.labels ++= addedLabels
+      mutiNode.labels --= removedLabels
 
-        doc.setField(propName, labels.mkString(","))
-        val tik = "id,labels,_version_"
-        val fieldsName = doc.getFieldNames
-        val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(doc.get(y).toString))
-        visitAddNode(nodeId, fields.toMap, labels.toArray)
+
+      visitAddNode(nodeId, mutiNode.props.toMap, mutiNode.labels.toArray)
     }
 
     else {
