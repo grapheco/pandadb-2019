@@ -69,36 +69,40 @@ class InSolrPropertyTest {
 
     transaction.close()
 
-    //transaction = solrNodeStore.beginWriteTransaction()
-
     transaction = solrNodeStore.beginWriteTransaction()
     val name = transaction.getPropertyValue(1, "namehj")
-    Assert.assertEquals("pandaDB", Values.values(name.get.asObject()).toString)
-   // Assert.assertEquals("person", label.head)
-   // Assert.assertEquals("people", label.last)
-   // Assert.assertEquals(1, solrNodeStore.getRecorderSize)
-   // solrNodeStore.clearAll()
-   // Assert.assertEquals(0, solrNodeStore.getRecorderSize)
+    Assert.assertEquals("pandaDB", name.get.asObject())
+
+    Assert.assertEquals(1, solrNodeStore.getRecorderSize)
+    solrNodeStore.clearAll()
+    Assert.assertEquals(0, solrNodeStore.getRecorderSize)
   }
 
+  //test for undo
   @Test
   def test3() {
-    val solrNodeStore = new InSolrPropertyNodeStore(zkString, "test1")
+    val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
     solrNodeStore.clearAll()
-    val node = new MutableNodeWithProperties(1)
-    node.labels += "person"
-    node.props += "name" -> Values.of("pandaDB")
-    node.props += "age" -> Values.of("25")
-    solrNodeStore.addNodes(Iterable(NodeWithProperties(node.id, node.props.toMap, node.labels)))
-    val node1 = solrNodeStore.getNodeById(1)
-    //scalastyle:off println
-    println(node1.get.props.get("age").head.asObject())
-    // Assert.assertEquals("person", label.head)
-    // Assert.assertEquals("people", label.last)
-    // Assert.assertEquals(1, solrNodeStore.getRecorderSize)
-    // solrNodeStore.clearAll()
-    // Assert.assertEquals(0, solrNodeStore.getRecorderSize)
+    Assert.assertEquals(0, solrNodeStore.getRecorderSize)
+    var transaction = solrNodeStore.beginWriteTransaction()
+    transaction.addNode(1)
+
+    val undo = transaction.commit()
+    Assert.assertEquals(1, solrNodeStore.getRecorderSize)
+
+    undo.undo()
+
+    transaction.close()
+    Assert.assertEquals(0, solrNodeStore.getRecorderSize)
+
+    solrNodeStore.clearAll()
+
+    Assert.assertEquals(0, solrNodeStore.getRecorderSize)
+
+
   }
+
+
 
 
 }
