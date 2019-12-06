@@ -63,6 +63,8 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     _solrClient.commit();
   }
 
+
+  //private def removeBrackets(): {}
   private def predicate2SolrQuery(expr: NFPredicate): String = {
     var q: Option[String] = None
     expr match {
@@ -152,7 +154,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
 
         val labels = if (x.get("labels") == null) ArrayBuffer[String]()
         else x.get("labels").toString.replace("[", "").replace("]", "").split(",").toBuffer
-
+       // val test = x.ge
         val tik = "id,labels,_version_"
         val fieldsName = x.getFieldNames
         val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(x.get(y).toString))
