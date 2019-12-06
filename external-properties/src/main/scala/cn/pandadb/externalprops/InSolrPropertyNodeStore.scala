@@ -1,5 +1,7 @@
 package cn.pandadb.externalprops
 
+import java.util
+
 import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
 import cn.pandadb.util.Ctrl
 import cn.pandadb.util.Ctrl._
@@ -9,7 +11,9 @@ import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
 import org.neo4j.values.storable.{Value, Values}
 import cn.pandadb.util.ConfigUtils._
-
+import org.apache.solr.common.params.SolrParams
+import scala.collection.JavaConverters._
+import scala.collection.JavaConverters
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -39,6 +43,14 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     _solrClient.deleteById(docsToBeDeleted.map(_.toString).toList);
     _solrClient.commit();
   }
+  def clearAll(): Unit = {
+    _solrClient.deleteByQuery("*:*")
+    _solrClient.commit()
+  }
+  def getRecorderSize: Int = {
+    val query = "*:*"
+    _solrClient.query(new SolrQuery().setQuery(query)).getResults().size()
+  }
 
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
     _solrClient.add(docsToAdded.map { x =>
@@ -51,7 +63,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     _solrClient.commit();
   }
 
-  def predicate2SolrQuery(expr: NFPredicate): String = {
+  private def predicate2SolrQuery(expr: NFPredicate): String = {
     var q: Option[String] = None
     expr match {
       case expr: NFGreaterThan =>
@@ -137,7 +149,10 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     _solrClient.query(new SolrQuery().setQuery(q.get)).getResults().foreach(
       x => {
         val id = x.get("id")
-        val labels = x.get("labels").toString.split(",")
+
+        val labels = if (x.get("labels") == null) ArrayBuffer[String]()
+        else x.get("labels").toString.replace("[", "").replace("]", "").split(",").toBuffer
+
         val tik = "id,labels,_version_"
         val fieldsName = x.getFieldNames
         val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(x.get(y).toString))
@@ -146,35 +161,6 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     )
     nodeArray
   }
-
-  def getCustomPropertyNodeByid(id: Long): SolrDocument = {
-    _solrClient.getById(id.toString)
-  }
-
-  /*def modif2node(node: CustomPropertyNodeModification): NodeWithProperties = {
-    val doc = getCustomPropertyNodeByid(node.id)
-    val labels = if (doc.get("labels") == null) ArrayBuffer[String]()
-    else {
-      val labelsq = doc.get("labels").toString
-      val labelsTemp = labelsq.substring(labelsq.indexOf('[') + 1, labelsq.indexOf(']'))
-      labelsTemp.split(",").toBuffer
-    }
-    node.labelsAdded.foreach(label => if (!labels.contains(label)) labels += label)
-    node.labelsRemoved.foreach(label => labels -= label)
-    val tik = "id,labels,_version_"
-    val fieldsName = doc.getFieldNames
-    val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(doc.get(y).toString))
-    var fieldMap = fields.toMap
-    node.fieldsAdded.foreach(fd => fieldMap += fd)
-    node.fieldsRemoved.foreach(fd => fieldMap -= fd)
-    node.fieldsUpdated.foreach(fd => fieldMap += fd)
-    NodeWithProperties(node.id, fieldMap, labels)
-  }*/
-
-  /*override def updateNodes(docsToUpdated: Iterable[CustomPropertyNodeModification]): Unit = {
-    val docsToAdded = for (doc <- docsToUpdated) yield (modif2node(doc))
-    addNodes(docsToAdded)
-  }*/
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val propName = "labels"
@@ -220,11 +206,7 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
 
     val doc = _solrClient.getById(nodeId.toString)
     val labels = if (doc.get("labels") == null) ArrayBuffer[String]()
-    else {
-      val labelsq = doc.get("labels").toString
-      val labelsTemp = labelsq.substring(labelsq.indexOf('[') + 1, labelsq.indexOf(']'))
-      labelsTemp.split(",").toBuffer
-    }
+    else doc.get("labels").toString.replace("[", "").replace("]", "").split(",").toBuffer
 
     val tik = "id,labels,_version_"
     val fieldsName = doc.getFieldNames
@@ -318,7 +300,7 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
       newState.foreach(tle => {if (!oldState.contains(tle._1)) nodeToDelete += tle._1})
     }
 
-    this.addNodes(nodeToAdd)
-    this.deleteNodes(nodeToDelete)
+    if (!nodeToAdd.isEmpty) this.addNodes(nodeToAdd)
+    if (!nodeToDelete.isEmpty) this.deleteNodes(nodeToDelete)
   }
 }
