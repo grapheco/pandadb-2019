@@ -83,7 +83,7 @@ class InSolrPropertyTest {
 
   @Test
   def test3() {
-    val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
+    val solrNodeStore = new InSolrPropertyNodeStore(zkString, "test1")
     solrNodeStore.clearAll()
     val node = new MutableNodeWithProperties(1)
     node.labels += "person"
@@ -92,7 +92,7 @@ class InSolrPropertyTest {
     solrNodeStore.addNodes(Iterable(NodeWithProperties(node.id, node.props.toMap, node.labels)))
     val node1 = solrNodeStore.getNodeById(1)
     //scalastyle:off println
-    //println(node1.get.props.get("age").head.asObject())
+    println(node1.get.props.get("age").head.asObject())
     // Assert.assertEquals("person", label.head)
     // Assert.assertEquals("people", label.last)
     // Assert.assertEquals(1, solrNodeStore.getRecorderSize)
