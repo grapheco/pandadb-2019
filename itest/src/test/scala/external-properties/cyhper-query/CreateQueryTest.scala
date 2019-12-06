@@ -12,35 +12,8 @@ import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeSt
 import org.neo4j.values.storable.{DateTimeValue, DateValue, LocalDateTimeValue, TimeValue}
 import cn.pandadb.server.GlobalContext
 
-trait CreateQueryTestBase {
-  var db: GraphDatabaseService = null
+trait CreateQueryTestBase extends QueryTestBase {
 
-  @Before
-  def initdb(): Unit = {
-    PNodeServer.toString
-    new File("./output/testdb").mkdirs();
-    FileUtils.deleteRecursively(new File("./output/testdb"));
-    db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
-      setConfig("external.properties.store.factory", classOf[InMemoryPropertyNodeStoreFactory].getName).
-      newGraphDatabase()
-    GlobalContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
-
-  }
-
-  @After
-  def shutdowndb(): Unit = {
-    db.shutdown()
-  }
-
-  protected def testQuery[T](query: String): Unit = {
-    val tx = db.beginTx();
-    val rs = db.execute(query);
-    while (rs.hasNext) {
-      val row = rs.next();
-    }
-    tx.success();
-    tx.close()
-  }
 }
 
 class CreateNodeQueryTest extends CreateQueryTestBase {
