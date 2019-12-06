@@ -125,12 +125,14 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
 
     PNodeServerContext.bindClusterClient(clusterClient);
 
-    new Thread() {
-      override def run() {
-        neo4jServer.start(dbDir, Optional.of(configFile),
-          JavaConversions.mapAsJavaMap(configOverrides));
-      }
-    }.start()
+//    new Thread() {
+//      override def run() {
+//        neo4jServer.start(dbDir, Optional.of(configFile),
+//          JavaConversions.mapAsJavaMap(configOverrides));
+//      }
+//    }.start()
+    neo4jServer.start(dbDir, Optional.of(configFile),
+      JavaConversions.mapAsJavaMap(configOverrides));
 
     serverKernel.start({
       //scalastyle:off
