@@ -1,8 +1,9 @@
 
 import java.io.File
 
-import org.junit.{After, Before, Test}
+import org.junit.{Test, Assert}
 
+import org.neo4j.graphdb.Result
 import scala.collection.JavaConverters._
 import cn.pandadb.server.{GlobalContext, PNodeServer}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
@@ -11,30 +12,31 @@ import org.neo4j.io.fs.FileUtils
 import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
 
 
-trait MatchQueryTestBase {
-  var db: GraphDatabaseService = null
-
-  @Before
-  def initdb(): Unit = {
-    PNodeServer.toString
-    new File("./output/testdb").mkdirs();
-    FileUtils.deleteRecursively(new File("./output/testdb"));
-    db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
-      setConfig("external.properties.store.factory", classOf[InMemoryPropertyNodeStoreFactory].getName).
-      newGraphDatabase()
-    GlobalContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
-  }
-
-  @After
-  def shutdowndb(): Unit = {
-    db.shutdown()
-  }
-
+trait MatchQueryTestBase extends QueryTestBase {
   def doCreate(queryStr: String): Unit = {
     val tx = db.beginTx()
     val rs = db.execute(queryStr)
     tx.success()
     tx.close()
+  }
+
+  def initData(): Unit = {
+    val queryStr =
+      """
+        |CREATE (n1:Person:Student{name: 'test01',age:15, sex:'male', school: 'No1 Middle School'}),
+        |(n2:Person:Teacher{name: 'test02', age: 30, sex:'male', school: 'No1 Middle School', class: 'math'}),
+        |(n3:Person:Teacher{name: 'test03', age: 40, sex:'female', school: 'No1 Middle School', class: 'chemistry'})
+        |""".stripMargin
+    doCreate(queryStr)
+  }
+
+  def rsRowCount(rs: Result): Int = {
+    var count: Int = 0;
+    while (rs.hasNext) {
+      count += 1
+      println(rs.next())
+    }
+    return count
   }
 }
 
@@ -42,19 +44,33 @@ class MatchQueryTest extends MatchQueryTestBase {
 
   @Test
   def test1(): Unit = {
-    // Get node property
+    // filter nodes by label
 
-    val query =
-      """create (:Person:Man{name:'test01',age:12, born: date('2019-01-02'), array: [1,2,3]})
-      """.stripMargin
-    doCreate(query)
-
-    val query2 =
-      """match (n)
-        |return id(n),labels(n), n.name, n.age, n.born, n.array, n.xx
+    initData()
+    // Get all nodes
+    val query1 =
+      """match (n) return n
         |""".stripMargin
+    val rs = db.execute(query1)
+    assert(rsRowCount(rs) == 3)
 
-    val rs = db.execute(query2)
+    // filter by label
+    val query2 = "match (n:Person) return n"
+    val rs2 = db.execute(query2)
+    assert(rsRowCount(rs2) == 3)
+
+    val query3 = "match (n:Teacher) return n"
+    val rs3 = db.execute(query3)
+    assert(rsRowCount(rs3) == 2)
+
+    val query4 = "match (n:Person:Student) return n"
+    val rs4 = db.execute(query4)
+    assert(rsRowCount(rs4) == 1)
+
+
+
+    return None
+
     if (rs.hasNext) {
       val row = rs.next()
       assert(row.get("id(n)").toString.toLong >= 0)
@@ -76,11 +92,27 @@ class MatchQueryTest extends MatchQueryTestBase {
     }
   }
 
-
   @Test
   def test2(): Unit = {
-    val query = "create (n: Person{name:'test', age:10}) with n delete n"
-    db.execute(query)
+    // filter by property
+    initData()
+
+    // filter by {}
+    val query1 = "match (n:Person{name: 'test01'}) return n"
+    val rs1 = db.execute(query1)
+    assert(rsRowCount(rs1) == 1)
+
+    // filter by where
+    val query2 = "match (n) where n.name='test01' return n"
+    val rs2 = db.execute(query2)
+    assert(rsRowCount(rs2) == 1)
+
+    // filter by where
+    val query3 = "match (n:Teacher) where n.age<35 and n.sex='male' return n"
+    val rs3 = db.execute(query3)
+    assert(rsRowCount(rs3) == 1)
   }
+
+
 
 }
