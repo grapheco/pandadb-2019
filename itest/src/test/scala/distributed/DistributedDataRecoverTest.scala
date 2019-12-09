@@ -29,13 +29,11 @@ object DistributedDataRecoverTest {
 
 }
 
-
-
 class DistributedDataRecoverTest {
 
   val time = "12:41"
-  val time2 = "12.42"
-  val time3 = "12.43"
+  val time2 = "12:42"
+  val time3 = "12:43"
 
   // only start node0
   @Test
@@ -134,7 +132,5 @@ class DistributedDataRecoverTest {
     val slaveResult = GraphDatabase.driver(DistributedDataRecoverTest.node0).session().run(s"Match(n) Return n;")
     Assert.assertEquals(time3, slaveResult.next().get("n.time3"))
   }
-
-
 
 }

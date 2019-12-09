@@ -3,7 +3,9 @@ package cn.pandadb.server
 import cn.pandadb.network._
 import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.{CreateMode, ZooDefs}
-import org.neo4j.driver.{AuthToken, AuthTokens, GraphDatabase, StatementResult}
+import org.neo4j.driver._
+
+import scala.collection.mutable.ListBuffer
 
 /**
   * @Author: Airzihao
@@ -31,7 +33,7 @@ trait Master {
 
   def addListener(listener: ZKClusterEventListener)
 
-  def clusterWrite(cypher: String): StatementResult
+  def clusterWrite(cypher: String)
 
 }
 
@@ -39,6 +41,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
 
   val localNodeAddress = localAddress
   override var listenerList: List[ZKClusterEventListener] = _
+
   // how to init it?
   private var currentState: ClusterState = new ClusterState {}
   override val clusterClient = zkClusterClient
@@ -57,32 +60,43 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
     currentState = state
   }
 
-  private def distributeWriteStatement(cypher: String): StatementResult = {
+  private def distributeWriteStatement(cypher: String): Unit = {
 
     var tempResult: StatementResult = null
     for (nodeAddress <- allNodes) {
       if (nodeAddress.getAsStr() != masterNodeAddress) {
-        val uri = s"bolt://" + nodeAddress.getAsStr()
-        val driver = GraphDatabase.driver(uri,
-          AuthTokens.basic("", ""))
-        val session = driver.session()
-        val tx = session.beginTransaction()
-        tempResult = tx.run(cypher)
-        tx.success()
-        session.close()
+        new Thread() {
+          override def run() = {
+            try {
+              val uri = s"bolt://" + nodeAddress.getAsStr()
+              val driver = GraphDatabase.driver(uri,
+                AuthTokens.basic("", ""))
+              val session = driver.session()
+              val tx = session.beginTransaction()
+              tempResult = tx.run(cypher)
+              tx.success()
+              session.close()
+            } catch {
+              case e: Exception =>
+                throw new Exception("Write-cluster operation failed.")
+            }
+          }
+        }.start()
       }
     }
-    tempResult
   }
 
   // TODO finetune the state change mechanism
-  override def clusterWrite(cypher: String): StatementResult = {
+  override def clusterWrite(cypher: String): Unit = {
 
     val preVersion = zkClusterClient.getClusterDataVersion()
     initWriteContext()
     setClusterState(new Writing)
     globalWriteLock.lock()
-    val tempResult = distributeWriteStatement(cypher)
+
+    // key func
+    distributeWriteStatement(cypher)
+
     globalWriteLock.unlock()
     setClusterState(new Finished)
     setClusterState(new UnlockedServing)
@@ -90,8 +104,6 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
     // had better put these operations to FINISH state
     val curVersion = preVersion + 1
     _setDataVersion(curVersion)
-
-    tempResult
   }
 
   def clusterRead(cypher: String): StatementResult = {
@@ -138,6 +150,20 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
 
 }
 
+// todo: use this class to do multi threads write operation.
+case class DriverWriteThread(driver: Driver, cypher: String) extends Thread {
 
-
-
+  override def run(): Unit = {
+    val session = driver.session()
+    val tx = session.beginTransaction()
+    try {
+      tx.run(cypher)
+      tx.success()
+      tx.close()
+      session.close()
+    } catch {
+      case e: Exception =>
+        throw new Exception("Write cluster operation failed.")
+    }
+  }
+}

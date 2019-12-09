@@ -47,7 +47,6 @@ class Services(private val _aipmHttpHostUrl: String) {
 
   }
 
-
   def extractPlateNumber(img1InputStream: InputStream): String = {
     val serviceUrl = getServiceUrl("PlateNumber")
 
@@ -111,7 +110,6 @@ class Services(private val _aipmHttpHostUrl: String) {
       ""
     }
   }
-
 
   def segmentText(text: String): List[String] = {
     val serviceUrl = getServiceUrl("TextSegment")
