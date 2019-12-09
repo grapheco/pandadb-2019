@@ -4,7 +4,6 @@ import cn.pandadb.cypherplus.SetComparator
 import cn.aipm.service.ServiceInitializer
 import cn.pandadb.blob.Blob
 
-
 class FaceSimilarityComparator extends SetComparator with ServiceInitializer {
 
   def compareAsSets(blob1: Any, blob2: Any): Array[Array[Double]] = {

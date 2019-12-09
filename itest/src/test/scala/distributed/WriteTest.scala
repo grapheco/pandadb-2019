@@ -8,5 +8,4 @@ package distributed
   */
 class WriteTest {
 
-
 }

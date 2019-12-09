@@ -22,7 +22,6 @@ object ClusterLogTest {
   }
 }
 
-
 class ClusterLogTest {
 
   val logFilePath: String = "./datalog.json"

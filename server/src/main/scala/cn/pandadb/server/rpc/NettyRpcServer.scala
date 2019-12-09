@@ -39,7 +39,6 @@ class NettyRpcServer(host: String, port: Int, serverName: String) extends Loggin
 
   def start(onStarted: => Unit = {}) {
 
-//    thisRpcEnv.setupEndpoint(s"$serverName-end-point", endpoint)
     thisRpcEnv.setupEndpoint(s"PNodeRpc-service", endpoint)
     onStarted;
     thisRpcEnv.awaitTermination()
