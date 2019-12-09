@@ -4,6 +4,7 @@ import java.io.{File, FileInputStream}
 import java.util.{Locale, Properties}
 
 import cn.pandadb.driver.PandaDriver
+import cn.pandadb.network.ZKPathConfig
 import distributed.PandaDriverTest.{neoDriver0, neoDriver1, pandaDriver}
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -18,12 +19,18 @@ import org.neo4j.driver.{AuthTokens, GraphDatabase}
   * @Modified By:
   */
 
+// todo: test n.prop
 object PandaDriverTest {
   val configFile = new File("./testdata/gnode0.conf")
   val props = new Properties()
   props.load(new FileInputStream(configFile))
   val pandaString = s"panda://" + props.getProperty("zkServerAddress") + s"/db"
 
+  val curator = CuratorFrameworkFactory.newClient(props.getProperty("zkServerAddress"),
+    new ExponentialBackoffRetry(1000, 3))
+  curator.start()
+  ZKPathConfig.initZKPath(curator)
+  curator.close()
   // correct these two addresses please
   val node0 = "bolt://localhost:7684"
   val node1 = "bolt://localhost:7685"
@@ -45,6 +52,7 @@ object PandaDriverTest {
       new ExponentialBackoffRetry(1000, 3))
     curator.start()
     curator.delete().forPath("/testPandaDB/version")
+    curator.close()
   }
 }
 
@@ -63,10 +71,15 @@ class PandaDriverTest {
   // make sure the database is blank
   @Test
   def test1(): Unit = {
-    pandaDriver.session().run("Match(n) Delete n;")
+    val session = pandaDriver.session()
+    val tx = session.beginTransaction()
+    tx.run("Match(n) Delete n;")
+    tx.success()
+    tx.close()
+    session.close()
     val clusterResult = pandaDriver.session().run("Match(n) Return n;")
-    val node0Result = neoDriver0.session().run("Match(n) Delete n;")
-    val node1Result = neoDriver1.session().run("Match(n) Delete n;")
+    val node0Result = neoDriver0.session().run("Match(n) Return n;")
+    val node1Result = neoDriver1.session().run("Match(n) Return n;")
     Assert.assertEquals(false, clusterResult.hasNext)
     Assert.assertEquals(false, node0Result.hasNext)
     Assert.assertEquals(false, node1Result.hasNext)
@@ -74,50 +87,72 @@ class PandaDriverTest {
 
   @Test
   def test2(): Unit = {
-    pandaDriver.session().run("Create(n:Test{prop:'panda'})")
+    val session = pandaDriver.session()
+    val tx = session.beginTransaction()
+    tx.run("Create(n:Test{prop:'panda'})")
+    tx.success()
+    tx.close()
+    session.close()
     _createAndMerge()
   }
 
   @Test
   def test3(): Unit = {
-    pandaDriver.session().run("Merge(n:Test{prop:'panda'})")
+    val session = pandaDriver.session()
+    val tx = session.beginTransaction()
+    tx.run("Merge(n:Test{prop:'panda'})")
+    tx.success()
+    tx.close()
+    session.close()
     _createAndMerge()
   }
 
   @Test
   def test4(): Unit = {
-    pandaDriver.session().run("Create(n:Test{prop:'panda'})")
-    pandaDriver.session().run("Merge(n:Test{prop:'panda'})")
+
+    val session = pandaDriver.session()
+    val tx = session.beginTransaction()
+    tx.run("Create(n:Test{prop:'panda'})")
+    tx.success()
+    tx.close()
+    session.close()
+
+    val session1 = pandaDriver.session()
+    val tx1 = session1.beginTransaction()
+    tx1.run("Merge(n:Test{prop:'panda'})")
+    tx1.close()
+    session1.close()
     _createAndMerge()
   }
 
   @Test
   def test5(): Unit = {
-    pandaDriver.session().run("Create(n:Test)")
-    val clusterResult1 = pandaDriver.session().run("Match(n) return n;")
-    Assert.assertEquals(true, clusterResult1.hasNext)
-    Assert.assertEquals(null, clusterResult1.next().get("n").asNode().get("prop"))
-    Assert.assertEquals(false, clusterResult1.hasNext)
+    val session = pandaDriver.session()
+    val tx = session.beginTransaction()
+    tx.run("Create(n:Test)")
+    tx.success()
+    tx.close()
+    session.close()
 
-    pandaDriver.session().run("Match(n) Set n.prop='panda'")
-    val clusterResult2 = pandaDriver.session().run("Match(n) return n;")
-    Assert.assertEquals(true, clusterResult1.hasNext)
-    Assert.assertEquals(null, clusterResult1.next().get("n").asNode().get("prop").asString())
-    Assert.assertEquals(false, clusterResult2.hasNext)
+    val session1 = pandaDriver.session()
+    val tx1 = session1.beginTransaction()
+    tx1.run("Match(n) Set n.prop='panda'")
+    tx1.success()
+    tx1.close()
+    session1.close()
 
-    pandaDriver.session().run("Match(n) delete n;")
-    val clusterResult3 = pandaDriver.session().run("Match(n) Return n;")
-    Assert.assertEquals(false, clusterResult3.hasNext)
+    _createAndMerge()
   }
 
   //add a test, to test different menthod to run statement.
 
 
   private def _createAndMerge(): Unit = {
-
 //    val clusterResult = pandaDriver.session().run("Match(n) Where n.prop='panda' Return n")
 //    val node0Result = neoDriver0.session().run("Match(n) Where n.prop='panda' Return n")
 //    val node1Result = neoDriver1.session().run("Match(n) Where n.prop='panda' Return n")
+
+    // Problem: the result is not available real-time.
     val clusterResult = pandaDriver.session().run("Match(n) Return n")
     val node0Result = neoDriver0.session().run("Match(n) Return n")
     val node1Result = neoDriver1.session().run("Match(n) Return n")
@@ -133,10 +168,18 @@ class PandaDriverTest {
     Assert.assertEquals("panda", node1Result.next().get("n").asNode().get("prop").asString())
     Assert.assertEquals(false, node1Result.hasNext)
 
-    pandaDriver.session().run("Match(n) Delete n;")
-    val clusterResult1 = pandaDriver.session().run("Match(n) Where n.prop='panda' Return n")
-    val node0Result1 = neoDriver0.session().run("Match(n) Where n.prop='panda' Return n")
-    val node1Result1 = neoDriver1.session().run("Match(n) Where n.prop='panda' Return n")
+    val session = pandaDriver.session()
+    val tx = session.beginTransaction()
+    tx.run("Match(n) Delete n;")
+    tx.success()
+    tx.close()
+    session.close()
+//    val clusterResult1 = pandaDriver.session().run("Match(n) Where n.prop='panda' Return n")
+//    val node0Result1 = neoDriver0.session().run("Match(n) Where n.prop='panda' Return n")
+//    val node1Result1 = neoDriver1.session().run("Match(n) Where n.prop='panda' Return n")
+    val clusterResult1 = pandaDriver.session().run("Match(n) Return n")
+    val node0Result1 = neoDriver0.session().run("Match(n) Return n")
+    val node1Result1 = neoDriver1.session().run("Match(n) Return n")
     Assert.assertEquals(false, clusterResult1.hasNext)
     Assert.assertEquals(false, node0Result1.hasNext)
     Assert.assertEquals(false, node1Result1.hasNext)
