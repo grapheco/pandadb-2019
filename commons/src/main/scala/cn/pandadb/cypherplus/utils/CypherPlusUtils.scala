@@ -14,8 +14,8 @@ object CypherPlusUtils {
     val lowerCypher = cypherStr.toLowerCase(Locale.ROOT)
     if (lowerCypher.contains("explain")) {
       false
-    } else if (lowerCypher.contains("create") || cypherStr.contains("merge") ||
-      cypherStr.contains("set") || cypherStr.contains("delete")) {
+    } else if (lowerCypher.contains("create") || lowerCypher.contains("merge") ||
+      lowerCypher.contains("set") || lowerCypher.contains("delete")) {
       true
     } else {
       false

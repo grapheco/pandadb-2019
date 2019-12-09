@@ -12,26 +12,8 @@ import org.neo4j.driver.GraphDatabase
   * @Modified By:
   */
 
-/*
-duties:
-1. read log
-2. get current version number
-3. get to do list  cypherList: List[String]
-4. run cypher strings in the sorted list.
-5. register itself to zk after recovery
- */
-
-/*
-how to write? use driver?
-what if this node is selected as leader node?
- */
-
-/*
-add global version in the MasterRole or ZKClusterClient?
- */
 case class DataVersionRecoveryArgs(val localLogFile: File, val clusterLogFile: File,
                                    val localNodeAddress: NodeAddress)
-
 
 class LocalDataVersionRecovery(args: DataVersionRecoveryArgs) {
   val localLog = new JsonDataLog(args.localLogFile)

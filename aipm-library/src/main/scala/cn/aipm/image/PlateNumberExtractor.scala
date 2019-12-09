@@ -4,7 +4,6 @@ import cn.pandadb.cypherplus.PropertyExtractor
 import cn.aipm.service.ServiceInitializer
 import cn.pandadb.blob.Blob
 
-
 class PlateNumberExtractor extends PropertyExtractor with ServiceInitializer {
 
   override def declareProperties() = Map("plateNumber" -> classOf[String])
