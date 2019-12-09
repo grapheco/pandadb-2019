@@ -15,7 +15,6 @@ trait NaiveLock {
   // release
   def unlock()
 
-
 }
 
 class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeeperBasedClusterClient) extends NaiveLock {

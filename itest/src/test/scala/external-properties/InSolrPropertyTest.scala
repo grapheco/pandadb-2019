@@ -63,17 +63,24 @@ class InSolrPropertyTest {
     Assert.assertEquals(0, solrNodeStore.getRecorderSize)
     var transaction = solrNodeStore.beginWriteTransaction()
     transaction.addNode(1)
-    transaction.addProperty(1, "namehj", Values.of("pandaDB"))
+    transaction.addProperty(1, "database", Values.of("pandaDB"))
 
     transaction.commit()
 
     transaction.close()
-
+    Assert.assertEquals(1, solrNodeStore.getRecorderSize)
     transaction = solrNodeStore.beginWriteTransaction()
-    val name = transaction.getPropertyValue(1, "namehj")
+    val name = transaction.getPropertyValue(1, "database")
     Assert.assertEquals("pandaDB", name.get.asObject())
 
+    transaction.removeProperty(1, "database")
+    transaction.commit()
+    transaction.close()
     Assert.assertEquals(1, solrNodeStore.getRecorderSize)
+
+    val node = solrNodeStore.getNodeById(1).head.mutable()
+    Assert.assertEquals(true, node.props.isEmpty)
+
     solrNodeStore.clearAll()
     Assert.assertEquals(0, solrNodeStore.getRecorderSize)
   }
@@ -86,23 +93,19 @@ class InSolrPropertyTest {
     Assert.assertEquals(0, solrNodeStore.getRecorderSize)
     var transaction = solrNodeStore.beginWriteTransaction()
     transaction.addNode(1)
-
+    transaction.addNode(2)
+    transaction.addLabel(1, "person")
+    transaction.addProperty(2, "name", Values.of("pandaDB"))
     val undo = transaction.commit()
-    Assert.assertEquals(1, solrNodeStore.getRecorderSize)
-
+    Assert.assertEquals(2, solrNodeStore.getRecorderSize)
+    val node1 = solrNodeStore.getNodeById(1)
+    val node2 = solrNodeStore.getNodeById(2)
+    Assert.assertEquals("person", node1.head.mutable().labels.head)
+    Assert.assertEquals("pandaDB", node2.head.mutable().props.get("name").get.asObject())
     undo.undo()
-
     transaction.close()
     Assert.assertEquals(0, solrNodeStore.getRecorderSize)
-
     solrNodeStore.clearAll()
-
     Assert.assertEquals(0, solrNodeStore.getRecorderSize)
-
-
   }
-
-
-
-
 }

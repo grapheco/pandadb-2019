@@ -27,8 +27,6 @@ class FakeListener(listenerId: Int) {
   var path = s"";
 }
 
-
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class ZKDiscoveryTest {
 
@@ -81,52 +79,8 @@ class ZKDiscoveryTest {
     funcNum = 33
   }
 
-////  emptyListenerList
-//  @Test
-//  def test1(): Unit = {
-//    funcNum = 1
-//    for (listener <- listenerList) {
-//      Assert.assertEquals(0, listener.CHILD_ADDED)
-//      Assert.assertEquals(0, listener.CHILD_REMOVED)
-//      Assert.assertEquals("", listener.path)
-//    }
-//    funcNum = 11
-//  }
-//
-////  discoverRegister
-//  @Test
-//  def test2(): Unit = {
-//    funcNum = 2
-//    ordinadyNodeRegistry.registerAsOrdinaryNode(zkConstants.localNodeAddress)
-//    Thread.sleep(3000)
-//    for (listener <- listenerList) {
-//      Assert.assertEquals(1, listener.CHILD_ADDED)
-//      Assert.assertEquals(0, listener.CHILD_REMOVED)
-//      Assert.assertEquals("10.0.88.11:1111", listener.path)
-//    }
-//    //ordinadyNodeRegistry.curator.close()
-//    funcNum = 22
-//  }
-//
-//
-////  discoverUnRegister
-//  @Test
-//  def test3(): Unit = {
-//    funcNum = 3
-//    ordinadyNodeRegistry.unRegister(zkConstants.localNodeAddress)
-//    Thread.sleep(1000)
-//
-//    for (listener <- listenerList) {
-//      Assert.assertEquals(1, listener.CHILD_ADDED)
-//      Assert.assertEquals(1, listener.CHILD_REMOVED)
-//    }
-//    funcNum = 33
-//  }
-
-
   def testZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants, listenerList: List[FakeListener]) {
 
-//    val pool = Executors.newFixedThreadPool(1);
     val nodesChildrenCache = new PathChildrenCache(curator, ZKPathConfig.ordinaryNodesPath, false)
 
     //caution: use sync method. POST_INITIAL_EVENT is an async method.
@@ -147,7 +101,6 @@ class ZKDiscoveryTest {
               for (listener <- listenerList) {
                 listener.CHILD_REMOVED = 1;
                 listener.path = pathChildrenCacheEvent.getData.getPath
-                //                  println("listenerID: "+ listener.id.toString + funcNum.toString)
               }
             // What to do if a node's data is updated?
             case PathChildrenCacheEvent.Type.CHILD_UPDATED => ;
@@ -157,7 +110,6 @@ class ZKDiscoveryTest {
       }
     }
     nodesChildrenCache.getListenable().addListener(listener)
-
   }
 
 }

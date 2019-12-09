@@ -10,24 +10,7 @@ import org.neo4j.io.fs.FileUtils
 import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
 
 
-trait UpdateQueryTestBase {
-  var db: GraphDatabaseService = null
-
-  @Before
-  def initdb(): Unit = {
-    PNodeServer.toString
-    new File("./output/testdb").mkdirs();
-    FileUtils.deleteRecursively(new File("./output/testdb"));
-    db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(new File("./output/testdb")).
-      setConfig("external.properties.store.factory", classOf[InMemoryPropertyNodeStoreFactory].getName).
-      newGraphDatabase()
-    GlobalContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
-  }
-
-  @After
-  def shutdowndb(): Unit = {
-    db.shutdown()
-  }
+trait UpdateQueryTestBase extends QueryTestBase {
 
 }
 
