@@ -24,6 +24,7 @@ trait QueryTestBase {
       newGraphDatabase()
     nodeStore match {
       case "InMemoryPropertyNodeStore" =>
+        InMemoryPropertyNodeStore.nodes.clear()
         GlobalContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
 
       case "InSolrPropertyNodeStore" =>
