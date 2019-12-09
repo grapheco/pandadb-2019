@@ -15,7 +15,8 @@ import cn.pandadb.util.Ctrl._
 import cn.pandadb.util.{ContextMap, Logging}
 import org.apache.commons.io.IOUtils
 import org.apache.curator.framework.recipes.leader.{LeaderSelector, LeaderSelectorListenerAdapter}
-import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
+import org.apache.curator.retry.ExponentialBackoffRetry
 import org.neo4j.driver.GraphDatabase
 import org.neo4j.kernel.impl.blob.{BlobStorageServiceFactory, DefaultBlobFunctionsServiceFactory}
 import org.neo4j.server.CommunityBootstrapper
@@ -104,6 +105,11 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   val props = new Properties()
   props.load(new FileInputStream(configFile))
   val zkString: String = props.getProperty("zkServerAddress")
+  private val _tempCurator = CuratorFrameworkFactory.newClient(zkString,
+    new ExponentialBackoffRetry(1000, 3))
+  _tempCurator.start()
+  ZKPathConfig.initZKPath(clusterClient.curator)
+  _tempCurator.close()
   val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(zkString)
   val client = clusterClient.curator
   var masterRole: MasterRole = null
@@ -125,12 +131,6 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
 
     PNodeServerContext.bindClusterClient(clusterClient);
 
-//    new Thread() {
-//      override def run() {
-//        neo4jServer.start(dbDir, Optional.of(configFile),
-//          JavaConversions.mapAsJavaMap(configOverrides));
-//      }
-//    }.start()
     neo4jServer.start(dbDir, Optional.of(configFile),
       JavaConversions.mapAsJavaMap(configOverrides));
 
@@ -138,7 +138,6 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
       //scalastyle:off
       println(PNodeServer.logo);
 
-      ZKPathConfig.initZKPath(clusterClient.curator)
       PNodeServerContext.bindJsonDataLog(_getJsonDataLog())
       if(_isUpToDate() == false){
         _updataLocalData()
