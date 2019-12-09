@@ -246,17 +246,16 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
         public Value nodeGetProperty(long nodeId, int propertyKeyId)
         {
-            if (this.isPreventNeo4jPropStore()) {
-                return this.customPropWrTx.getPropertyValue(nodeId, getPropertyKeyName(propertyKeyId)).get();
-            }
-            return NO_VALUE;
+            return this.nodeGetProperty(nodeId, getPropertyKeyName(propertyKeyId));
         }
 
         public Value nodeGetProperty(long nodeId, String propertyKey)
         {
             if (this.isPreventNeo4jPropStore()) {
-                Value v = this.customPropWrTx.getPropertyValue(nodeId, propertyKey).get();
-                return v.isNaN()? NO_VALUE: v;
+                Option<Value> rs = this.customPropWrTx.getPropertyValue(nodeId, propertyKey);
+                if (rs.isDefined()) {
+                    return rs.get();
+                }
             }
             return NO_VALUE;
         }

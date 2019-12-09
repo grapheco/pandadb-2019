@@ -18,9 +18,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * @Modified By:
   */
 
-
-// support reselect leader. (perhaps in the addCurator func.)
-// modify this class to support local address and port.
 class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
 
   val zkServerAddress = zkString
@@ -28,7 +25,6 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
 
-  // private, avoid outter write
   private var currentState: ClusterState = _
 
   var listenerList: List[ZKClusterEventListener] = List[ZKClusterEventListener]()
@@ -42,7 +38,6 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
   // add listener, to monitor zk nodes change
   addCuratorListener()
 
-  // silly while wait? what an ugly implemention!
   override def getWriteMasterNode(): NodeAddress = {
     var leaderAddress = curator.getChildren().forPath(ZKPathConfig.leaderNodePath)
 
@@ -67,7 +62,6 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
   override def getAllNodes(): Iterable[NodeAddress] = {
     availableNodes
   }
-
 
   override def getCurrentState(): ClusterState = {
     currentState
@@ -110,12 +104,10 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
     }
   }
 
-
   def addCuratorListener(): Unit = {
 
     val nodesChildrenCache = new PathChildrenCache(curator, ZKPathConfig.ordinaryNodesPath, true)
     nodesChildrenCache.start(StartMode.BUILD_INITIAL_CACHE)
-
     nodesChildrenCache.getListenable().addListener(
       new PathChildrenCacheListener {
         override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
@@ -125,9 +117,7 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
               case PathChildrenCacheEvent.Type.CHILD_ADDED =>
                 val nodeAddress = NodeAddress.fromString(pathChildrenCacheEvent.getData.getPath.split(s"/").last)
                 availableNodes += nodeAddress
-                // is this sentence useful?
                 for (listener <- listenerList) listener.onEvent(NodeConnected(nodeAddress));
-
               case PathChildrenCacheEvent.Type.CHILD_REMOVED =>
                 val nodeAddress = NodeAddress.fromString(pathChildrenCacheEvent.getData.getPath.split(s"/").last)
                 availableNodes -= nodeAddress

@@ -7,15 +7,16 @@ import java.util.concurrent.CountDownLatch
 import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
 import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
 import cn.pandadb.externalprops.CustomPropertyNodeStoreHolderFactory
-import cn.pandadb.network.{ClusterClient, NodeAddress, ZKPathConfig, ZookeeperBasedClusterClient}
+import cn.pandadb.network.{NodeAddress, ZKPathConfig, ZookeeperBasedClusterClient}
 import cn.pandadb.server.internode.InterNodeRequestHandler
 import cn.pandadb.server.neo4j.Neo4jRequestHandler
 import cn.pandadb.server.rpc.{NettyRpcServer, PNodeRpcClient}
 import cn.pandadb.util.Ctrl._
-import cn.pandadb.util.{ContextMap, Logging}
+import cn.pandadb.util.Logging
 import org.apache.commons.io.IOUtils
 import org.apache.curator.framework.recipes.leader.{LeaderSelector, LeaderSelectorListenerAdapter}
-import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
+import org.apache.curator.retry.ExponentialBackoffRetry
 import org.neo4j.driver.GraphDatabase
 import org.neo4j.kernel.impl.blob.{BlobStorageServiceFactory, DefaultBlobFunctionsServiceFactory}
 import org.neo4j.server.CommunityBootstrapper
@@ -42,58 +43,6 @@ object PNodeServer extends Logging {
   }
 }
 
-object PNodeServerContext extends ContextMap {
-
-  def bindStoreDir(storeDir: File): Unit = {
-    GlobalContext.put[File]("pnode.store.dir", storeDir)
-  }
-
-  def bindRpcPort(port: Int): Unit = {
-    this.put("pnode.rpc.port", port)
-  }
-
-  def bindLocalIpAddress(address: String): Unit = {
-    this.put("pnode.local.ipAddress", address)
-  }
-
-  def bindJsonDataLog(jsonDataLog: JsonDataLog): Unit = {
-    this.put[JsonDataLog]("pnode.dataLog", jsonDataLog)
-  }
-
-  def bindMasterRole(masterRole: MasterRole): Unit =
-    this.put[MasterRole](masterRole)
-
-  def bindClusterClient(client: ClusterClient): Unit =
-    this.put[ClusterClient](client)
-
-  def getMasterRole: MasterRole = this.get[MasterRole]
-
-  def getClusterClient: ClusterClient = this.get[ClusterClient]
-
-  def getStoreDir: File = GlobalContext.get[File]("pnode.store.dir")
-
-  def getJsonDataLog: JsonDataLog = this.get[JsonDataLog]("pnode.dataLog")
-
-  def getRpcPort: Int = this.get[Int]("pnode.rpc.port")
-
-  def getLocalIpAddress: String = this.get[String]("pnode.local.ipAddress")
-
-  def bindLeaderNode(boolean: Boolean): Unit =
-    this.put("is.leader.node", boolean)
-
-  def isLeaderNode: Boolean = this.getOption("is.leader.node").getOrElse(false)
-}
-
-
-/*
-new mechanism after discussion in 12/03
-1. zk: keep version and (lastFreshNode)masterNode address,
-    only leader can write this info to zk.
-    leader check the zk, if a version num not found, init it.
-2. server: wait for available(lastFreshNode) node back.
-3. how to get log from leader (how to use RPC)
-4. if a node is not fresh, it shouldn't join in selectLeader.
- */
 class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map())
   extends LeaderSelectorListenerAdapter with Logging {
   //TODO: we will replace neo4jServer with InterNodeRpcServer someday!!
@@ -104,14 +53,18 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   val props = new Properties()
   props.load(new FileInputStream(configFile))
   val zkString: String = props.getProperty("zkServerAddress")
+  private val _tempCurator = CuratorFrameworkFactory.newClient(zkString,
+    new ExponentialBackoffRetry(1000, 3))
+  _tempCurator.start()
+  ZKPathConfig.initZKPath(_tempCurator)
+  _tempCurator.close()
   val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(zkString)
   val client = clusterClient.curator
   var masterRole: MasterRole = null
   PNodeServerContext.bindLocalIpAddress(props.getProperty("localIpAddress"))
 
-  // host?
   PNodeServerContext.bindRpcPort(props.getProperty("rpcPort").toInt)
-  val serverKernel = new NettyRpcServer("0.0.0.0", PNodeServerContext.getRpcPort, "inter-node-server");
+  val serverKernel = new NettyRpcServer("0.0.0.0", PNodeServerContext.getRpcPort, "PNodeRpc-service");
   serverKernel.accept(Neo4jRequestHandler());
   serverKernel.accept(InterNodeRequestHandler());
   PNodeServerContext.bindStoreDir(dbDir)
@@ -125,12 +78,6 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
 
     PNodeServerContext.bindClusterClient(clusterClient);
 
-//    new Thread() {
-//      override def run() {
-//        neo4jServer.start(dbDir, Optional.of(configFile),
-//          JavaConversions.mapAsJavaMap(configOverrides));
-//      }
-//    }.start()
     neo4jServer.start(dbDir, Optional.of(configFile),
       JavaConversions.mapAsJavaMap(configOverrides));
 
@@ -138,7 +85,6 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
       //scalastyle:off
       println(PNodeServer.logo);
 
-      ZKPathConfig.initZKPath(clusterClient.curator)
       PNodeServerContext.bindJsonDataLog(_getJsonDataLog())
       if(_isUpToDate() == false){
         _updataLocalData()
@@ -158,7 +104,6 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
     PNodeServerContext.bindLeaderNode(true);
 
-    // here to init master role
     new ZKServiceRegistry(zkString).registerAsLeader(props.getProperty("localNodeAddress"))
     masterRole = new MasterRole(clusterClient, NodeAddress.fromString(props.getProperty("localNodeAddress")))
     PNodeServerContext.bindMasterRole(masterRole)
@@ -212,6 +157,5 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
     }
     new JsonDataLog(logFile)
   }
-
 
 }

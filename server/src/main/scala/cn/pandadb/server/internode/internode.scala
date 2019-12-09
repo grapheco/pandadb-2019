@@ -14,11 +14,9 @@ case class InterNodeRequestHandler() extends RequestHandler {
   }
 }
 
-
 case class GetLogDetailsRequest(sinceVersion: Int) extends InternalRpcRequest {
 
 }
-
 
 case class GetLogDetailsResponse(logs: Array[DataLogDetail]) extends InternalRpcResponse {
 
