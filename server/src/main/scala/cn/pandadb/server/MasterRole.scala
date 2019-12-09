@@ -6,6 +6,9 @@ import org.apache.zookeeper.{CreateMode, ZooDefs}
 import org.neo4j.driver._
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * @Author: Airzihao
@@ -63,27 +66,31 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   private def distributeWriteStatement(cypher: String): Unit = {
 
     var tempResult: StatementResult = null
+    var futureTasks = new ListBuffer[Future[Boolean]]
     for (nodeAddress <- allNodes) {
       if (nodeAddress.getAsStr() != masterNodeAddress) {
-        new Thread() {
-          override def run() = {
-            try {
-              val uri = s"bolt://" + nodeAddress.getAsStr()
-              val driver = GraphDatabase.driver(uri,
-                AuthTokens.basic("", ""))
-              val session = driver.session()
-              val tx = session.beginTransaction()
-              tempResult = tx.run(cypher)
-              tx.success()
-              session.close()
-            } catch {
-              case e: Exception =>
-                throw new Exception("Write-cluster operation failed.")
-            }
+        val future = Future[Boolean] {
+          try {
+            val uri = s"bolt://" + nodeAddress.getAsStr()
+            val driver = GraphDatabase.driver(uri,
+              AuthTokens.basic("", ""))
+            val session = driver.session()
+            val tx = session.beginTransaction()
+            tempResult = tx.run(cypher)
+            tx.success()
+            tx.close()
+            session.close()
+            true
+          } catch {
+            case e: Exception =>
+              throw new Exception("Write-cluster operation failed.")
+              false
           }
-        }.start()
+        }
+        futureTasks.append(future)
       }
     }
+    futureTasks.foreach(future => Await.result(future, 3.seconds))
   }
 
   // TODO finetune the state change mechanism
