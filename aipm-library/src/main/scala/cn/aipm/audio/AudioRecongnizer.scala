@@ -4,7 +4,6 @@ import cn.pandadb.cypherplus.PropertyExtractor
 import cn.aipm.service.ServiceInitializer
 import cn.pandadb.blob.Blob
 
-
 class AudioRecongnizer extends PropertyExtractor with ServiceInitializer {
 
   override def declareProperties() = Map("content" -> classOf[String])

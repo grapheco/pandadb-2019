@@ -29,7 +29,6 @@ class NaiveLockTest {
   val clusterClient = new ZookeeperBasedClusterClient(zkString)
   val master = new MasterRole(clusterClient, NodeAddress.fromString(zkConstants.localNodeAddress))
 
-
   val register = new ZKServiceRegistry(zkString)
 
   val nodeList = List("10.0.88.11:1111", "10.0.88.22:2222", "10.0.88.33:3333", "10.0.88.44:4444")

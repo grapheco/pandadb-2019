@@ -5,15 +5,9 @@ import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.{CreateMode, ZooDefs}
 
-
 trait ServiceRegistry {
 
-  //service name: ordinaryNode, leader
   def registry(servicePath: String, localNodeAddress: String)
-  // TODO: new join node func implement
-  //  def getLog()
-  //  def getVersion()
-
 }
 
 // TODO: Reconstruct this class, localNodeAddress as a parameter.
@@ -64,7 +58,6 @@ class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
         .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
         .forPath(nodeAddress)
     }
-
   }
 
   def registerAsOrdinaryNode(nodeAddress: String): Unit = {
@@ -77,10 +70,9 @@ class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
     registry(ZKPathConfig.ordinaryNodesPath, localNodeAddress)
   }
 
-
   def registerAsLeader(nodeAddress: NodeAddress): Unit = {
     localNodeAddress = nodeAddress.getAsStr()
-    registry(ZKPathConfig.leaderNodePath, localNodeAddress)
+    registerAsLeader(localNodeAddress)
   }
 
   def registerAsLeader(nodeAddress: String): Unit = {
@@ -98,11 +90,7 @@ class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
   }
 
   def unRegisterOrdinaryNode(node: NodeAddress): Unit = {
-    val nodeAddress = node.getAsStr()
-    val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + nodeAddress
-    if(curator.checkExists().forPath(ordinaryNodePath) != null) {
-      curator.delete().forPath(ordinaryNodePath)
-    }
+    unRegisterOrdinaryNode(node.getAsStr())
   }
 
   def unRegisterLeaderNode(node: String): Unit = {
@@ -114,11 +102,6 @@ class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
   }
 
   def unRegisterLeaderNode(node: NodeAddress): Unit = {
-    val nodeAddress = node.getAsStr()
-    val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + nodeAddress
-    if(curator.checkExists().forPath(leaderNodePath) != null) {
-      curator.delete().forPath(leaderNodePath)
-    }
+    unRegisterLeaderNode(node.getAsStr())
   }
-
 }

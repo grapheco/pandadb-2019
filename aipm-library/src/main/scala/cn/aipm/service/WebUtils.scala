@@ -38,7 +38,6 @@ object WebUtils {
     resStr
   }
 
-
   def doPost(reqUrl: String, strContents: Map[String, String] = Map(), fileContents: Map[String, File] = Map(),
              inStreamContents: Map[String, InputStream] = Map()): String = {
     var resStr = ""
