@@ -50,7 +50,6 @@ class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeeperBa
 
 class NaiveReadLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeeperBasedClusterClient) extends NaiveLock {
 
-//  val nodeList = allNodes.toList
   val register = new ZKServiceRegistry(clusterClient.zkServerAddress)
   var masterNodeAddress: NodeAddress = _
 

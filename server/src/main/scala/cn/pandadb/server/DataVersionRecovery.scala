@@ -37,6 +37,7 @@ class LocalDataVersionRecovery(args: DataVersionRecoveryArgs) {
         _tx.success()
         _tx.close()
       })
+      session.close()
     }
   }
 }
