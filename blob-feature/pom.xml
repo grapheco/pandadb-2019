@@ -32,6 +32,11 @@
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
+            <artifactId>external-properties</artifactId>
+            <version>${pandadb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
             <artifactId>neo4j-hacking</artifactId>
             <version>${pandadb.version}</version>
             <!--<scope>runtime</scope>-->
