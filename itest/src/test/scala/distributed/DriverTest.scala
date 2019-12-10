@@ -16,16 +16,28 @@ class DriverTest {
   props.load(new FileInputStream(configFile))
   val pandaString = s"panda://" + props.getProperty("zkServerAddress") + s"/db"
 
-  //test CRUD
+
+  @Test
+  def test0() {
+    val driver = GraphDatabase.driver(pandaString,
+      AuthTokens.basic("", ""));
+    var results1 = driver.session().run("create (n:person{name:'bluejoe'})");
+    val results = driver.session().run("match (n:person) return n");
+
+    val result = results.next();
+    Assert.assertEquals("bluejoe", result.get("n").asNode().get("name").asString());
+    val results2 = driver.session().run("match (n:person) delete n");
+    driver.close();
+  }
   @Test
   def test1() {
     val driver = GraphDatabase.driver(pandaString,
       AuthTokens.basic("", ""));
     val session = driver.session();
     var results1 = session.run("create (n:person{name:'bluejoe'})");
-    val results = session.run("match (n:person) return n.name");
+    val results = session.run("match (n:person) return n");
     val result = results.next();
-    Assert.assertEquals("bluejoe", result.get("n.name").asString());
+    Assert.assertEquals("bluejoe", result.get("n").asNode().get("name").asString());
     val results2 = session.run("match (n:person) delete n");
     session.close();
     driver.close();
