@@ -23,5 +23,40 @@
             <artifactId>server</artifactId>
             <version>${pandadb.version}</version>
         </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>aipm-library</artifactId>
+            <version>${pandadb.version}</version>
+        </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                        <mainClass>cn.pandadb.tool.PNodeServerStarter</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <!-- mvn package | mvn install -->
+                <!-- mvn package assembly:single -->
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
