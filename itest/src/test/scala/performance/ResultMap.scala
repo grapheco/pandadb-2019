@@ -2,12 +2,14 @@ package performance
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
+
 /**
   * @Author: Airzihao
   * @Description:
   * @Date: Created at 16:33 2019/12/11
   * @Modified By:
   */
+
 class ResultMap(cypher: String, timeList: Array[Long]) {
 
   private val _resultMap = mutable.Map[String, Any]()

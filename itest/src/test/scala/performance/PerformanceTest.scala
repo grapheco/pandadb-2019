@@ -9,8 +9,6 @@ import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase}
 
 import scala.io.Source
 
-
-
 /**
   * @Author: Airzihao
   * @Description:
@@ -79,8 +77,6 @@ class Neo4jPerformanceTest extends PerformanceTest {
 
   val driver = GraphDatabase.driver(props.getProperty("boltURI"),
     AuthTokens.basic("neo4j", "bigdata"))
-
-
 
   @Test
   def test1(): Unit = {
