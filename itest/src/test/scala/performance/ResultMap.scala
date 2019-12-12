@@ -20,17 +20,26 @@ class ResultMap(cypher: String, timeList: Array[Long]) {
   };
 
   def getResultMap: java.util.Map[String, Any] = {
-    this._putCypher()
-    this._putSessionCreationTime
-    this._putTxCreationTime
-    this._putExecutionTime
-    this._putTxCloseTime
-    this._putSessionCloseTime
-    this._putRespTime
+    this._putCypher
+    if (timeList.sum == -6) {
+      _resultMap += ("sessionCreation" -> -1)
+      _resultMap += ("txCreation" -> -1)
+      _resultMap += ("executionTime" -> -1)
+      _resultMap += ("txClose" -> -1)
+      _resultMap += ("sessionClose" -> -1)
+      _resultMap += ("totalRespTime" -> -1)
+    } else {
+      this._putSessionCreationTime
+      this._putTxCreationTime
+      this._putExecutionTime
+      this._putTxCloseTime
+      this._putSessionCloseTime
+      this._putRespTime
+    }
     _resultMap.toMap.asJava
   }
 
-  private def _putCypher(): Unit = {
+  private def _putCypher: Unit = {
     this.put("cypher", cypher)
   }
   private def _putSessionCreationTime: Unit = {
