@@ -132,13 +132,11 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
         if (nodeStore.isDefined) {
           source match {
             case x: AllNodesScanPipe =>
-              logger.debug(s"Push predicate to AllNodesScanPipe")
-              x.predicatePushDown(nodeStore.get, predicateExpression)
-              pipe.bypass()
+              logger.debug(s"Push predicate ${predicateExpression} to AllNodesScanPipe")
+              x.predicatePushDown(nodeStore.get, predicateExpression, pipe)
             case x: NodeByLabelScanPipe =>
-              logger.debug(s"Push predicate to NodeByLabelScanPipe")
-              x.predicatePushDown(nodeStore.get, predicateExpression)
-              pipe.bypass()
+              logger.debug(s"Push predicate ${predicateExpression} to AllNodesScanPipe")
+              x.predicatePushDown(nodeStore.get, predicateExpression, pipe)
             case _ =>
           }
         }

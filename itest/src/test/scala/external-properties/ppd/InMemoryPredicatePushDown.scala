@@ -1,4 +1,4 @@
-package PredicatePushDown
+package InMemoryPredicatePushDown
 
 import java.io.File
 import cn.pandadb.server.PNodeServer
