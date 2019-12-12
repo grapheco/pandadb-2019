@@ -186,7 +186,10 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     val propName = SolrUtil.labelName
     filterNodes(NFContainsWith(propName, label))
   }
-
+  def getNodeBylabelAndfilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
+    val propName = SolrUtil.labelName
+    filterNodes(NFAnd(NFContainsWith(propName, label), expr))
+  }
   override def getNodeById(id: Long): Option[NodeWithProperties] = {
     val propName = SolrUtil.idName
     filterNodes(NFEquals(propName, Values.of(id))).headOption

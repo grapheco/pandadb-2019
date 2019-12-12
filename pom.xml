@@ -296,27 +296,34 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-                <!-- mvn package | mvn install -->
-                <!-- mvn package assembly:single -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.2.1</version>
                 <executions>
                     <execution>
                         <id>make-assembly</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>assemble</goal>
                         </goals>
                     </execution>
                 </executions>
+
+                <configuration>
+
+                    <programs>
+                        <program>
+                            <!--指定主类，脚本名。会生成shell/bat两种类型,也可用platforms指定运行平台-->
+                            <mainClass>cn.pandadb.tool.PNodeServerStarter</mainClass>
+                            <!-- 生成的脚本文件的名称，比如start.sh,你也可以根据你的需要命名成其他名字 -->
+                            <name>pandadb-start</name>
+                        </program>
+                    </programs>
+                </configuration>
             </plugin>
+
         </plugins>
     </build>
 </project>

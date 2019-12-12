@@ -19,6 +19,8 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted
 
+import cn.pandadb.externalprops.CustomPropertyNodeStore
+import cn.pandadb.server.GlobalContext
 import org.neo4j.cypher.internal.ir.v3_5.VarPatternLength
 import org.neo4j.cypher.internal.planner.v3_5.spi.TokenContext
 import org.neo4j.cypher.internal.runtime.ProcedureCallMode
@@ -48,6 +50,8 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
                                   rewriteAstExpression: ASTExpression => ASTExpression,
                                   tokenContext: TokenContext)
                                  (implicit semanticTable: SemanticTable) extends PipeBuilder with Logging {
+
+  val nodeStore: Option[CustomPropertyNodeStore] = GlobalContext.getOption(classOf[CustomPropertyNodeStore].getName)
 
   private def getBuildExpression(id: Id) = rewriteAstExpression andThen
     ((e: ASTExpression) => expressionConverters.toCommandExpression(id, e)) andThen
@@ -125,12 +129,16 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
           if (predicate.exprs.size == 1) buildExpression(predicate.exprs.head) else buildExpression(predicate)
         val pipe = FilterPipe(source, predicateExpression)(id = id)
         //NOTE: predicate push down
-        source match {
-          case x: AllNodesScanPipe =>
-            logger.debug(s"Push predicate to AllNodesScanPipe")
-            x.predicatePushDown(predicateExpression)
-            pipe.bypass()
-          case _ =>
+        if (nodeStore.isDefined) {
+          source match {
+            case x: AllNodesScanPipe =>
+              logger.debug(s"Push predicate ${predicateExpression} to AllNodesScanPipe")
+              x.predicatePushDown(nodeStore.get, predicateExpression, pipe)
+            case x: NodeByLabelScanPipe =>
+              logger.debug(s"Push predicate ${predicateExpression} to NodeByLabelScanPipe")
+              x.predicatePushDown(nodeStore.get, predicateExpression, pipe)
+            case _ =>
+          }
         }
         pipe
 
