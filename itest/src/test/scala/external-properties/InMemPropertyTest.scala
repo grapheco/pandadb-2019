@@ -17,7 +17,7 @@ import org.neo4j.values.storable.Values
   //test CRUD
 
 
-class ExternalPropertyTest {
+class InMemPropertyTest {
 
 
   //test node add 、delete,and property add and remove
