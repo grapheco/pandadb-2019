@@ -21,6 +21,8 @@ trait CustomPropertyNodeReader {
 
   def getNodesByLabel(label: String): Iterable[NodeWithProperties];
 
+  def getNodeBylabelAndfilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties];
+
   def getNodeById(id: Long): Option[NodeWithProperties];
 }
 

@@ -3,11 +3,11 @@ package cn.pandadb.externalprops
 import cn.pandadb.context.InstanceBoundServiceContext
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.values.AnyValue
-import org.neo4j.values.storable.Value
-import org.neo4j.values.storable.NumberValue
+import org.neo4j.values.storable.{NumberValue, StringValue, Value}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.util.matching.Regex
 
 /**
   * Created by bluejoe on 2019/10/7.
@@ -49,6 +49,20 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
       case NFEquals(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() ==
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
+      case NFContainsWith(propName, text) =>
+        nodes.values.filter(x => x.mutable().props.get(propName).map(_.asInstanceOf[StringValue].stringValue().contains(text)
+        ).getOrElse(false))
+      case NFStartsWith(propName, text) =>
+        nodes.values.filter(x => x.mutable().props.get(propName).map(_.asInstanceOf[StringValue].stringValue().startsWith(text)
+        ).getOrElse(false))
+
+      case NFEndsWith(propName, text) =>
+        nodes.values.filter(x => x.mutable().props.get(propName).map(_.asInstanceOf[StringValue].stringValue().endsWith(text)
+        ).getOrElse(false))
+
+
+
+
 
     }
   }
@@ -88,7 +102,10 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
 
 
   }
-
+  def getNodeBylabelAndfilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
+    val propName = SolrUtil.labelName
+    filterNodes(NFAnd(NFContainsWith(propName, label), expr))
+  }
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val res = mutable.ArrayBuffer[NodeWithProperties]()
     nodes.map(n => {
