@@ -135,7 +135,7 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
               logger.debug(s"Push predicate ${predicateExpression} to AllNodesScanPipe")
               x.predicatePushDown(nodeStore.get, predicateExpression, pipe)
             case x: NodeByLabelScanPipe =>
-              logger.debug(s"Push predicate ${predicateExpression} to AllNodesScanPipe")
+              logger.debug(s"Push predicate ${predicateExpression} to NodeByLabelScanPipe")
               x.predicatePushDown(nodeStore.get, predicateExpression, pipe)
             case _ =>
           }

@@ -82,4 +82,20 @@ class PredicatePushDown extends CreateQueryTestBase1 {
     assert(id3 == -1)
   }
 
+  @Test
+  def testLableAndEndsWith(): Unit = {
+    // create one node
+    val query = "CREATE (n:Person {age: 10, name: 'bob'})"
+    db.execute(query)
+
+    val query3 = "match (n:Person) where n.name ENDS WITH 'a' return id(n)"
+    val rs3 = db.execute(query3)
+    var id3: Long = -1
+    if (rs3.hasNext) {
+      val row = rs3.next()
+      id3 = row.get("id(n)").toString.toLong
+    }
+    assert(id3 == -1)
+  }
+
 }
