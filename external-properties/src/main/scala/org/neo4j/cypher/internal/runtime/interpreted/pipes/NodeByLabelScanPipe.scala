@@ -21,6 +21,7 @@ package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
+import org.neo4j.values.virtual.NodeValue
 
 case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
                               (val id: Id = Id.INVALID_ID) extends PPDPipe  {
@@ -29,8 +30,14 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
 
     label.getOptId(state.query) match {
       case Some(labelId) =>
-        val nodes = state.query.getNodesByLabel(labelId.id)
         val baseContext = state.newExecutionContext(executionContextFactory)
+        var nodes: Iterator[NodeValue] = null
+        if (_optNodeStore.isDefined && _optFatherPipe.isDefined) {
+          nodes = fetchNodes(state, baseContext, label.name)
+        }
+        if (nodes == null) {
+          nodes = state.query.getNodesByLabel(labelId.id)
+        }
         nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
       case None =>
         Iterator.empty

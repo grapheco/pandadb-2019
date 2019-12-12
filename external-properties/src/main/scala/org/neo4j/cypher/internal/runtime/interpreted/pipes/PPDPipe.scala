@@ -22,57 +22,52 @@ trait PPDPipe extends Pipe{
 
   }
 
-  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Iterator[NodeValue] = {
+  def fetchNodes(state: QueryState, baseContext: ExecutionContext, labelName: String = null): Iterator[NodeValue] = {
     _optFatherPipe.get.bypass(true)
-    _optPredicate.get match {
+    if ( _optPredicate.isDefined ) {
+      val expr: NFPredicate = _optPredicate.get match {
         case GreaterThan(a: Property, b: ParameterExpression) =>
-          val value = b.apply(baseContext, state)
-          _optNodeStore.get.filterNodes(NFGreaterThan(a.propertyKey.name, value)).
-            map(_.toNeo4jNodeValue()).iterator
-
+          NFGreaterThan(a.propertyKey.name, b.apply(baseContext, state))
         case GreaterThanOrEqual(a: Property, b: ParameterExpression) =>
-          val value = b.apply(baseContext, state)
-          _optNodeStore.get.filterNodes(NFGreaterThanOrEqual(a.propertyKey.name, value)).
-            map(_.toNeo4jNodeValue()).iterator
-
+          NFGreaterThanOrEqual(a.propertyKey.name, b.apply(baseContext, state))
         case LessThan(a: Property, b: ParameterExpression) =>
-          val value = b.apply(baseContext, state)
-          _optNodeStore.get.filterNodes(NFLessThan(a.propertyKey.name, value)).
-            map(_.toNeo4jNodeValue()).iterator
-
+          NFLessThan(a.propertyKey.name, b.apply(baseContext, state))
         case LessThanOrEqual(a: Property, b: ParameterExpression) =>
-          val value = b.apply(baseContext, state)
-          _optNodeStore.get.filterNodes(NFLessThanOrEqual(a.propertyKey.name, value)).
-            map(_.toNeo4jNodeValue()).iterator
-
+          NFLessThanOrEqual(a.propertyKey.name, b.apply(baseContext, state))
         case Equals(a: Property, b: ParameterExpression) =>
-          val value = b.apply(baseContext, state)
-          _optNodeStore.get.filterNodes(NFEquals(a.propertyKey.name, value)).
-            map(_.toNeo4jNodeValue()).iterator
-
+          NFEquals(a.propertyKey.name, b.apply(baseContext, state))
         case Contains(a: Property, b: ParameterExpression) =>
-          val value = b.apply(baseContext, state)
-          _optNodeStore.get.filterNodes(NFContainsWith(a.propertyKey.name, value.asInstanceOf[String])).
-            map(_.toNeo4jNodeValue()).iterator
-
+          NFContainsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
         case StartsWith(a: Property, b: ParameterExpression) =>
-          val value = b.apply(baseContext, state)
-          _optNodeStore.get.filterNodes(NFStartsWith(a.propertyKey.name, value.asInstanceOf[StringValue].stringValue())).
-            map(_.toNeo4jNodeValue()).iterator
-
+          NFStartsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
         case EndsWith(a: Property, b: ParameterExpression) =>
-          val value = b.apply(baseContext, state)
-          _optNodeStore.get.filterNodes(NFEndsWith(a.propertyKey.name, value.asInstanceOf[StringValue].stringValue())).
-            map(_.toNeo4jNodeValue()).iterator
-
+          NFEndsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
         case RegularExpression(a: Property, b: ParameterExpression) =>
-          val value = b.apply(baseContext, state)
-          _optNodeStore.get.filterNodes(NFRegexp(a.propertyKey.name, value.asInstanceOf[StringValue].stringValue())).
-            map(_.toNeo4jNodeValue()).iterator
-
+          NFRegexp(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
         case _ =>
           _optFatherPipe.get.bypass(false)
           null
       }
+
+      if (expr != null) {
+        if (labelName != null) {
+          _optNodeStore.get.getNodeBylabelAndfilter(labelName, expr).map(_.toNeo4jNodeValue()).iterator
+        }
+        else {
+          _optNodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()).iterator
+        }
+      }
+      else {
+        if (labelName != null) {
+          _optNodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()).iterator
+        }
+        else {
+          null
+        }
+      }
+    }
+    else {
+      null
+    }
   }
 }
