@@ -9,23 +9,25 @@ import org.neo4j.values.virtual.NodeValue
 
 trait PPDPipe extends Pipe{
 
-  var _optNodeStore: Option[CustomPropertyNodeStore] = None
+  var nodeStore: Option[CustomPropertyNodeStore] = None
 
-  var _optPredicate: Option[Expression] = None
+  var fatherPipe: Option[FilterPipe] = None
 
-  var _optFatherPipe: Option[FilterPipe] = None
+  var predicate: Option[Expression] = None
 
-  def predicatePushDown(nodeStore: CustomPropertyNodeStore, predicate: Expression, fatherPipe: FilterPipe): Unit = {
-    _optPredicate = Some(predicate)
-    _optNodeStore = Some(nodeStore)
-    _optFatherPipe = Some(fatherPipe)
+  var labelName: String = null
 
+
+  def predicatePushDown(nodeStore: CustomPropertyNodeStore, fatherPipe: FilterPipe, predicate: Expression, label: String = null): Unit = {
+    this.nodeStore = Some(nodeStore)
+    this.fatherPipe = Some(fatherPipe)
+    this.predicate = Some(predicate)
+    this.labelName = label
   }
 
-  def fetchNodes(state: QueryState, baseContext: ExecutionContext, labelName: String = null): Iterator[NodeValue] = {
-    _optFatherPipe.get.bypass(true)
-    if ( _optPredicate.isDefined ) {
-      val expr: NFPredicate = _optPredicate.get match {
+  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Iterator[NodeValue] = {
+    if ( predicate.isDefined ) {
+      val expr: NFPredicate = predicate.get match {
         case GreaterThan(a: Property, b: ParameterExpression) =>
           NFGreaterThan(a.propertyKey.name, b.apply(baseContext, state))
         case GreaterThanOrEqual(a: Property, b: ParameterExpression) =>
@@ -45,21 +47,21 @@ trait PPDPipe extends Pipe{
         case RegularExpression(a: Property, b: ParameterExpression) =>
           NFRegexp(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
         case _ =>
-          _optFatherPipe.get.bypass(false)
           null
       }
 
       if (expr != null) {
+        fatherPipe.get.bypass()
         if (labelName != null) {
-          _optNodeStore.get.getNodeBylabelAndfilter(labelName, expr).map(_.toNeo4jNodeValue()).iterator
+          nodeStore.get.getNodeBylabelAndfilter(labelName, expr).map(_.toNeo4jNodeValue()).iterator
         }
         else {
-          _optNodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()).iterator
+          nodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()).iterator
         }
       }
       else {
         if (labelName != null) {
-          _optNodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()).iterator
+          nodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()).iterator
         }
         else {
           null
