@@ -22,6 +22,37 @@ trait QueryCase {
   }
 
   @Test
+  def testLessThan(): Unit = {
+    // create one node
+    val query = "CREATE (n:Person {age: 10, name: 'bob'})"
+    db.execute(query)
+    val query2 = "match (n) where 18>n.age return id(n)"
+    val rs2 = db.execute(query2)
+    var id2: Long = -1
+    if (rs2.hasNext) {
+      val row = rs2.next()
+      id2 = row.get("id(n)").toString.toLong
+    }
+    assert(id2 != -1)
+  }
+
+  @Test
+  def testGreaterThan(): Unit = {
+    // create one node
+    val query = "CREATE (n:Person {age: 10, name: 'bob'})"
+    db.execute(query)
+
+    val query3 = "match (n) where 18<n.age return id(n)"
+    val rs3 = db.execute(query3)
+    var id3: Long = -1
+    if (rs3.hasNext) {
+      val row = rs3.next()
+      id3 = row.get("id(n)").toString.toLong
+    }
+    assert(id3 == -1)
+  }
+
+  @Test
   def testEqual(): Unit = {
     // create one node
     val query = "CREATE (n:Person {age: 10, name: 'bob'})"
