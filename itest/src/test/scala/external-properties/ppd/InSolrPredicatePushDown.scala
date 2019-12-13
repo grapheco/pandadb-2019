@@ -4,11 +4,10 @@ import java.io.{File, FileInputStream}
 import java.util.Properties
 
 import cn.pandadb.server.PNodeServer
-import org.junit.{After, Assert, Before, Test}
+import org.junit.Before
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.graphdb.{GraphDatabaseService, Result}
 import org.neo4j.io.fs.FileUtils
-import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory, InSolrPropertyNodeStore, InSolrPropertyNodeStoreFactory}
+import cn.pandadb.externalprops.{CustomPropertyNodeStore, InSolrPropertyNodeStore}
 import cn.pandadb.server.GlobalContext
 
 class InSolrPredicatePushDown extends QueryCase {
