@@ -80,7 +80,7 @@ trait QueryCase {
   }
 
   @Test
-  def testJoin(): Unit = {
+  def join(): Unit = {
     testQuery("Match p=()--() return count(p)", "count(p)")
   }
 
