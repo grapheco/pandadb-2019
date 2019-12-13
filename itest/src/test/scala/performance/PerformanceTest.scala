@@ -2,11 +2,16 @@ package performance
 
 import java.io.{File, FileInputStream, PrintWriter}
 import java.util.Properties
+import java.util.concurrent.TimeoutException
 
 import com.google.gson.GsonBuilder
 import org.junit.Test
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase}
 
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.Source
 
 /**
@@ -15,11 +20,16 @@ import scala.io.Source
   * @Date: Created at 11:40 2019/12/11
   * @Modified By:
   */
-trait PerformanceTest {
+abstract class PerformanceTest {
 
   val dir = new File("./itest/performance")
   if (!dir.exists()) {
     dir.mkdirs()
+  }
+
+  val outputDir = new File(s"${dir}/output")
+  if (!outputDir.exists()) {
+    outputDir.mkdirs()
   }
 
   val gson = new GsonBuilder().enableComplexMapKeySerialization().create()
@@ -31,7 +41,7 @@ trait PerformanceTest {
   }
 
   def getRecordFile(fileName: String): File = {
-    val recordFile = new File(s"${dir}/${fileName}")
+    val recordFile = new File(s"${outputDir}/${fileName}")
     if(!recordFile.exists()) {
       recordFile.createNewFile()
     }
@@ -45,8 +55,7 @@ trait PerformanceTest {
     lineIterator
   }
 
-  def executeCypher[T <: Driver](cypher: String, driver: T): Array[Long] = {
-
+  def executeCypher[T <: Driver](cypherList: List[String], driver: T): Array[Long] = {
     val _time0 = System.currentTimeMillis()
 
     val session = driver.session()
@@ -55,7 +64,7 @@ trait PerformanceTest {
     val tx = session.beginTransaction()
     val _time2 = System.currentTimeMillis()
 
-    tx.run(cypher)
+    cypherList.foreach(cypher => tx.run(cypher))
     val _time3 = System.currentTimeMillis()
 
     tx.success()
@@ -64,8 +73,48 @@ trait PerformanceTest {
 
     session.close()
     val _time5 = System.currentTimeMillis()
-
     Array(_time0, _time1, _time2, _time3, _time4, _time5)
+  }
+
+  def fullTest(recordFile: File, recorder: PrintWriter, cmdIter: Iterator[String], driver: Driver): Unit = {
+    val cmdArray = cmdIter.toArray
+    val _startTime = System.currentTimeMillis()
+    val resultLog = new ListBuffer[Future[ResultMap]]
+
+    cmdArray.foreach(cypher => {
+      val logItem = Future[ResultMap] {
+        val resultMap = new ResultMap(cypher, executeCypher(List(cypher), driver))
+        resultMap
+      }
+      resultLog.append(logItem)
+    })
+
+    var _i = 0
+    var _successed = 0
+    var _failed = 0
+    val sum = resultLog.length
+    resultLog.foreach(logItem => {
+      val resultMap: ResultMap = try {
+        _i = _i + 1
+        // scalastyle:off
+        println(s"Waiting for the ${_i}th of ${sum} result, ${_successed} successed, ${_failed} timeout.")
+        val resultMap = Await.result(logItem, 300.seconds)
+        _successed += 1
+        resultMap
+      } catch {
+        case timeout: TimeoutException =>
+          _failed += 1
+          val _timeOutArray = Array(-1.toLong, -1.toLong, -1.toLong, -1.toLong, -1.toLong, -1.toLong)
+          val cypher = cmdArray(_i-1)
+          new ResultMap(cypher, _timeOutArray)
+      }
+      val line = gson.toJson(resultMap.getResultMap) + "\n"
+      recorder.write(line)
+      recorder.flush()
+    })
+    val _endTime = System.currentTimeMillis()
+    recorder.write({s"totalTime:${_endTime - _startTime}"})
+    recorder.flush()
   }
 }
 
@@ -80,14 +129,9 @@ class Neo4jPerformanceTest extends PerformanceTest {
 
   @Test
   def test1(): Unit = {
-    cmdIter.toList.foreach(cypher => {
-      recorder.write(
-        gson.toJson(
-          new ResultMap(cypher,
-            executeCypher(cypher, driver)).getResultMap) + "\n")
-    })
-    recorder.flush()
+    fullTest(recordFile, recorder, cmdIter, driver)
   }
+
 }
 
 class PandaDBPerformanceTest extends PerformanceTest {
@@ -100,13 +144,38 @@ class PandaDBPerformanceTest extends PerformanceTest {
 
   @Test
   def test1(): Unit = {
-    cmdIter.toList.foreach(cypher => {
-      recorder.write(
-        gson.toJson(
-          new ResultMap(cypher,
-            executeCypher(cypher, pandaDriver)).getResultMap) + "\n")
-    })
-    recorder.flush()
+    fullTest(recordFile, recorder, cmdIter, pandaDriver)
   }
 }
 
+class MergePerformanceTest extends PandaDBPerformanceTest {
+
+  @Test
+  def test0(): Unit = {
+    val list = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    list.foreach(i => circularTest(i))
+  }
+
+  def circularTest(time: Int): Unit = {
+    pandaTest(time)
+    neo4jTest(time)
+  }
+
+  def pandaTest(time: Int): Unit = {
+    val pRecordFile = getRecordFile(s"panda${time}.txt")
+    val pRecorder = new PrintWriter(pRecordFile)
+    val pCmdIter = getStatementsIter(props.getProperty("statementsFile"))
+    val pandaDriver = GraphDatabase.driver(s"panda://${props.getProperty("zkServerAddr")}/db",
+      AuthTokens.basic("", ""))
+    fullTest(pRecordFile, pRecorder, pCmdIter, pandaDriver)
+  }
+
+  def neo4jTest(time: Int): Unit = {
+    val nRecordFile = getRecordFile(s"neo4j${time}.txt")
+    val nRecorder = new PrintWriter(nRecordFile)
+    val nCmdIter = getStatementsIter(props.getProperty("statementsFile"))
+    val neo4jDriver = GraphDatabase.driver(props.getProperty("boltURI"),
+      AuthTokens.basic("neo4j", "bigdata"))
+    fullTest(nRecordFile, nRecorder, nCmdIter, neo4jDriver)
+  }
+}
