@@ -55,7 +55,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
 
   private def initWriteContext(): Unit = {
     allNodes = clusterClient.getAllNodes()
-    globalReadLock = new NaiveWriteLock(allNodes, clusterClient)
+    globalReadLock = new NaiveReadLock(allNodes, clusterClient)
     globalWriteLock = new NaiveWriteLock(allNodes, clusterClient)
   }
 
