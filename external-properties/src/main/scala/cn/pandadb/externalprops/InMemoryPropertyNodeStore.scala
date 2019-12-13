@@ -46,9 +46,12 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
 
 
-      case NFEquals(fieldName: String, value: AnyValue) =>
+    /*  case NFEquals(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() ==
-          value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
+          value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))*/
+      case NFEquals(fieldName: String, value: AnyValue) =>
+        nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[StringValue].stringValue() ==
+          value.asInstanceOf[StringValue].stringValue()).getOrElse(false))
       case NFContainsWith(propName, text) =>
         nodes.values.filter(x => x.mutable().props.get(propName).map(_.asInstanceOf[StringValue].stringValue().contains(text)
         ).getOrElse(false))
@@ -103,8 +106,9 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
 
   }
   def getNodeBylabelAndfilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
-    val propName = SolrUtil.labelName
-    filterNodes(NFAnd(NFContainsWith(propName, label), expr))
+    //val propName = SolrUtil.labelName
+    //filterNodes(NFAnd(NFContainsWith(propName, label), expr))
+    getNodesByLabel(label).toSet & filterNodes(expr).toSet
   }
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val res = mutable.ArrayBuffer[NodeWithProperties]()
