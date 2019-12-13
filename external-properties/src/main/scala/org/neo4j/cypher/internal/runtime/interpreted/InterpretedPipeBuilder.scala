@@ -142,6 +142,9 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
         }
         pipe
 
+      case Expand(_, fromName, dir, types: Seq[RelTypeName], toName, relName, ExpandAll) =>
+        ExpandAllPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)
+
       case Expand(_, fromName, dir, types: Seq[RelTypeName], toName, relName, ExpandInto) =>
         ExpandIntoPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)
 
