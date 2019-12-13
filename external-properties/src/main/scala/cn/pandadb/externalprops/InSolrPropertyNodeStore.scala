@@ -159,11 +159,11 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
       case expr: NFAnd =>
         val q1 = predicate2SolrQuery(expr.a)
         val q2 = predicate2SolrQuery(expr.b)
-        q = Some(s"$q1 and $q2")
+        q = Some(s"$q1 && $q2")
       case expr: NFOr =>
         val q1 = predicate2SolrQuery(expr.a)
         val q2 = predicate2SolrQuery(expr.b)
-        q = Some(s"$q1 or $q2")
+        q = Some(s"$q1 || $q2")
 
       case expr: NFNot =>
         val q1 = predicate2SolrQuery(expr.a)

@@ -132,15 +132,16 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
         if (nodeStore.isDefined) {
           source match {
             case x: AllNodesScanPipe =>
-              logger.debug(s"Push predicate ${predicateExpression} to AllNodesScanPipe")
-              x.predicatePushDown(nodeStore.get, predicateExpression, pipe)
+              x.predicatePushDown(nodeStore.get, pipe, predicateExpression)
             case x: NodeByLabelScanPipe =>
-              logger.debug(s"Push predicate ${predicateExpression} to NodeByLabelScanPipe")
-              x.predicatePushDown(nodeStore.get, predicateExpression, pipe)
+              x.predicatePushDown(nodeStore.get, pipe, predicateExpression, x.label.name)
             case _ =>
           }
         }
         pipe
+
+      case Expand(_, fromName, dir, types: Seq[RelTypeName], toName, relName, ExpandAll) =>
+        ExpandAllPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)
 
       case Expand(_, fromName, dir, types: Seq[RelTypeName], toName, relName, ExpandInto) =>
         ExpandIntoPipe(source, fromName, relName, toName, dir, LazyTypes(types.toArray))(id = id)

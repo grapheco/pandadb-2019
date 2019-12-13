@@ -32,8 +32,8 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
       case Some(labelId) =>
         val baseContext = state.newExecutionContext(executionContextFactory)
         var nodes: Iterator[NodeValue] = null
-        if (_optNodeStore.isDefined && _optFatherPipe.isDefined) {
-          nodes = fetchNodes(state, baseContext, label.name)
+        if (nodeStore.isDefined && fatherPipe.isDefined) {
+          nodes = fetchNodes(state, baseContext)
         }
         if (nodes == null) {
           nodes = state.query.getNodesByLabel(labelId.id)
