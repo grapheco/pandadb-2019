@@ -23,7 +23,6 @@ trait PPDPipe extends Pipe{
   }
 
   def fetchNodes(state: QueryState, baseContext: ExecutionContext, labelName: String = null): Iterator[NodeValue] = {
-    _optFatherPipe.get.bypass(true)
     if ( _optPredicate.isDefined ) {
       val expr: NFPredicate = _optPredicate.get match {
         case GreaterThan(a: Property, b: ParameterExpression) =>
@@ -45,11 +44,11 @@ trait PPDPipe extends Pipe{
         case RegularExpression(a: Property, b: ParameterExpression) =>
           NFRegexp(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
         case _ =>
-          _optFatherPipe.get.bypass(false)
           null
       }
 
       if (expr != null) {
+        _optFatherPipe.get.bypass()
         if (labelName != null) {
           _optNodeStore.get.getNodeBylabelAndfilter(labelName, expr).map(_.toNeo4jNodeValue()).iterator
         }
