@@ -9,22 +9,22 @@ import org.neo4j.values.virtual.NodeValue
 
 trait PPDPipe extends Pipe{
 
-  var _optNodeStore: Option[CustomPropertyNodeStore] = None
+  var nodeStore: Option[CustomPropertyNodeStore] = None
 
-  var _optPredicate: Option[Expression] = None
+  var predicate: Option[Expression] = None
 
-  var _optFatherPipe: Option[FilterPipe] = None
+  var fatherPipe: Option[FilterPipe] = None
 
   def predicatePushDown(nodeStore: CustomPropertyNodeStore, predicate: Expression, fatherPipe: FilterPipe): Unit = {
-    _optPredicate = Some(predicate)
-    _optNodeStore = Some(nodeStore)
-    _optFatherPipe = Some(fatherPipe)
+    this.predicate = Some(predicate)
+    this.nodeStore = Some(nodeStore)
+    this.fatherPipe = Some(fatherPipe)
 
   }
 
   def fetchNodes(state: QueryState, baseContext: ExecutionContext, labelName: String = null): Iterator[NodeValue] = {
-    if ( _optPredicate.isDefined ) {
-      val expr: NFPredicate = _optPredicate.get match {
+    if ( predicate.isDefined ) {
+      val expr: NFPredicate = predicate.get match {
         case GreaterThan(a: Property, b: ParameterExpression) =>
           NFGreaterThan(a.propertyKey.name, b.apply(baseContext, state))
         case GreaterThanOrEqual(a: Property, b: ParameterExpression) =>
@@ -48,17 +48,17 @@ trait PPDPipe extends Pipe{
       }
 
       if (expr != null) {
-        _optFatherPipe.get.bypass()
+        fatherPipe.get.bypass()
         if (labelName != null) {
-          _optNodeStore.get.getNodeBylabelAndfilter(labelName, expr).map(_.toNeo4jNodeValue()).iterator
+          nodeStore.get.getNodeBylabelAndfilter(labelName, expr).map(_.toNeo4jNodeValue()).iterator
         }
         else {
-          _optNodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()).iterator
+          nodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()).iterator
         }
       }
       else {
         if (labelName != null) {
-          _optNodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()).iterator
+          nodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()).iterator
         }
         else {
           null
