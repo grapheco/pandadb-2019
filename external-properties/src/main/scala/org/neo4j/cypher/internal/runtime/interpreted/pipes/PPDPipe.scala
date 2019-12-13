@@ -11,18 +11,21 @@ trait PPDPipe extends Pipe{
 
   var nodeStore: Option[CustomPropertyNodeStore] = None
 
-  var predicate: Option[Expression] = None
-
   var fatherPipe: Option[FilterPipe] = None
 
-  def predicatePushDown(nodeStore: CustomPropertyNodeStore, predicate: Expression, fatherPipe: FilterPipe): Unit = {
-    this.predicate = Some(predicate)
+  var predicate: Option[Expression] = None
+
+  var labelName: String = null
+
+
+  def predicatePushDown(nodeStore: CustomPropertyNodeStore, fatherPipe: FilterPipe, predicate: Expression, label: String = null): Unit = {
     this.nodeStore = Some(nodeStore)
     this.fatherPipe = Some(fatherPipe)
-
+    this.predicate = Some(predicate)
+    this.labelName = label
   }
 
-  def fetchNodes(state: QueryState, baseContext: ExecutionContext, labelName: String = null): Iterator[NodeValue] = {
+  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Iterator[NodeValue] = {
     if ( predicate.isDefined ) {
       val expr: NFPredicate = predicate.get match {
         case GreaterThan(a: Property, b: ParameterExpression) =>

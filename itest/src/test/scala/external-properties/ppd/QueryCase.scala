@@ -1,13 +1,7 @@
 package ppd
 
-import java.io.File
-
-import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
-import cn.pandadb.server.{GlobalContext, PNodeServer}
 import org.junit.{After, Before, Test}
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.io.fs.FileUtils
 
 trait QueryCase {
 
