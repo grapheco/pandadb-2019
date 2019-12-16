@@ -1,10 +1,12 @@
-Match(n) return count(n);
 Match(n) Return Distinct length(labels(n)), count(length(labels(n)));
 Match(n) Return Distinct labels(n), count(labels(n));
 MATCH  (p:person)-[wp:write_paper]->(pa:paper)  -[r:paper_belong_topic]-> (t:topic)  WHERE toInteger(subString(pa.publishDate,0,4)) >= 1995 AND toInteger(subString(pa.publishDate,0,4)) <= 2019   AND t.topicId IN ['185592680'] AND t.rank = 1 WITH  DISTINCT(pa),pa.citation AS citationOfWorld  ORDER BY citationOfWorld DESC  LIMIT 10000  MATCH (p:person)-[wp:write_paper]->(pa)  WHERE p.nationality  = 'China'  RETURN  DISTINCT(toInteger(subString(pa.publishDate,0,4))) AS year,  COUNT(pa) AS statistics, '中国'  as region Order By year;
 Match(n:person) return n.publications5 Order By n.publication5 DESC;
-Match(n:paper) Where n.language='en' return count(n);
+MATCH p=(a)-[r1:be_cited]->(b)-[r2:be_cited]->(c) RETURN count(p)
+MATCH p=(a)<-[r1:write_paper]-(b)-[r2:work_for]->(c) RETURN count(p);
+MATCH p=(a)<-[r1:be_cited]-(b)-[r2:be_cited]->(c) RETURN count(p)
 Match(n:paper) where n.language='en' and n.type='Journal' return count(n);
 Match(n:person) Return n.personId Order By n.citations Desc;
 Match(n:person) where n.citations>5 return distinct n.nationality, count(n) Order by count(n) desc;
 Match(n:paper) where toInteger(n.publishDate)>20000000 return distinct n.country, count(n) order by count(n) Desc;
+MATCH  (p:person)-[wp:write_paper]->(pa:paper)  -[r:paper_belong_topic]-> (t:topic)  WHERE toInteger(subString(pa.publishDate,0,4)) >= 1995 AND toInteger(subString(pa.publishDate,0,4)) <= 2019  AND t.topicId IN ['185592680'] AND t.rank = 1 WITH  DISTINCT(pa),pa.citation AS citationOfWorld  ORDER BY citationOfWorld DESC  LIMIT 10000  MATCH (p:person)-[wp:write_paper]->(pa)  WHERE p.nationality  = 'China'  RETURN  DISTINCT(toInteger(subString(pa.publishDate,0,4))) AS year,  COUNT(pa) AS statistics, '中国'  as region   order by year  UNION ALL MATCH  (p:person)-[wp:write_paper]->(pa:paper)  -[r:paper_belong_topic]-> (t:topic)  WHERE  toInteger(subString(pa.publishDate,0,4)) >= 1995 AND toInteger(subString(pa.publishDate,0,4)) <= 2019  AND (t.topicId IN ['185592680']) AND t.rank = 1 WITH  DISTINCT(pa) AS pa,pa.citation AS citation  ORDER BY citation DESC  LIMIT 10000  RETURN  DISTINCT(toInteger(subString(pa.publishDate,0,4))) AS year,  COUNT(pa) AS statistics,  '世界'  as region  order by year;
