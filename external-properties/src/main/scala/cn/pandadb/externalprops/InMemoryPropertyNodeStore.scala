@@ -50,8 +50,8 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() ==
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))*/
       case NFEquals(fieldName: String, value: AnyValue) =>
-        nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[StringValue].stringValue() ==
-          value.asInstanceOf[StringValue].stringValue()).getOrElse(false))
+        nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asObject().toString ==
+          value.asInstanceOf[Value].asObject().toString).getOrElse(false))
       case NFContainsWith(propName, text) =>
         nodes.values.filter(x => x.mutable().props.get(propName).map(_.asInstanceOf[StringValue].stringValue().contains(text)
         ).getOrElse(false))
