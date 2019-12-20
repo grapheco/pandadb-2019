@@ -2,7 +2,7 @@ package cn.pandadb.server.internode
 
 import cn.pandadb.network.internal.message.{InternalRpcRequest, InternalRpcResponse}
 import cn.pandadb.server.{DataLogDetail, PNodeServerContext}
-import cn.pandadb.server.rpc.{NettyRpcServer, RequestHandler}
+import cn.pandadb.server.rpc.RequestHandler
 
 /**
   * Created by bluejoe on 2019/11/25.

@@ -25,12 +25,10 @@ trait DataLogReader {
   def consume[T](consumer: (DataLogDetail) => T, sinceVersion: Int = -1): Iterable[T];
 }
 
-// a template class for standard json format.
 class DataLog(arrayBuffer: ArrayBuffer[DataLogDetail]) {
   val dataLog: Array[DataLogDetail] = arrayBuffer.toArray
 }
 
-// main class for deal with data log.
 class JsonDataLog(logFile: File) extends DataLogWriter with DataLogReader {
   val gson = new Gson()
 

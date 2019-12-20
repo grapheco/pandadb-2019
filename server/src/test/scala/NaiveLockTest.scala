@@ -6,7 +6,6 @@ import cn.pandadb.server.{MasterRole, ZKServiceRegistry}
 import cn.pandadb.util.ConfigUtils
 import org.junit.runners.MethodSorters
 import org.junit.{Assert, FixMethodOrder, Test}
-import org.neo4j.cypher.internal.frontend.v2_3.ast.AllNodes
 import org.neo4j.kernel.configuration.Config
 
 /**
@@ -36,7 +35,6 @@ class NaiveLockTest {
   //register nodes
   @Test
   def test1(): Unit = {
-    //Assert.assertEquals()
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
     Assert.assertEquals(true, clusterClient.getWriteMasterNode("").isEmpty)
 

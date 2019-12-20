@@ -23,7 +23,6 @@ object ClusterLogTest {
 }
 
 class ClusterLogTest {
-
   val logFilePath: String = "./datalog.json"
   val logFile = new File(logFilePath)
 
@@ -35,7 +34,6 @@ class ClusterLogTest {
   def test1(): Unit = {
     jsonDataLog.write(DataLogDetail(100, "Match(n1), return n1;"))
     jsonDataLog.write(DataLogDetail(200, "Match(n2), return n2;"))
-
   }
 
   @Test
@@ -51,5 +49,4 @@ class ClusterLogTest {
     val commandList = jsonDataLog.consume(logItem => logItem.command, 150)
     Assert.assertEquals(true, expectedLogArray2.sameElements(commandList))
   }
-
 }
