@@ -105,4 +105,12 @@ class WrongArgumentException(key: String, value: String, clazz: Class[_]) extend
 
 object ConfigUtils {
   implicit def config2Ex(conf: Configuration): ConfigurationEx = new ConfigurationEx(conf);
+
+  implicit def map2Ex(map: Map[String, String]): ConfigurationEx = new ConfigurationEx(new Configuration() {
+    override def getRaw(name: String): Option[String] = map.get(name)
+  });
+
+  implicit def map2Ex(conf: ContextMap): ConfigurationEx = new ConfigurationEx(new Configuration() {
+    override def getRaw(name: String): Option[String] = conf.getOption(name)
+  });
 }

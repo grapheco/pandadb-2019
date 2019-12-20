@@ -36,23 +36,26 @@ object PNodeServer extends Logging {
     InstanceBoundServiceFactoryRegistry.register[CustomPropertyNodeStoreHolderFactory];
   }
 
-  def startServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map()): PNodeServer = {
-    val server = new PNodeServer(dbDir, configFile, configOverrides);
+  def startServer(dbDir: File, configFile: File, overrided: Map[String, String] = Map()): PNodeServer = {
+    val props = new Properties()
+    props.load(new FileInputStream(configFile))
+    val server = new PNodeServer(dbDir, JavaConversions.propertiesAsScalaMap(props).toMap ++ overrided);
     server.start();
     server;
   }
 }
 
-class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, String] = Map())
+class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   extends LeaderSelectorListenerAdapter with Logging {
   //TODO: we will replace neo4jServer with InterNodeRpcServer someday!!
   val neo4jServer = new CommunityBootstrapper();
   val runningLock = new CountDownLatch(1)
 
   //prepare args for ZKClusterClient
-  val props = new Properties()
-  props.load(new FileInputStream(configFile))
-  val zkString: String = props.getProperty("zkServerAddress")
+  PNodeServerContext.putAll(props)
+  import cn.pandadb.util.ConfigUtils._
+
+  val zkString: String = props.getRequiredValueAsString("zookeeper.address")
   private val _tempCurator = CuratorFrameworkFactory.newClient(zkString,
     new ExponentialBackoffRetry(1000, 3))
   _tempCurator.start()
@@ -61,9 +64,12 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(zkString)
   val client = clusterClient.curator
   var masterRole: MasterRole = null
-  PNodeServerContext.bindLocalIpAddress(props.getProperty("localIpAddress"))
 
-  PNodeServerContext.bindRpcPort(props.getProperty("rpcPort").toInt)
+  val np = NodeAddress.fromString(props.getRequiredValueAsString("node.server.address"))
+  //TOOD: bindNodeAddress
+  PNodeServerContext.bindLocalIpAddress(np.host)
+  PNodeServerContext.bindRpcPort(np.port)
+
   val serverKernel = new NettyRpcServer("0.0.0.0", PNodeServerContext.getRpcPort, "PNodeRpc-service");
   serverKernel.accept(Neo4jRequestHandler());
   serverKernel.accept(InterNodeRequestHandler());
@@ -78,8 +84,8 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
 
     PNodeServerContext.bindClusterClient(clusterClient);
 
-    neo4jServer.start(dbDir, Optional.of(configFile),
-      JavaConversions.mapAsJavaMap(configOverrides));
+    neo4jServer.start(dbDir, Optional.empty(),
+     JavaConversions.mapAsJavaMap(props + ("dbms.connector.bolt.listen_address" -> np.getAsStr)));
 
     serverKernel.start({
       //scalastyle:off
@@ -90,7 +96,7 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
         _updataLocalData()
       }
       _joinInLeaderSelection()
-      new ZKServiceRegistry(zkString).registerAsOrdinaryNode(props.getProperty("localNodeAddress"))
+      new ZKServiceRegistry(zkString).registerAsOrdinaryNode(np.getAsStr())
 
     });
 
@@ -104,8 +110,8 @@ class PNodeServer(dbDir: File, configFile: File, configOverrides: Map[String, St
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
     PNodeServerContext.bindLeaderNode(true);
 
-    new ZKServiceRegistry(zkString).registerAsLeader(props.getProperty("localNodeAddress"))
-    masterRole = new MasterRole(clusterClient, NodeAddress.fromString(props.getProperty("localNodeAddress")))
+    new ZKServiceRegistry(zkString).registerAsLeader(np.getAsStr())
+    masterRole = new MasterRole(clusterClient, np)
     PNodeServerContext.bindMasterRole(masterRole)
 
     logger.debug(s"taken leader ship...");

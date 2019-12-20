@@ -10,7 +10,7 @@ import scala.concurrent.Future
   */
 case class NodeAddress(host: String, port: Int) {
   def getAsStr(): String = {
-    host + s":" + port.toString
+    host + ":" + port.toString
   }
 }
 

@@ -28,16 +28,20 @@ object GlobalContext extends ContextMap {
 class ContextMap {
   private val _map = MMap[String, Any]();
 
+  def putAll(props: Map[String, String]) {
+    _map ++= props
+  }
+
   def put[T](key: String, value: T): T = {
     _map(key) = value
     value
-  };
+  }
 
   def put[T](value: T)(implicit manifest: Manifest[T]): T = put[T](manifest.runtimeClass.getName, value)
 
   def get[T](key: String): T = {
     _map(key).asInstanceOf[T]
-  };
+  }
 
   def getOption[T](key: String): Option[T] = _map.get(key).map(_.asInstanceOf[T]);
 
