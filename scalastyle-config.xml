@@ -121,7 +121,7 @@ This file is divided into 3 sections:
     <!--double blank lines checker, however seems not run.-->
     <check customId="doubleBlankLines" enabled="true" class="org.scalastyle.file.RegexChecker" level="error">
         <parameters>
-            <parameter name="regex">(?m)^\s*$(\r|)\n^\s*$(\r|)\n</parameter>
+            <parameter name="regex">(\r|)\n(\s*)(\r|)\n(\s*)(\r|)\n</parameter>
         </parameters>
         <customMessage><![CDATA[No double blank lines]]></customMessage>
     </check>
