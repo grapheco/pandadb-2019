@@ -58,18 +58,17 @@ class ZKDiscoveryTest {
     funcNum = 11
 
     funcNum = 2
-    ordinadyNodeRegistry.registerAsOrdinaryNode(zkConstants.localNodeAddress)
+    ordinadyNodeRegistry.registerAsOrdinaryNode(NodeAddress.fromString(zkConstants.localNodeAddress))
     Thread.sleep(1000)
     for (listener <- listenerList) {
       Assert.assertEquals(1, listener.CHILD_ADDED)
       Assert.assertEquals(0, listener.CHILD_REMOVED)
       Assert.assertEquals("10.0.88.11:1111", listener.path)
     }
-    //ordinadyNodeRegistry.curator.close()
     funcNum = 22
 
     funcNum = 3
-    ordinadyNodeRegistry.unRegisterOrdinaryNode(zkConstants.localNodeAddress)
+    ordinadyNodeRegistry.unRegisterOrdinaryNode(NodeAddress.fromString(zkConstants.localNodeAddress))
     Thread.sleep(1000)
 
     for (listener <- listenerList) {

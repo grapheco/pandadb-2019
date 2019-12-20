@@ -28,7 +28,7 @@ class LocalDataVersionRecovery(args: DataVersionRecoveryArgs) {
   def updateLocalVersion(): Unit = {
     if (clusterVersion > sinceVersion) {
       val cypherList = _collectCypherList()
-      val boltURI = s"bolt://" + args.localNodeAddress.getAsStr()
+      val boltURI = s"bolt://" + args.localNodeAddress.getAsString
       val driver = GraphDatabase.driver(boltURI)
       val session = driver.session()
       cypherList.foreach(cypher => {

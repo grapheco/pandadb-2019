@@ -28,7 +28,7 @@ class LocalDataVersionRecoveryTest {
   val localNodeAddress = NodeAddress.fromString(zkConstants.localNodeAddress)
   val recoveryArgs = DataVersionRecoveryArgs(localLogFile, clusterLogFile, localNodeAddress)
   val recovery = new LocalDataVersionRecovery(recoveryArgs)
-  val driver = GraphDatabase.driver(s"bolt://" + localNodeAddress.getAsStr())
+  val driver = GraphDatabase.driver(s"bolt://" + localNodeAddress.getAsString)
 
   @Test
   def test1(): Unit = {

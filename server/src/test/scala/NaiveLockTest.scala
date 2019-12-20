@@ -38,11 +38,11 @@ class NaiveLockTest {
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
     Assert.assertEquals(true, clusterClient.getWriteMasterNode("").isEmpty)
 
-    nodeList.foreach(register.registerAsOrdinaryNode(_))
-    register.registerAsLeader(nodeList.head)
+    nodeList.foreach(nodeStr => register.registerAsOrdinaryNode(NodeAddress.fromString(nodeStr)))
+    register.registerAsLeader(NodeAddress.fromString(nodeList.head))
 
-    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsStr())
-    val a = clusterClient.getAllNodes().map(_.getAsStr()).toList
+    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsString)
+    val a = clusterClient.getAllNodes().map(_.getAsString).toList
     Assert.assertEquals(true, compareList(nodeList, clusterClient.getAllNodes()))
 
   }
@@ -54,7 +54,7 @@ class NaiveLockTest {
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
     Assert.assertEquals(true, clusterClient.getWriteMasterNode("").isEmpty)
     master.globalWriteLock.unlock()
-    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsStr())
+    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsString)
     Assert.assertEquals(true, compareList(nodeList, clusterClient.getAllNodes()))
   }
 
@@ -64,16 +64,16 @@ class NaiveLockTest {
     master.globalReadLock.lock()
     Thread.sleep(3000)
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
-    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsStr())
+    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsString)
     master.globalReadLock.unlock()
     Thread.sleep(3000)
-    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsStr())
+    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsString)
     Assert.assertEquals(true, compareList(nodeList, clusterClient.getAllNodes()))
 
   }
 
   def compareList(srtList: List[String], allNodes: Iterable[NodeAddress]): Boolean = {
-    allNodes.map(_.getAsStr()).toSet.equals(srtList.toSet)
+    allNodes.map(_.getAsString).toSet.equals(srtList.toSet)
   }
 
 }

@@ -27,10 +27,6 @@ class NaiveWriteLock(clusterClient: ZookeeperBasedClusterClient) extends NaiveLo
   }
 
   override def unlock(): Unit = {
-    nodeList = clusterClient.getAllNodes().toList
-    while (nodeList.length == 0) {
-      Thread.sleep(1000)
-    }
     nodeList.foreach(unlockOrdinaryNode(_))
     unlockLeaderNode(masterNodeAddress)
   }

@@ -85,7 +85,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
     PNodeServerContext.bindClusterClient(clusterClient);
 
     neo4jServer.start(dbDir, Optional.empty(),
-     JavaConversions.mapAsJavaMap(props + ("dbms.connector.bolt.listen_address" -> np.getAsStr)));
+     JavaConversions.mapAsJavaMap(props + ("dbms.connector.bolt.listen_address" -> np.getAsString)));
 
     serverKernel.start({
       //scalastyle:off
@@ -96,7 +96,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
         _updataLocalData()
       }
       _joinInLeaderSelection()
-      new ZKServiceRegistry(zkString).registerAsOrdinaryNode(np.getAsStr())
+      new ZKServiceRegistry(zkString).registerAsOrdinaryNode(np)
 
     });
 
@@ -110,7 +110,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
     PNodeServerContext.bindLeaderNode(true);
 
-    new ZKServiceRegistry(zkString).registerAsLeader(np.getAsStr())
+    new ZKServiceRegistry(zkString).registerAsLeader(np)
     masterRole = new MasterRole(clusterClient, np)
     PNodeServerContext.bindMasterRole(masterRole)
 
@@ -133,7 +133,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
     // if can't get now, wait here.
     val cypherArr = _getRemoteLogs()
 
-    val localDriver = GraphDatabase.driver(s"bolt://" + props.getProperty("localNodeAddress"))
+    val localDriver = GraphDatabase.driver(s"bolt://" + props.get("localNodeAddress"))
     val session = localDriver.session()
     cypherArr.foreach(logItem => {
       val tx = session.beginTransaction()
