@@ -50,13 +50,12 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   override val clusterClient = zkClusterClient
   val masterNodeAddress = clusterClient.getWriteMasterNode("").get.getAsStr()
   override var allNodes: Iterable[NodeAddress] = clusterClient.getAllNodes()
-  override var globalReadLock: NaiveLock = new NaiveReadLock(allNodes, clusterClient)
-  override var globalWriteLock: NaiveLock = new NaiveWriteLock(allNodes, clusterClient)
+  override var globalReadLock: NaiveLock = new NaiveReadLock(clusterClient)
+  override var globalWriteLock: NaiveLock = new NaiveWriteLock(clusterClient)
 
   private def initWriteContext(): Unit = {
-    allNodes = clusterClient.getAllNodes()
-    globalReadLock = new NaiveReadLock(allNodes, clusterClient)
-    globalWriteLock = new NaiveWriteLock(allNodes, clusterClient)
+    globalReadLock = new NaiveReadLock(clusterClient)
+    globalWriteLock = new NaiveWriteLock(clusterClient)
   }
 
   def setClusterState(state: ClusterState): Unit = {
