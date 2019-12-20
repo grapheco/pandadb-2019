@@ -1,7 +1,6 @@
 package cn.pandadb.server
 
 import cn.pandadb.network._
-import org.apache.curator.framework.CuratorFramework
 import org.apache.zookeeper.{CreateMode, ZooDefs}
 import org.neo4j.driver._
 
@@ -12,7 +11,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * @Author: Airzihao
-  * @Description: This class is instanced when a node is selected as master node.
+  * @Description: This class is instanced when a node is selected as the master node.
   * @Date: Created at 13:13 2019/11/27
   * @Modified By:
   */
