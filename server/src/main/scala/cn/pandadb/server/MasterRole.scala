@@ -41,7 +41,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   // how to init it?
   private var currentState: ClusterState = new ClusterState {}
   override val clusterClient = zkClusterClient
-  val masterNodeAddress = clusterClient.getWriteMasterNode("").get.getAsStr()
+  val masterNodeAddress = clusterClient.getWriteMasterNode("").get.getAsString
   override var allNodes: Iterable[NodeAddress] = clusterClient.getAllNodes()
   override var globalReadLock: NaiveLock = new NaiveReadLock(clusterClient)
   override var globalWriteLock: NaiveLock = new NaiveWriteLock(clusterClient)
@@ -59,10 +59,10 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
     var tempResult: StatementResult = null
     var futureTasks = new ListBuffer[Future[Boolean]]
     for (nodeAddress <- allNodes) {
-      if (nodeAddress.getAsStr() != masterNodeAddress) {
+      if (nodeAddress.getAsString != masterNodeAddress) {
         val future = Future[Boolean] {
           try {
-            val uri = s"bolt://" + nodeAddress.getAsStr()
+            val uri = s"bolt://" + nodeAddress.getAsString
             val driver = GraphDatabase.driver(uri,
               AuthTokens.basic("", ""))
             val session = driver.session()
@@ -103,7 +103,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
     val iter = allNodes.iterator
     var statementResult: StatementResult = null;
     while (iter.hasNext) {
-      val str = iter.next().getAsStr()
+      val str = iter.next().getAsString
       if( str != masterNodeAddress) {
         val uri = s"bolt://" + str
         val driver = GraphDatabase.driver(uri)

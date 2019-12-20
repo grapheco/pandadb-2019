@@ -53,7 +53,7 @@ class EnvironmentTest {
   @Test
   def test2(): Unit = {
     clusterNodes.foreach(nodeAddress => {
-      val boltURI = s"bolt://${nodeAddress.getAsStr()}"
+      val boltURI = s"bolt://${nodeAddress.getAsString}"
       val driver = GraphDatabase.driver(boltURI, AuthTokens.basic("", ""))
       val session = driver.session()
       val tx = session.beginTransaction()
