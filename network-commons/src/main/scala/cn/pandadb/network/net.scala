@@ -1,10 +1,5 @@
 package cn.pandadb.network
 
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
-import org.apache.curator.retry.ExponentialBackoffRetry
-
-import scala.concurrent.Future
-
 /**
   * Created by bluejoe on 2019/11/21.
   */
