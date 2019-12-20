@@ -18,25 +18,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 trait Master {
 
-  // get from zkBasedClusterClient
   var allNodes: Iterable[NodeAddress]
 
-  //zkBasedClusterClient
   val clusterClient: ClusterClient
 
-  // delay all write/read requests, implements by curator
-  var globalWriteLock: NaiveLock //:curator lock
+  var globalWriteLock: NaiveLock
 
-  // delay write requests only, implements by curator
-  var globalReadLock: NaiveLock //:curator lock
+  var globalReadLock: NaiveLock
 
-  // inform these listeners the cluster context change?
   var listenerList: List[ZKClusterEventListener]
 
   def addListener(listener: ZKClusterEventListener)
 
   def clusterWrite(cypher: String)
-
 }
 
 class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: NodeAddress) extends Master {
@@ -62,7 +56,6 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   }
 
   private def distributeWriteStatement(cypher: String): Unit = {
-
     var tempResult: StatementResult = null
     var futureTasks = new ListBuffer[Future[Boolean]]
     for (nodeAddress <- allNodes) {
@@ -93,20 +86,15 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
 
   // TODO finetune the state change mechanism
   override def clusterWrite(cypher: String): Unit = {
-
     val preVersion = zkClusterClient.getClusterDataVersion()
     initWriteContext()
     setClusterState(new Writing)
     globalWriteLock.lock()
-
     // key func
     distributeWriteStatement(cypher)
-
     globalWriteLock.unlock()
     setClusterState(new Finished)
     setClusterState(new UnlockedServing)
-
-    // had better put these operations to FINISH state
     val curVersion = preVersion + 1
     _setDataVersion(curVersion)
   }
@@ -135,7 +123,6 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   }
 
   private def _updateFreshNode(): Unit = {
-
     val children = clusterClient.curator.getChildren.forPath(ZKPathConfig.freshNodePath)
     // delete old node
     if(children.isEmpty == false) {
@@ -145,14 +132,12 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
         clusterClient.curator.delete().forPath(fullPath)
       }
     }
-
     val curFreshNodeRpc = PNodeServerContext.getLocalIpAddress + ":" + PNodeServerContext.getRpcPort.toString
     clusterClient.curator.create().creatingParentsIfNeeded()
       .withMode(CreateMode.PERSISTENT)
       .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
       .forPath(ZKPathConfig.freshNodePath + s"/" + curFreshNodeRpc)
   }
-
 }
 
 // todo: use this class to do multi threads write operation.

@@ -9,12 +9,9 @@ import cn.pandadb.network.{NodeAddress, ZookeeperBasedClusterClient}
   * @Modified By:
   */
 trait NaiveLock {
-  // acquire
+
   def lock()
-
-  // release
   def unlock()
-
 }
 
 class NaiveWriteLock(clusterClient: ZookeeperBasedClusterClient) extends NaiveLock {
@@ -32,6 +29,7 @@ class NaiveWriteLock(clusterClient: ZookeeperBasedClusterClient) extends NaiveLo
     nodeList.foreach(lockOrdinaryNode(_))
     lockLeaderNode(masterNodeAddress)
   }
+
   override def unlock(): Unit = {
     nodeList = clusterClient.getAllNodes().toList
     while (nodeList.length == 0) {

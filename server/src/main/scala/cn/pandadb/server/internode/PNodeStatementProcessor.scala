@@ -1,23 +1,17 @@
 package cn.pandadb.server.internode
 
 import java.time.Duration
-import java.{lang, util}
+import java.util
 
 import cn.pandadb.cypherplus.utils.CypherPlusUtils
 import cn.pandadb.server.{DataLogDetail, PNodeServerContext}
-import org.neo4j.bolt.runtime.BoltResult.Visitor
 import org.neo4j.bolt.runtime.{BoltResult, StatementMetadata, StatementProcessor, TransactionStateMachineSPI}
 import org.neo4j.bolt.v1.runtime.bookmarking.Bookmark
-import org.neo4j.cypher.result.QueryResult
-import org.neo4j.driver._
-import org.neo4j.driver.internal.value.{FloatValue, IntegerValue, NodeValue}
 import org.neo4j.function.{ThrowingBiConsumer, ThrowingConsumer}
-import org.neo4j.graphdb.{Direction, GraphDatabaseService, Label, Node, Relationship, RelationshipType}
 import org.neo4j.kernel.impl.util.ValueUtils
 import org.neo4j.values.AnyValue
 import org.neo4j.values.virtual.MapValue
 
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.{JavaConversions, mutable}
 
 /**
@@ -31,7 +25,6 @@ class PNodeStatementProcessor(source: StatementProcessor, spi: TransactionStateM
 
   override def run(statement: String, params: MapValue): StatementMetadata = source.run(statement, params)
 
-  // 2019.11.28 use Master to write
   override def run(statement: String, params: MapValue, bookmark: Bookmark, txTimeout: Duration,
                    txMetaData: util.Map[String, AnyRef]): StatementMetadata = {
 
