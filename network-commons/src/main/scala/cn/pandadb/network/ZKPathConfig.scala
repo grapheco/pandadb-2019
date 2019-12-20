@@ -11,7 +11,7 @@ import org.apache.zookeeper.{CreateMode, ZooDefs}
   */
 object ZKPathConfig {
   //object
-  val registryPath = s"/testPandaDB"
+  val registryPath = s"/PandaDB-v0.0.2"
   val ordinaryNodesPath = registryPath + s"/ordinaryNodes"
   val leaderNodePath = registryPath + s"/leaderNode"
   val dataVersionPath = registryPath + s"/version"
