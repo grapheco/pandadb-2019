@@ -17,17 +17,26 @@ trait NaiveLock {
 
 }
 
-class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeeperBasedClusterClient) extends NaiveLock {
+class NaiveWriteLock(clusterClient: ZookeeperBasedClusterClient) extends NaiveLock {
 
-  val nodeList = allNodes.toList
+  val allNodes = clusterClient.getAllNodes()
+  var nodeList = allNodes.toList
   val masterNodeAddress: NodeAddress = clusterClient.getWriteMasterNode("").get
   val register = new ZKServiceRegistry(clusterClient.zkServerAddress)
 
   override def lock(): Unit = {
+    nodeList = clusterClient.getAllNodes().toList
+    while (nodeList.length == 0) {
+      Thread.sleep(1000)
+    }
     nodeList.foreach(lockOrdinaryNode(_))
     lockLeaderNode(masterNodeAddress)
   }
   override def unlock(): Unit = {
+    nodeList = clusterClient.getAllNodes().toList
+    while (nodeList.length == 0) {
+      Thread.sleep(1000)
+    }
     nodeList.foreach(unlockOrdinaryNode(_))
     unlockLeaderNode(masterNodeAddress)
   }
@@ -48,7 +57,7 @@ class NaiveWriteLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeeperBa
   }
 }
 
-class NaiveReadLock(allNodes: Iterable[NodeAddress], clusterClient: ZookeeperBasedClusterClient) extends NaiveLock {
+class NaiveReadLock(clusterClient: ZookeeperBasedClusterClient) extends NaiveLock {
 
   val register = new ZKServiceRegistry(clusterClient.zkServerAddress)
   var masterNodeAddress: NodeAddress = _
