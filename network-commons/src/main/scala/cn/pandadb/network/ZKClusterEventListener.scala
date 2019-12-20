@@ -6,7 +6,6 @@ class ZKClusterEventListener() extends ClusterEventListener {
         // Not implemented.
       case ClusterStateChanged() => ;
 
-      // update availableNodes in ZKBasedClusterManager
       case NodeConnected(nodeAddress) => ;
       case NodeDisconnected(nodeAddress) => ;
       case ReadRequestAccepted() => ;
