@@ -9,7 +9,7 @@ import org.neo4j.graphdb.{GraphDatabaseService, Result}
 import org.neo4j.io.fs.FileUtils
 import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory, InSolrPropertyNodeStore}
 import org.neo4j.values.storable.{DateTimeValue, DateValue, LocalDateTimeValue, TimeValue}
-import cn.pandadb.server.GlobalContext
+import cn.pandadb.util.InstanceContext
 
 trait QueryTestBase {
   var db: GraphDatabaseService = null
@@ -25,7 +25,7 @@ trait QueryTestBase {
     nodeStore match {
       case "InMemoryPropertyNodeStore" =>
         InMemoryPropertyNodeStore.nodes.clear()
-        GlobalContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
+        InstanceContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
 
       case "InSolrPropertyNodeStore" =>
         val configFile = new File("./testdata/neo4j.conf")
@@ -35,7 +35,7 @@ trait QueryTestBase {
         val collectionName = props.getProperty("external.properties.store.solr.collection")
         val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
         solrNodeStore.clearAll()
-        GlobalContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
+        InstanceContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
     }
   }
 

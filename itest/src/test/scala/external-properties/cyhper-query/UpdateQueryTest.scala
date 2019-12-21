@@ -1,13 +1,6 @@
 
-import java.io.File
-
-import scala.collection.JavaConverters._
-import cn.pandadb.server.{GlobalContext, PNodeServer}
-import org.junit.{After, Before, Test}
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.io.fs.FileUtils
-import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
+import cn.pandadb.externalprops.InMemoryPropertyNodeStore
+import org.junit.Test
 
 
 trait UpdateQueryTestBase extends QueryTestBase {
@@ -26,13 +19,13 @@ class UpdatePropertyQueryTest extends UpdateQueryTestBase {
     val query = "create (n1:Person) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext) {
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
     tx.success()
     tx.close()
-    assert(id1 != -1 )
+    assert(id1 != -1)
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).get.props.size == 0)
     assert(tmpns.nodes.get(id1).get.labels.size == 1 && tmpns.nodes.get(id1).get.labels.toList(0) == "Person")
@@ -45,7 +38,7 @@ class UpdatePropertyQueryTest extends UpdateQueryTestBase {
     tx2.close()
     assert(tmpns.nodes.size == 1)
     val fields = tmpns.nodes.get(id1).get.props
-    assert(fields.size == 2 && fields("name").equals("test01") && fields("age").equals(10)  )
+    assert(fields.size == 2 && fields("name").equals("test01") && fields("age").equals(10))
   }
 
 
@@ -58,13 +51,13 @@ class UpdatePropertyQueryTest extends UpdateQueryTestBase {
     val query = "create (n1:Person{name:'test01',age:10}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext) {
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
     tx.success()
     tx.close()
-    assert(id1 != -1 )
+    assert(id1 != -1)
     assert(tmpns.nodes.size == 1)
     val fields1 = tmpns.nodes.get(id1).get.props
     assert(fields1.size == 2 && fields1("name").equals("test01") && fields1("age").equals(10))
@@ -77,7 +70,7 @@ class UpdatePropertyQueryTest extends UpdateQueryTestBase {
     tx2.close()
     assert(tmpns.nodes.size == 1)
     val fields2 = tmpns.nodes.get(id1).get.props
-    assert(fields2.size == 2 && fields2("name").equals("test02") && fields2("sex").equals("male")  )
+    assert(fields2.size == 2 && fields2("name").equals("test02") && fields2("sex").equals("male"))
   }
 
 
@@ -90,13 +83,13 @@ class UpdatePropertyQueryTest extends UpdateQueryTestBase {
     val query = "create (n1:Person{name:'test01',age:10}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext) {
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
     tx.success()
     tx.close()
-    assert(id1 != -1 )
+    assert(id1 != -1)
     assert(tmpns.nodes.size == 1)
     val fields1 = tmpns.nodes.get(id1).get.props
     assert(fields1.size == 2 && fields1("name").equals("test01") && fields1("age").equals(10))
@@ -110,7 +103,7 @@ class UpdatePropertyQueryTest extends UpdateQueryTestBase {
     assert(tmpns.nodes.size == 1)
     val fields2 = tmpns.nodes.get(id1).get.props
     assert(fields2.size == 4 && fields2("name").equals("test02") && fields2("age").equals(10) &&
-            fields2("sex").equals("male") && fields2("work").equals("dev"))
+      fields2("sex").equals("male") && fields2("work").equals("dev"))
   }
 
   @Test
@@ -122,13 +115,13 @@ class UpdatePropertyQueryTest extends UpdateQueryTestBase {
     val query = "create (n1:Person{name:'test01',age:10}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext) {
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
     tx.success()
     tx.close()
-    assert(id1 != -1 )
+    assert(id1 != -1)
     assert(tmpns.nodes.size == 1)
     val fields1 = tmpns.nodes.get(id1).get.props
     assert(fields1.size == 2 && fields1("name").equals("test01") && fields1("age").equals(10))
@@ -141,7 +134,7 @@ class UpdatePropertyQueryTest extends UpdateQueryTestBase {
     tx2.close()
     assert(tmpns.nodes.size == 1)
     val fields2 = tmpns.nodes.get(id1).get.props
-    assert(fields2.size == 1 && fields2("name").equals("test01") )
+    assert(fields2.size == 1 && fields2("name").equals("test01"))
   }
 
   @Test
@@ -153,13 +146,13 @@ class UpdatePropertyQueryTest extends UpdateQueryTestBase {
     val query = "create (n1:Person{name:'test01',age:10}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext) {
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
     tx.success()
     tx.close()
-    assert(id1 != -1 )
+    assert(id1 != -1)
     assert(tmpns.nodes.size == 1)
     val fields1 = tmpns.nodes.get(id1).get.props
     assert(fields1.size == 2 && fields1("name").equals("test01") && fields1("age").equals(10))
@@ -189,12 +182,12 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
     val query = "create (n1:Person{name:'xx'}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext) {
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
 
-    assert(id1 != -1 )
+    assert(id1 != -1)
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).get.props.size == 1)
     assert(tmpns.nodes.get(id1).get.labels.size == 1 && tmpns.nodes.get(id1).get.labels.toList(0) == "Person")
@@ -214,7 +207,7 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
     // after tx close, data flushed to store
     assert(tmpns.nodes.size == 1)
     val labels = tmpns.nodes.get(id1).get.labels.toList
-    assert(labels.size == 3 && labels.contains("Person") && labels.contains("Man") && labels.contains("Boy") )
+    assert(labels.size == 3 && labels.contains("Person") && labels.contains("Man") && labels.contains("Boy"))
   }
 
   @Test
@@ -226,13 +219,13 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
     val query = "create (n1:Person:Man{name:'xx'}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext) {
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
     tx.success()
     tx.close()
-    assert(id1 != -1 )
+    assert(id1 != -1)
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).get.props.size == 1)
     var labels1 = tmpns.nodes.get(id1).get.labels.toList
@@ -254,7 +247,7 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
     // after tx close, data flushed to store
     assert(tmpns.nodes.size == 1)
     val labels2 = tmpns.nodes.get(id1).get.labels.toList
-    assert(labels2.size == 1 && labels2.contains("Man") )
+    assert(labels2.size == 1 && labels2.contains("Man"))
   }
 
 
@@ -263,18 +256,18 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
     // remove multi labels
 
     // create node
-//    val tx = db.beginTx()
+    //    val tx = db.beginTx()
     val query = "create (n1:Person:Man:Boy{name:'xx'}) return id(n1)"
     val rs = db.execute(query)
     var id1: Long = -1
-    if(rs.hasNext) {
+    if (rs.hasNext) {
       val row = rs.next()
       id1 = row.get("id(n1)").toString.toLong
     }
-//    tx.success()
-//    tx.close()
+    //    tx.success()
+    //    tx.close()
     // Results have been visited, tx closed and data haven flush to store
-    assert(id1 != -1 )
+    assert(id1 != -1)
     assert(tmpns.nodes.size == 1)
     assert(tmpns.nodes.get(id1).get.props.size == 1)
     var labels1 = tmpns.nodes.get(id1).get.labels.toList
@@ -296,7 +289,7 @@ class UpdateLabelQueryTest extends UpdateQueryTestBase {
     // after tx close, data flushed to store
     assert(tmpns.nodes.size == 1)
     val labels2 = tmpns.nodes.get(id1).get.labels.toList
-    assert(labels2.size == 1 && labels2.contains("Man") )
+    assert(labels2.size == 1 && labels2.contains("Man"))
   }
 
 

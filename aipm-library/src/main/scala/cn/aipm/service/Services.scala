@@ -3,7 +3,7 @@ package cn.aipm.service
 import java.io.InputStream
 
 import cn.pandadb.cypherplus.AnyComparator
-import cn.pandadb.util.{ConfigUtils, Configuration}
+import cn.pandadb.util.{ContextMap, ConfigUtils, Configuration}
 import scala.collection.immutable.Map
 import scala.util.parsing.json.JSON
 import ConfigUtils._
@@ -132,7 +132,7 @@ class Services(private val _aipmHttpHostUrl: String) {
 trait ServiceInitializer extends AnyComparator {
   var service: Services = null
 
-  override def initialize(conf: Configuration): Unit = {
+  override def initialize(conf: ContextMap): Unit = {
     val aipmHttpHostUrl = conf.getRequiredValueAsString("aipm.http.host.url")
     service = new Services(aipmHttpHostUrl)
   }

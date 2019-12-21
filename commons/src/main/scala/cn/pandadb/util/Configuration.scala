@@ -32,7 +32,7 @@ trait Configuration {
 /**
   * Created by bluejoe on 2018/11/3.
   */
-class ConfigurationEx(conf: Configuration) extends Logging {
+class ConfigurationOps(conf: Configuration) extends Logging {
   def getRequiredValueAsString(key: String): String = {
     getRequiredValue(key, (x) => x);
   }
@@ -104,13 +104,13 @@ class WrongArgumentException(key: String, value: String, clazz: Class[_]) extend
 }
 
 object ConfigUtils {
-  implicit def config2Ex(conf: Configuration): ConfigurationEx = new ConfigurationEx(conf);
+  implicit def configOps(conf: Configuration): ConfigurationOps = new ConfigurationOps(conf);
 
-  implicit def map2Ex(map: Map[String, String]): ConfigurationEx = new ConfigurationEx(new Configuration() {
+  implicit def mapOps(map: Map[String, String]): ConfigurationOps = new ConfigurationOps(new Configuration() {
     override def getRaw(name: String): Option[String] = map.get(name)
   });
 
-  implicit def map2Ex(conf: ContextMap): ConfigurationEx = new ConfigurationEx(new Configuration() {
+  implicit def contextMapOps(conf: ContextMap): ConfigurationOps = new ConfigurationOps(new Configuration() {
     override def getRaw(name: String): Option[String] = conf.getOption(name)
   });
 }

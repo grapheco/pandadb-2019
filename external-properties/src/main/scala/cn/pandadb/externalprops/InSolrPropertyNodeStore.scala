@@ -1,26 +1,19 @@
 package cn.pandadb.externalprops
 
-import java.util
-
-import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
-import cn.pandadb.util.Ctrl
+import cn.pandadb.context.InstanceBoundServiceContext
+import cn.pandadb.util.ConfigUtils._
 import cn.pandadb.util.Ctrl._
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
 import org.neo4j.values.storable.{Value, Values}
-import cn.pandadb.util.ConfigUtils._
-import org.apache.solr.common.params.SolrParams
-import org.neo4j.function.ThrowingBiConsumer
 
-import scala.collection.JavaConverters._
-import scala.collection.JavaConverters
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-object SolrUtil{
+object SolrUtil {
   val idName = "id"
   val labelName = "labels"
   val tik = "id,labels,_version_"
@@ -48,10 +41,10 @@ object SolrUtil{
 
 class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore =
-  new InSolrPropertyNodeStore(
-    ctx.configuration.getRequiredValueAsString("external.properties.store.solr.zk"),
-    ctx.configuration.getRequiredValueAsString("external.properties.store.solr.collection")
-  )
+    new InSolrPropertyNodeStore(
+      ctx.instanceContext.getRequiredValueAsString("external.properties.store.solr.zk"),
+      ctx.instanceContext.getRequiredValueAsString("external.properties.store.solr.collection")
+    )
 }
 
 /**
@@ -71,10 +64,12 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     _solrClient.deleteById(docsToBeDeleted.map(_.toString).toList);
     _solrClient.commit();
   }
+
   def clearAll(): Unit = {
     _solrClient.deleteByQuery("*:*")
     _solrClient.commit()
   }
+
   def getRecorderSize: Int = {
     val query = "*:*"
     _solrClient.query(new SolrQuery().setQuery(query)).getResults().size()
@@ -186,10 +181,12 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     val propName = SolrUtil.labelName
     filterNodes(NFContainsWith(propName, label))
   }
+
   def getNodeBylabelAndfilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
     val propName = SolrUtil.labelName
     filterNodes(NFAnd(NFContainsWith(propName, label), expr))
   }
+
   override def getNodeById(id: Long): Option[NodeWithProperties] = {
     val propName = SolrUtil.idName
     filterNodes(NFEquals(propName, Values.of(id))).headOption
@@ -208,7 +205,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   }
 }
 
-class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) extends GroupedOpVisitor{
+class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) extends GroupedOpVisitor {
 
   var oldState = mutable.Map[Long, MutableNodeWithProperties]();
   var newState = mutable.Map[Long, MutableNodeWithProperties]();
@@ -223,10 +220,12 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
     })
     _solrClient.commit();
   }
+
   def getNodeWithPropertiesById(nodeId: Long): NodeWithProperties = {
     val doc = _solrClient.getById(nodeId.toString)
     SolrUtil.solrDoc2nodeWithProperties(doc)
   }
+
   def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
     _solrClient.deleteById(docsToBeDeleted.map(_.toString).toList);
     _solrClient.commit();
@@ -258,9 +257,11 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
       addNodes(Iterable(NodeWithProperties(nodeId, oldNode.props.toMap, oldNode.labels)))
     }
   }
+
   def getSolrNodeById(id: Long): SolrDocument = {
     _solrClient.getById(id.toString)
   }
+
   override def visitUpdateNode(nodeId: Long, addedProps: Map[String, Value],
                                updateProps: Map[String, Value], removeProps: Array[String],
                                addedLabels: Array[String], removedLabels: Array[String]): Unit = {
@@ -282,9 +283,9 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
     }
 
     else {
-        visitDeleteNode(nodeId)
-        val oldNode = oldState.get(nodeId).head
-        addNodes(Iterable(NodeWithProperties(nodeId, oldNode.props.toMap, oldNode.labels)))
+      visitDeleteNode(nodeId)
+      val oldNode = oldState.get(nodeId).head
+      addNodes(Iterable(NodeWithProperties(nodeId, oldNode.props.toMap, oldNode.labels)))
     }
 
 
@@ -296,12 +297,16 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
     if (isCommit) {
 
       newState.foreach(tle => nodeToAdd += NodeWithProperties(tle._1, tle._2.props.toMap, tle._2.labels))
-      oldState.foreach(tle => {if (!newState.contains(tle._1)) nodeToDelete += tle._1})
+      oldState.foreach(tle => {
+        if (!newState.contains(tle._1)) nodeToDelete += tle._1
+      })
     }
     else {
 
       oldState.foreach(tle => nodeToAdd += NodeWithProperties(tle._1, tle._2.props.toMap, tle._2.labels))
-      newState.foreach(tle => {if (!oldState.contains(tle._1)) nodeToDelete += tle._1})
+      newState.foreach(tle => {
+        if (!oldState.contains(tle._1)) nodeToDelete += tle._1
+      })
     }
 
     if (!nodeToAdd.isEmpty) this.addNodes(nodeToAdd)

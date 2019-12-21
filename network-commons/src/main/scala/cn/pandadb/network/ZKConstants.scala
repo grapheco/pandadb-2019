@@ -2,10 +2,11 @@ package cn.pandadb.network
 
 import java.io.{File, FileInputStream}
 import java.util.Properties
+import cn.pandadb.util.ConfigUtils._
 
-import cn.pandadb.util.ConfigurationEx
+import cn.pandadb.util.{InstanceContext}
 
-class ZKConstants(conf: ConfigurationEx) {
-  val localNodeAddress = conf.getRequiredValueAsString(s"localNodeAddress")
-  val zkServerAddress = conf.getRequiredValueAsString(s"zkServerAddress")
+object ZKConstants {
+  val localNodeAddress = InstanceContext.getRequiredValueAsString(s"localNodeAddress")
+  val zkServerAddress = InstanceContext.getRequiredValueAsString(s"zkServerAddress")
 }

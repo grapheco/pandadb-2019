@@ -1,10 +1,8 @@
 import java.io.File
 import java.util.concurrent.Executors
 
-import cn.pandadb.context.Neo4jConfigUtils
 import cn.pandadb.network._
 import cn.pandadb.server.ZKServiceRegistry
-import cn.pandadb.util.ConfigUtils
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode
 import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
@@ -30,11 +28,9 @@ class FakeListener(listenerId: Int) {
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class ZKDiscoveryTest {
 
+  //FIXME: use base class to init
   val configFile = new File(this.getClass.getClassLoader.getResource("test_pnode0.conf").getPath)
-  val neo4jConfig = Config.builder().withFile(configFile).build()
-  val pandaConfig = Neo4jConfigUtils.neo4jConfig2Config(neo4jConfig)
-  val pandaConfigEX = ConfigUtils.config2Ex(pandaConfig)
-  val zkConstants = new ZKConstants(pandaConfigEX)
+  val zkConstants = ZKConstants
 
   val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkConstants.zkServerAddress,
     new ExponentialBackoffRetry(1000, 3));
@@ -78,7 +74,7 @@ class ZKDiscoveryTest {
     funcNum = 33
   }
 
-  def testZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants, listenerList: List[FakeListener]) {
+  def testZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants.type, listenerList: List[FakeListener]) {
 
     val nodesChildrenCache = new PathChildrenCache(curator, ZKPathConfig.ordinaryNodesPath, false)
 

@@ -115,7 +115,7 @@ import org.neo4j.internal.kernel.api.exceptions.PropertyKeyIdNotFoundKernelExcep
 import cn.pandadb.externalprops.CustomPropertyNodeStore;
 import cn.pandadb.externalprops.PropertyWriteTransaction;
 import cn.pandadb.externalprops.NodeWithProperties;
-import cn.pandadb.server.GlobalContext;
+import cn.pandadb.util.InstanceContext;
 import org.neo4j.values.virtual.NodeValue;
 import scala.Option;
 import scala.collection.mutable.Undoable;
@@ -195,7 +195,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
         public CustomPropertyWriteTransactionFacade()
         {
-            this.customPropertyStore = GlobalContext.getOption(
+            this.customPropertyStore = InstanceContext.getOption(
                     CustomPropertyNodeStore.class.getName());
             if (this.customPropertyStore.isDefined())
             {

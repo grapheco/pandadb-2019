@@ -1,9 +1,6 @@
 import java.io.File
 
-import org.neo4j.kernel.configuration.Config
-import cn.pandadb.context.Neo4jConfigUtils
 import cn.pandadb.network.{ZKConstants, ZKPathConfig}
-import cn.pandadb.util._
 import org.junit.{Assert, Test}
 
 /**
@@ -14,10 +11,7 @@ import org.junit.{Assert, Test}
   */
 class ZKConstantsTest {
   val configFile = new File(this.getClass.getClassLoader.getResource("test_pnode0.conf").getPath)
-  val neo4jConfig = Config.builder().withFile(configFile).build()
-  val pandaConfig = Neo4jConfigUtils.neo4jConfig2Config(neo4jConfig)
-  val pandaConfigEX = ConfigUtils.config2Ex(pandaConfig)
-  val zkConstants = new ZKConstants(pandaConfigEX)
+  val zkConstants = ZKConstants
 
   @Test
   def testZKPathConfig(): Unit = {

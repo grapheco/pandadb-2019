@@ -2,7 +2,7 @@ package cn.aipm
 
 import cn.pandadb.cypherplus.PropertyExtractor
 import cn.pandadb.blob.Blob
-import cn.pandadb.util.Configuration
+import cn.pandadb.util.{ContextMap, Configuration}
 
 /**
   * Created by bluejoe on 2019/2/17.
@@ -14,7 +14,7 @@ class CommonPropertyExtractor extends PropertyExtractor {
     Map("class" -> x.getClass.getName)
   }
 
-  override def initialize(conf: Configuration) {
+  override def initialize(conf: ContextMap) {
   }
 }
 
@@ -27,6 +27,6 @@ class CommonBlobPropertyExtractor extends PropertyExtractor {
     }
   }
 
-  override def initialize(conf: Configuration) {
+  override def initialize(conf: ContextMap) {
   }
 }

@@ -12,7 +12,7 @@ import cn.pandadb.server.internode.InterNodeRequestHandler
 import cn.pandadb.server.neo4j.Neo4jRequestHandler
 import cn.pandadb.server.rpc.{NettyRpcServer, PNodeRpcClient}
 import cn.pandadb.util.Ctrl._
-import cn.pandadb.util.Logging
+import cn.pandadb.util.{InstanceContext, Logging}
 import org.apache.commons.io.IOUtils
 import org.apache.curator.framework.recipes.leader.{LeaderSelector, LeaderSelectorListenerAdapter}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
@@ -52,7 +52,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   val runningLock = new CountDownLatch(1)
 
   //prepare args for ZKClusterClient
-  PNodeServerContext.putAll(props)
+  InstanceContext.putAll(props)
   import cn.pandadb.util.ConfigUtils._
 
   val zkString: String = props.getRequiredValueAsString("zookeeper.address")
@@ -66,7 +66,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   var masterRole: MasterRole = null
 
   val np = NodeAddress.fromString(props.getRequiredValueAsString("node.server.address"))
-  //TOOD: bindNodeAddress
+  //TODO: bindNodeAddress
   PNodeServerContext.bindLocalIpAddress(np.host)
   PNodeServerContext.bindRpcPort(props.getRequiredValueAsInt("rpcPort"))
 

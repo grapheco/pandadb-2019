@@ -1,6 +1,9 @@
 package cn.pandadb.util
 
+import java.io.File
+
 import scala.collection.mutable.{Map => MMap}
+
 /*
  * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
@@ -21,14 +24,18 @@ import scala.collection.mutable.{Map => MMap}
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-object GlobalContext extends ContextMap {
+object InstanceContext extends ContextMap {
+  def bindStoreDir(storeDir: File): Unit = {
+    this.put[File]("pnode.store.dir", storeDir)
+  }
 
+  def getStoreDir: File = this.get[File]("pnode.store.dir")
 }
 
 class ContextMap {
   private val _map = MMap[String, Any]();
 
-  def putAll(props: Map[String, String]) {
+  def putAll(props: Map[String, Any]) {
     _map ++= props
   }
 
