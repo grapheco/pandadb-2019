@@ -22,6 +22,10 @@ class NaiveWriteLock(clusterClient: ZookeeperBasedClusterClient) extends NaiveLo
   val register = new ZKServiceRegistry(clusterClient.zkServerAddress)
 
   override def lock(): Unit = {
+    while (nodeList.length == 0) {
+      Thread.sleep(1000)
+      nodeList = clusterClient.getAllNodes().toList
+    }
     nodeList.foreach(lockOrdinaryNode(_))
     lockLeaderNode(masterNodeAddress)
   }

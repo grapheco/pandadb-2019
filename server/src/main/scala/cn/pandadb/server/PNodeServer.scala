@@ -68,7 +68,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   val np = NodeAddress.fromString(props.getRequiredValueAsString("node.server.address"))
   //TOOD: bindNodeAddress
   PNodeServerContext.bindLocalIpAddress(np.host)
-  PNodeServerContext.bindRpcPort(np.port)
+  PNodeServerContext.bindRpcPort(props.getRequiredValueAsInt("rpcPort"))
 
   val serverKernel = new NettyRpcServer("0.0.0.0", PNodeServerContext.getRpcPort, "PNodeRpc-service");
   serverKernel.accept(Neo4jRequestHandler());
@@ -133,7 +133,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
     // if can't get now, wait here.
     val cypherArr = _getRemoteLogs()
 
-    val localDriver = GraphDatabase.driver(s"bolt://" + props.get("localNodeAddress"))
+    val localDriver = GraphDatabase.driver(s"bolt://" + np.getAsString)
     val session = localDriver.session()
     cypherArr.foreach(logItem => {
       val tx = session.beginTransaction()
