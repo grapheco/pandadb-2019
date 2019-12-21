@@ -2,8 +2,7 @@ package cn.pandadb.context
 
 import java.io.File
 
-import cn.pandadb.context.Neo4jConfigUtils._
-import cn.pandadb.util.{Configuration, ContextMap, Logging}
+import cn.pandadb.util.{ContextMap, InstanceContext, Logging}
 import org.neo4j.kernel.configuration.Config
 import org.neo4j.kernel.impl.factory.DatabaseInfo
 import org.neo4j.kernel.impl.proc.Procedures
@@ -16,8 +15,10 @@ trait InstanceBoundServiceFactory {
 }
 
 case class InstanceBoundServiceContext(proceduresService: Procedures,
-                                       storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo,
-                                       configuration: Configuration, instanceContext: ContextMap) {
+                                       storeDir: File,
+                                       neo4jConf: Config,
+                                       databaseInfo: DatabaseInfo,
+                                       instanceContext: ContextMap) {
 
 }
 
@@ -61,11 +62,10 @@ object InstanceBoundServiceFactoryRegistry extends Logging {
 class InstanceBoundServiceFactoryRegistryHolder(proceduresService: Procedures, storeDir: File, neo4jConf: Config, databaseInfo: DatabaseInfo)
   extends Lifecycle with Logging {
 
-  val configuration: Configuration = neo4jConf;
-  val ctx = new InstanceBoundServiceContext(proceduresService, storeDir, neo4jConf, databaseInfo, configuration, neo4jConf.getInstanceContext);
+  val ctx = new InstanceBoundServiceContext(proceduresService, storeDir, neo4jConf, databaseInfo, InstanceContext);
 
   /////binds context
-  neo4jConf.getInstanceContext.put[InstanceBoundServiceFactoryRegistryHolder](this);
+  InstanceContext.put[InstanceBoundServiceFactoryRegistryHolder](this);
 
   override def shutdown(): Unit = {
   }

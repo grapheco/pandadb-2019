@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.function.ToIntFunction;
 
 import cn.pandadb.blob.Blob;
-import cn.pandadb.context.InstanceContext;
-import cn.pandadb.util.ContextMap;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.io.pagecache.PageCache;
@@ -632,7 +630,7 @@ public class PropertyStore extends CommonAbstractStore<PropertyRecord,NoStoreHea
         @Override
         public void writeBlob( Blob blob )
         {
-            StoreBlobIO.saveBlob( InstanceContext.of( stringAllocator ), blob, this.keyId, this.block );
+            StoreBlobIO.saveBlob( blob, this.keyId, this.block );
         }
 
     }
@@ -678,7 +676,7 @@ public class PropertyStore extends CommonAbstractStore<PropertyRecord,NoStoreHea
 
     private Value getArrayFor( Iterable<DynamicRecord> records )
     {
-        return getRightArray( InstanceContext.of( this ), arrayStore.readFullByteArray( records, PropertyType.ARRAY ) );
+        return getRightArray( arrayStore.readFullByteArray( records, PropertyType.ARRAY ) );
     }
 
     @Override
@@ -720,7 +718,7 @@ public class PropertyStore extends CommonAbstractStore<PropertyRecord,NoStoreHea
         return new PropertyValueRecordSizeCalculator( this );
     }
 
-    public static ArrayValue readArrayFromBuffer( ContextMap ic, ByteBuffer buffer )
+    public static ArrayValue readArrayFromBuffer( ByteBuffer buffer )
     {
         if ( buffer.limit() <= 0 )
         {
@@ -748,7 +746,7 @@ public class PropertyStore extends CommonAbstractStore<PropertyRecord,NoStoreHea
             else if ( typeId == PropertyType.BLOB.intValue() )
             {
                 int arrayLength = buffer.getInt();
-                Blob[] result = StoreBlobIO.readBlobArray( ic, buffer, arrayLength );
+                Blob[] result = StoreBlobIO.readBlobArray( buffer, arrayLength );
                 return Values.blobArray(result);
             }
             else if ( typeId == PropertyType.GEOMETRY.intValue() )
@@ -756,14 +754,14 @@ public class PropertyStore extends CommonAbstractStore<PropertyRecord,NoStoreHea
                 GeometryType.GeometryHeader header = GeometryType.GeometryHeader.fromArrayHeaderByteBuffer( buffer );
                 byte[] byteArray = new byte[buffer.limit() - buffer.position()];
                 buffer.get( byteArray );
-                return GeometryType.decodeGeometryArray( ic, header, byteArray );
+                return GeometryType.decodeGeometryArray( header, byteArray );
             }
             else if ( typeId == PropertyType.TEMPORAL.intValue() )
             {
                 TemporalType.TemporalHeader header = TemporalType.TemporalHeader.fromArrayHeaderByteBuffer( buffer );
                 byte[] byteArray = new byte[buffer.limit() - buffer.position()];
                 buffer.get( byteArray );
-                return TemporalType.decodeTemporalArray( ic, header, byteArray );
+                return TemporalType.decodeTemporalArray( header, byteArray );
             }
             else
             {

@@ -26,7 +26,7 @@ import org.neo4j.kernel.impl.proc.Procedures
 
 class BlobStorageServiceFactory extends InstanceBoundServiceFactory with Logging {
   override def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {
-    val blobStorage = BlobStorage.create(ctx.configuration);
+    val blobStorage = BlobStorage.create(ctx.instanceContext);
     ctx.instanceContext.put[BlobStorage](blobStorage);
     Some(blobStorage)
   }

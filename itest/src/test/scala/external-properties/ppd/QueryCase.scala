@@ -3,7 +3,7 @@ package ppd
 import java.io.File
 
 import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
-import cn.pandadb.server.GlobalContext
+import cn.pandadb.util.InstanceContext
 import org.junit.{After, Before, Test}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
@@ -18,7 +18,7 @@ trait QueryCase {
     FileUtils.deleteRecursively(dbFile);
     dbFile.mkdirs();
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
-    GlobalContext.put(classOf[CustomPropertyNodeStore].getName, store)
+    InstanceContext.put(classOf[CustomPropertyNodeStore].getName, store)
 
     // create one node
     val query = "CREATE (n:Person {age: 10, name: 'bob'})"

@@ -1,9 +1,7 @@
 import java.io.File
 
-import cn.pandadb.context.Neo4jConfigUtils
 import cn.pandadb.network.{NodeAddress, ZKConstants, ZKPathConfig}
 import cn.pandadb.server.ZKServiceRegistry
-import cn.pandadb.util.ConfigUtils
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.junit.runners.MethodSorters
@@ -21,10 +19,7 @@ import org.neo4j.kernel.configuration.Config
 class ZKResistryTest {
 
   val configFile = new File("./src/test/resources/test_pnode0.conf")
-  val neo4jConfig = Config.builder().withFile(configFile).build()
-  val pandaConfig = Neo4jConfigUtils.neo4jConfig2Config(neo4jConfig)
-  val pandaConfigEX = ConfigUtils.config2Ex(pandaConfig)
-  val zkConstants = new ZKConstants(pandaConfigEX)
+  val zkConstants = ZKConstants
 
   val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + zkConstants.localNodeAddress
   val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + zkConstants.localNodeAddress

@@ -31,8 +31,6 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 
 import cn.pandadb.blob.Blob;
-import cn.pandadb.context.InstanceContext;
-import cn.pandadb.util.ContextMap;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.io.pagecache.PageCache;
 import org.neo4j.kernel.configuration.Config;
@@ -207,7 +205,7 @@ public class DynamicArrayStore extends AbstractDynamicStore
         for ( int i = 0; i < array.length; i++ )
         {
             Blob blob = array[i];
-            byte[] bytes = StoreBlobIO.saveAndEncodeBlobAsByteArray( InstanceContext.of( recordAllocator ), blob );
+            byte[] bytes = StoreBlobIO.saveAndEncodeBlobAsByteArray( blob );
             blobsAsBytes[i] = bytes;
             totalBytesRequired += 4/*byte[].length*/ + bytes.length;
         }
@@ -346,7 +344,7 @@ public class DynamicArrayStore extends AbstractDynamicStore
         }
     }
 
-    public static Value getRightArray( ContextMap ic, Pair<byte[],byte[]> data )
+    public static Value getRightArray( Pair<byte[],byte[]> data )
     {
         byte[] header = data.first();
         byte[] bArray = data.other();
@@ -373,18 +371,18 @@ public class DynamicArrayStore extends AbstractDynamicStore
             ByteBuffer headerBuffer = ByteBuffer.wrap( header, 1/*skip the type*/, header.length - 1 );
             int arrayLength = headerBuffer.getInt();
             ByteBuffer dataBuffer = ByteBuffer.wrap( bArray );
-            Blob[] result = StoreBlobIO.readBlobArray( ic, dataBuffer, arrayLength );
+            Blob[] result = StoreBlobIO.readBlobArray( dataBuffer, arrayLength );
             return Values.blobArray( result );
         }
         else if ( typeId == PropertyType.GEOMETRY.intValue() )
         {
             GeometryType.GeometryHeader geometryHeader = GeometryType.GeometryHeader.fromArrayHeaderBytes(header);
-            return GeometryType.decodeGeometryArray( ic, geometryHeader, bArray );
+            return GeometryType.decodeGeometryArray( geometryHeader, bArray );
         }
         else if ( typeId == PropertyType.TEMPORAL.intValue() )
         {
             TemporalType.TemporalHeader temporalHeader = TemporalType.TemporalHeader.fromArrayHeaderBytes(header);
-            return TemporalType.decodeTemporalArray( ic, temporalHeader, bArray );
+            return TemporalType.decodeTemporalArray( temporalHeader, bArray );
         }
         else
         {
@@ -410,6 +408,6 @@ public class DynamicArrayStore extends AbstractDynamicStore
 
     public Object getArrayFor( Iterable<DynamicRecord> records )
     {
-        return getRightArray( InstanceContext.of( this ), readFullByteArray( records, PropertyType.ARRAY ) ).asObject();
+        return getRightArray( readFullByteArray( records, PropertyType.ARRAY ) ).asObject();
     }
 }

@@ -23,6 +23,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 
 import cn.pandadb.blob._
+import cn.pandadb.util.InstanceContext
 import cn.pandadb.util.{PandaException, StreamUtils, ContextMap, Logging}
 import org.neo4j.kernel.impl.store.record.{PrimitiveRecord, PropertyBlock, PropertyRecord}
 import org.neo4j.values.storable.{BlobArray, BlobValue}
@@ -31,45 +32,46 @@ import org.neo4j.values.storable.{BlobArray, BlobValue}
   * Created by bluejoe on 2019/3/29.
   */
 object StoreBlobIO extends Logging {
-  def saveAndEncodeBlobAsByteArray(ic: ContextMap, blob: Blob): Array[Byte] = {
+  val ic: ContextMap = InstanceContext
+
+  def saveAndEncodeBlobAsByteArray(blob: Blob): Array[Byte] = {
     val bid = ic.get[BlobStorage].save(blob);
     BlobIO.pack(Blob.makeEntry(bid, blob));
   }
 
-  def saveBlob(ic: ContextMap, blob: Blob, keyId: Int, block: PropertyBlock) {
+  def saveBlob(blob: Blob, keyId: Int, block: PropertyBlock) {
     val bid = ic.get[BlobStorage].save(blob);
     block.setValueBlocks(BlobIO._pack(Blob.makeEntry(bid, blob), keyId));
   }
 
-  def deleteBlobArrayProperty(ic: ContextMap, blobs: BlobArray): Unit = {
+  def deleteBlobArrayProperty(blobs: BlobArray): Unit = {
     ic.get[BlobStorage].deleteBatch(
       blobs.value().map(_.asInstanceOf[BlobWithId].id));
   }
 
-  def deleteBlobProperty(ic: ContextMap, primitive: PrimitiveRecord, propRecord: PropertyRecord, block: PropertyBlock): Unit = {
+  def deleteBlobProperty(primitive: PrimitiveRecord, propRecord: PropertyRecord, block: PropertyBlock): Unit = {
     val entry = BlobIO.unpack(block.getValueBlocks);
     ic.get[BlobStorage].delete(entry.id);
   }
 
-  def readBlob(ic: ContextMap, bytes: Array[Byte]): Blob = {
-    readBlobValue(ic, StreamUtils.convertByteArray2LongArray(bytes)).blob;
+  def readBlob(bytes: Array[Byte]): Blob = {
+    readBlobValue(StreamUtils.convertByteArray2LongArray(bytes)).blob;
   }
 
-  def readBlobArray(ic: ContextMap, dataBuffer: ByteBuffer, arrayLength: Int): Array[Blob] = {
+  def readBlobArray(dataBuffer: ByteBuffer, arrayLength: Int): Array[Blob] = {
     (0 to arrayLength - 1).map { x =>
       val byteLength = dataBuffer.getInt();
       val blobByteArray = new Array[Byte](byteLength);
       dataBuffer.get(blobByteArray);
-      StoreBlobIO.readBlob(ic, blobByteArray);
+      StoreBlobIO.readBlob(blobByteArray);
     }.toArray
   }
 
-
-  def readBlobValue(ic: ContextMap, block: PropertyBlock): BlobValue = {
-    readBlobValue(ic, block.getValueBlocks);
+  def readBlobValue(block: PropertyBlock): BlobValue = {
+    readBlobValue(block.getValueBlocks);
   }
 
-  def readBlobValue(ic: ContextMap, values: Array[Long]): BlobValue = {
+  def readBlobValue(values: Array[Long]): BlobValue = {
     val entry = BlobIO.unpack(values);
     val storage = ic.get[BlobStorage];
 

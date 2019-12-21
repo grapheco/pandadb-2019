@@ -1,7 +1,7 @@
 package cn.pandadb.blob
 
 import cn.pandadb.cypherplus._
-import cn.pandadb.util.{PandaException, Configuration, Logging}
+import cn.pandadb.util.{ContextMap, PandaException, Configuration, Logging}
 
 import scala.beans.BeanProperty
 import scala.collection.mutable
@@ -37,7 +37,7 @@ class CypherPluginRegistry {
   @BeanProperty var extractors: Array[DomainExtractorEntry] = Array();
   @BeanProperty var comparators: Array[DomainComparatorEntry] = Array();
 
-  def createCustomPropertyProvider(conf: Configuration): CustomPropertyProvider = new CustomPropertyProvider {
+  def createCustomPropertyProvider(conf: ContextMap): CustomPropertyProvider = new CustomPropertyProvider {
     extractors.foreach(_.extractor.initialize(conf));
 
     //propertyName, typeName
@@ -76,7 +76,7 @@ class CypherPluginRegistry {
     }
   }
 
-  def createValueComparatorRegistry(conf: Configuration): ValueMatcher = new ValueMatcher with Logging {
+  def createValueComparatorRegistry(conf: ContextMap): ValueMatcher = new ValueMatcher with Logging {
     type CompareAnyMethod = (Any, Any) => Any;
     type CompareValueMethod = (Any, Any) => Double;
     type CompareSetMethod = (Any, Any) => Array[Array[Double]];

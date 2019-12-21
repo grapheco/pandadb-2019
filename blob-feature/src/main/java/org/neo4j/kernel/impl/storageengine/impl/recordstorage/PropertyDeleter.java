@@ -18,8 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.neo4j.kernel.impl.storageengine.impl.recordstorage;
-
-import cn.pandadb.context.InstanceContext;
 import org.neo4j.kernel.impl.store.record.*;
 import org.neo4j.kernel.impl.transaction.state.RecordAccess;
 import org.neo4j.kernel.impl.transaction.state.RecordAccess.RecordProxy;
@@ -46,7 +44,7 @@ public class PropertyDeleter
             PropertyRecord propRecord = propertyChange.forChangingData();
 
             propRecord.forEach( block -> {
-                block.getType().onPropertyDelete( InstanceContext.of(propertyRecords), primitive, propRecord, block );
+                block.getType().onPropertyDelete( primitive, propRecord, block );
             } );
 
             deletePropertyRecordIncludingValueRecords( propRecord );
@@ -134,7 +132,7 @@ public class PropertyDeleter
                                              + propertyId + "]" );
         }
 
-        block.getType().onPropertyDelete( InstanceContext.of( propertyRecords ), primitive, propRecord, block);
+        block.getType().onPropertyDelete( primitive, propRecord, block);
 
         for ( DynamicRecord valueRecord : block.getValueRecords() )
         {

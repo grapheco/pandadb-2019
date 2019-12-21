@@ -1,7 +1,6 @@
 package cn.pandadb.cypherplus
 
-import cn.pandadb.util.ReflectUtils._
-import cn.pandadb.util.{PandaException, ContextMap}
+import cn.pandadb.util.InstanceContext
 import org.neo4j.cypher.internal.runtime.interpreted.commands.AstNode
 import org.neo4j.cypher.internal.runtime.interpreted.commands.convert.{ExpressionConverters, ExtendedCommandExpr}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.{Expression => CommandExpression}
@@ -16,7 +15,6 @@ import org.neo4j.cypher.internal.v3_5.expressions._
 import org.neo4j.cypher.internal.v3_5.util.InputPosition
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.cypher.internal.v3_5.util.symbols._
-import org.neo4j.kernel.configuration.Config
 import org.neo4j.values.AnyValue
 import org.neo4j.values.storable.{Value, _}
 import org.neo4j.values.virtual.VirtualValues
@@ -181,19 +179,11 @@ case class SemanticSetInExpr(lhs: Expression, ant: Option[AlgoNameWithThresholdE
 /////////////commands/////////////
 
 case class QueryStateEx(state: QueryState) {
-  def getInstanceContext(): ContextMap = {
-    val config = state match {
-      case x: UpdateCountingQueryContext => state._get("query.inner.inner.transactionalContext.tc.graph.graph.config")
-      case _ => state._get("query.inner.transactionalContext.tc.graph.graph.config")
-    }
-    config.asInstanceOf[Config].getInstanceContext
-  }
-
   def getCustomPropertyProvider(): CustomPropertyProvider =
-    getInstanceContext().get[CustomPropertyProvider]()
+    InstanceContext.get[CustomPropertyProvider]()
 
   def getValueMatcher(): ValueMatcher =
-    getInstanceContext().get[ValueMatcher]()
+    InstanceContext.get[ValueMatcher]()
 }
 
 case class CustomPropertyCommand(mapExpr: CommandExpression, propertyKey: KeyToken)

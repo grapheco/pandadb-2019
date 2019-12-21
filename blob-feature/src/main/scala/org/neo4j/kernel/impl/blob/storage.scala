@@ -87,8 +87,8 @@ object BlobStorage extends Logging {
     };
   }
 
-  def create(conf: Configuration): BlobStorage =
-    of(create(conf.getRaw("blob.storage")));
+  def create(conf: ContextMap): BlobStorage =
+    of(create(conf.getOption[String]("blob.storage")));
 
   def create(blobStorageClassName: Option[String]): BatchBlobValueStorage = {
     blobStorageClassName.map(Class.forName(_).newInstance().asInstanceOf[BatchBlobValueStorage])
@@ -163,7 +163,7 @@ object BlobStorage extends Logging {
     override def start(ctx: InstanceBoundServiceContext): Unit = {
       val baseDir: File = new File(ctx.storeDir, ctx.neo4jConf.getValue("dbms.active_database").get().toString);
       //new File(conf.getRaw("unsupported.dbms.directories.neo4j_home").get());
-      _rootDir = ctx.configuration.getAsFile("blob.storage.file.dir", baseDir, new File(baseDir, "/blob"));
+      _rootDir = ctx.instanceContext.getAsFile("blob.storage.file.dir", baseDir, new File(baseDir, "/blob"));
       _rootDir.mkdirs();
       logger.info(s"using storage dir: ${_rootDir.getCanonicalPath}");
     }
@@ -181,7 +181,7 @@ object BlobStorage extends Logging {
 
   def createDefault(): BatchBlobValueStorage = {
     //will read "default-blob-value-storage-class" entry first
-    GlobalContext.getOption("default-blob-value-storage-class")
+    InstanceContext.getOption("default-blob-value-storage-class")
       .map(Class.forName(_).newInstance().asInstanceOf[BatchBlobValueStorage])
       .getOrElse(new DefaultLocalFileSystemBlobValueStorage())
   }

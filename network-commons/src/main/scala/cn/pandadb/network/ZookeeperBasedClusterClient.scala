@@ -68,7 +68,8 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
     listenerList = listener.asInstanceOf[ZKClusterEventListener] :: listenerList
   }
 
-  override def waitFor(state: ClusterState): Unit = null
+  override def waitFor(state: ClusterState): Unit = {
+  }
 
   def getCurator(): CuratorFramework = {
     curator
