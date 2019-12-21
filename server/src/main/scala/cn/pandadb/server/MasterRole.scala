@@ -89,6 +89,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
     val preVersion = zkClusterClient.getClusterDataVersion()
     initWriteContext()
     setClusterState(new Writing)
+    allNodes = clusterClient.getAllNodes()
     globalWriteLock.lock()
     // key func
     distributeWriteStatement(cypher)

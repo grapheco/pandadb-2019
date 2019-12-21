@@ -1,7 +1,7 @@
 import java.io.File
 
 import cn.pandadb.context.Neo4jConfigUtils
-import cn.pandadb.network.{ZKConstants, ZKPathConfig}
+import cn.pandadb.network.{NodeAddress, ZKConstants, ZKPathConfig}
 import cn.pandadb.server.ZKServiceRegistry
 import cn.pandadb.util.ConfigUtils
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
@@ -45,7 +45,7 @@ class ZKResistryTest {
   // exist ordinaryNode after registry
   @Test
   def test2(): Unit = {
-    ordinadyNodeRegistry.registerAsOrdinaryNode(zkConstants.localNodeAddress)
+    ordinadyNodeRegistry.registerAsOrdinaryNode(NodeAddress.fromString(zkConstants.localNodeAddress))
     val flag = curator.checkExists().forPath(ordinaryNodePath)
     Assert.assertEquals(true, flag != null)
     val ordinaryNodeAddress = curator.getChildren().forPath("/pandaNodes/ordinaryNodes") // returned type is ArrayList[String]
@@ -70,7 +70,7 @@ class ZKResistryTest {
   // exist leader node after registry
   @Test
   def test5(): Unit = {
-    leaderNodeRegistry.registerAsLeader(zkConstants.localNodeAddress)
+    leaderNodeRegistry.registerAsLeader(NodeAddress.fromString(zkConstants.localNodeAddress))
     val flag = curator.checkExists().forPath(leaderNodePath)
     Assert.assertEquals(true, flag != false)
     leaderNodeRegistry.curator.close()
