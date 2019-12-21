@@ -5,6 +5,9 @@ import java.io.File
 import cn.pandadb.network.ClusterClient
 import cn.pandadb.util.InstanceContext
 
+/**
+  * wrapper of InstanceContext
+  */
 object PNodeServerContext {
 
   def bindStoreDir(storeDir: File): Unit = {
