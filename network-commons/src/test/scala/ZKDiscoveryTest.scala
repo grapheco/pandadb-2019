@@ -30,16 +30,16 @@ class ZKDiscoveryTest {
 
   //FIXME: use base class to init
   val configFile = new File(this.getClass.getClassLoader.getResource("test_pnode0.conf").getPath)
-  val zkConstants = ZKConstants
 
-  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkConstants.zkServerAddress,
+  val zkServerAddress = "10.0.86.26:2181";
+  val localNodeAddress = "10.0.88.11:1111"
+  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkServerAddress,
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
 
   val listenerList: List[FakeListener] = List(new FakeListener(1), new FakeListener(2))
-  val ordinadyNodeRegistry = new ZKServiceRegistry(zkConstants.zkServerAddress)
-  testZKServiceDiscovery(curator, zkConstants, listenerList)
-
+  val ordinadyNodeRegistry = new ZKServiceRegistry(zkServerAddress)
+  testZKServiceDiscovery(curator, listenerList)
   var funcNum = 0
 
   @Test
@@ -54,7 +54,7 @@ class ZKDiscoveryTest {
     funcNum = 11
 
     funcNum = 2
-    ordinadyNodeRegistry.registerAsOrdinaryNode(NodeAddress.fromString(zkConstants.localNodeAddress))
+    ordinadyNodeRegistry.registerAsOrdinaryNode(NodeAddress.fromString(localNodeAddress))
     Thread.sleep(1000)
     for (listener <- listenerList) {
       Assert.assertEquals(1, listener.CHILD_ADDED)
@@ -64,7 +64,7 @@ class ZKDiscoveryTest {
     funcNum = 22
 
     funcNum = 3
-    ordinadyNodeRegistry.unRegisterOrdinaryNode(NodeAddress.fromString(zkConstants.localNodeAddress))
+    ordinadyNodeRegistry.unRegisterOrdinaryNode(NodeAddress.fromString(localNodeAddress))
     Thread.sleep(1000)
 
     for (listener <- listenerList) {
@@ -74,7 +74,7 @@ class ZKDiscoveryTest {
     funcNum = 33
   }
 
-  def testZKServiceDiscovery(curator: CuratorFramework, zkConstants: ZKConstants.type, listenerList: List[FakeListener]) {
+  def testZKServiceDiscovery(curator: CuratorFramework, listenerList: List[FakeListener]) {
 
     val nodesChildrenCache = new PathChildrenCache(curator, ZKPathConfig.ordinaryNodesPath, false)
 

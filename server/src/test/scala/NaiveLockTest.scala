@@ -1,10 +1,7 @@
-import java.io.File
-
-import cn.pandadb.network.{NodeAddress, ZKConstants, ZookeeperBasedClusterClient}
+import cn.pandadb.network.{NodeAddress, ZookeeperBasedClusterClient}
 import cn.pandadb.server.{MasterRole, ZKServiceRegistry}
 import org.junit.runners.MethodSorters
 import org.junit.{Assert, FixMethodOrder, Test}
-import org.neo4j.kernel.configuration.Config
 
 /**
   * @Author: Airzihao
@@ -13,16 +10,14 @@ import org.neo4j.kernel.configuration.Config
   * @Modified By:
   */
 
+
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class NaiveLockTest {
 
-  val configFile = new File(this.getClass.getClassLoader.getResource("test_pnode0.conf").getPath)
-  val zkConstants = ZKConstants
-
-  val zkString = zkConstants.zkServerAddress
+  val zkString = "10.0.86.26:2181"
+  val localNodeAddress = "10.0.88.11:1111"
   val clusterClient = new ZookeeperBasedClusterClient(zkString)
-  val master = new MasterRole(clusterClient, NodeAddress.fromString(zkConstants.localNodeAddress))
-
+  val master = new MasterRole(clusterClient, NodeAddress.fromString(localNodeAddress))
   val register = new ZKServiceRegistry(zkString)
 
   val nodeList = List("10.0.88.11:1111", "10.0.88.22:2222", "10.0.88.33:3333", "10.0.88.44:4444")
@@ -64,7 +59,6 @@ class NaiveLockTest {
     Thread.sleep(3000)
     Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsString)
     Assert.assertEquals(true, compareList(nodeList, clusterClient.getAllNodes()))
-
   }
 
   def compareList(srtList: List[String], allNodes: Iterable[NodeAddress]): Boolean = {

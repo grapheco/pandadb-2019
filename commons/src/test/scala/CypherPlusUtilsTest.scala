@@ -40,7 +40,7 @@ class CypherPlusUtilsTest {
   def test2(): Unit = {
     notWriteStatements.toList.foreach(statement => {
       if (CypherPlusUtils.isWriteStatement(statement)) {
-        // scalastrle:off
+        // scalastyle:off
         println(s"error: ${statement} judged as a write statement.")
       }
       Assert.assertEquals(false, CypherPlusUtils.isWriteStatement(statement))
