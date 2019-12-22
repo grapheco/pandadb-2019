@@ -41,7 +41,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   // how to init it?
   private var currentState: ClusterState = new ClusterState {}
   override val clusterClient = zkClusterClient
-  val masterNodeAddress = clusterClient.getWriteMasterNode("").get.getAsString
+  val masterNodeAddress = localAddress.getAsString
   override var allNodes: Iterable[NodeAddress] = clusterClient.getAllNodes()
   override var globalReadLock: NaiveLock = new NaiveReadLock(clusterClient)
   override var globalWriteLock: NaiveLock = new NaiveWriteLock(clusterClient)

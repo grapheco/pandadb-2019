@@ -1,10 +1,9 @@
 import java.io.File
 
-import cn.pandadb.network.{NodeAddress, ZKConstants}
+import cn.pandadb.network.NodeAddress
 import cn.pandadb.server.{DataVersionRecoveryArgs, LocalDataVersionRecovery}
 import org.junit.{Assert, Test}
 import org.neo4j.driver.GraphDatabase
-import org.neo4j.kernel.configuration.Config
 
 /**
   * @Author: Airzihao
@@ -15,19 +14,15 @@ import org.neo4j.kernel.configuration.Config
 
 class LocalDataVersionRecoveryTest {
 
-  val configFile = new File("./src/test/resources/test_pnode0.conf")
-  val zkConstants = ZKConstants
-
   val localLogFile = new File("./src/test/resources/localLog.json")
   val clusterLogFile = new File("./src/test/resources/clusterLog.json")
-  val localNodeAddress = NodeAddress.fromString(zkConstants.localNodeAddress)
+  val localNodeAddress = NodeAddress.fromString("159.226.193.204:7687")
   val recoveryArgs = DataVersionRecoveryArgs(localLogFile, clusterLogFile, localNodeAddress)
   val recovery = new LocalDataVersionRecovery(recoveryArgs)
   val driver = GraphDatabase.driver(s"bolt://" + localNodeAddress.getAsString)
 
   @Test
   def test1(): Unit = {
-
     val _session = driver.session()
     val beforeResult = _session.run("Match(n) Return(n)")
     Assert.assertEquals(false, beforeResult.hasNext)

@@ -1,6 +1,6 @@
 package cn.pandadb.server
 
-import cn.pandadb.network.{NodeAddress, ZKConstants, ZKPathConfig}
+import cn.pandadb.network.{NodeAddress, ZKPathConfig}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.{CreateMode, ZooDefs}
