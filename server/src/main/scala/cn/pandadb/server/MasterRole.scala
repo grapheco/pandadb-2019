@@ -141,7 +141,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   }
 }
 
-// todo: use this class to do multi threads write operation.
+// In future, use this class to do multi threads write operation.
 case class DriverWriteThread(driver: Driver, cypher: String) extends Thread {
 
   override def run(): Unit = {

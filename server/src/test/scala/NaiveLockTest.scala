@@ -10,7 +10,6 @@ import org.junit.{Assert, FixMethodOrder, Test}
   * @Modified By:
   */
 
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class NaiveLockTest {
 

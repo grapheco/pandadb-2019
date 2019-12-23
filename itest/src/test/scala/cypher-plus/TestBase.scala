@@ -42,6 +42,7 @@ trait TestBase {
   }
 
   def openDatabase(dbdir: File = testDbDir, conf: String = testConfPath): GraphDatabaseService = {
-    PandaDB.openDatabase(dbdir.getAbsoluteFile.getCanonicalFile, new File(conf).getAbsoluteFile.getCanonicalFile, Map("external.properties.store.factory" -> null));
+    PandaDB.openDatabase(dbdir.getAbsoluteFile.getCanonicalFile,
+      new File(conf).getAbsoluteFile.getCanonicalFile, Map("external.properties.store.factory" -> null));
   }
 }

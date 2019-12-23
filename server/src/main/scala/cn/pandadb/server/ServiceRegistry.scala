@@ -10,7 +10,6 @@ trait ServiceRegistry {
   def registry(servicePath: String, localNodeAddress: String)
 }
 
-// TODO: Reconstruct this class, localNodeAddress as a parameter.
 class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
 
   var localNodeAddress: String = _

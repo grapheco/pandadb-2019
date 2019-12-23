@@ -2,6 +2,7 @@ package cn.pandadb.server
 
 import java.io.File
 
+import cn.pandadb.externalprops.ExternalPropertyStoreFactory
 import cn.pandadb.network.ClusterClient
 import cn.pandadb.util.InstanceContext
 
@@ -32,6 +33,15 @@ object PNodeServerContext {
   def bindClusterClient(client: ClusterClient): Unit =
     InstanceContext.put[ClusterClient](client)
 
+  def bindLeaderNode(boolean: Boolean): Unit =
+    InstanceContext.put("is.leader.node", boolean)
+
+  def bindExternalPropStorage(boolean: Boolean): Unit =
+    InstanceContext.put("external.property.storage.enabled", boolean)
+
+  def bindExternalPropStorageFactory(exPropStorageFactory: ExternalPropertyStoreFactory): Unit =
+    InstanceContext.put[ExternalPropertyStoreFactory](exPropStorageFactory)
+
   def getMasterRole: MasterRole = InstanceContext.get[MasterRole]
 
   def getClusterClient: ClusterClient = InstanceContext.get[ClusterClient]
@@ -44,8 +54,10 @@ object PNodeServerContext {
 
   def getLocalIpAddress: String = InstanceContext.get[String]("pnode.local.ipAddress")
 
-  def bindLeaderNode(boolean: Boolean): Unit =
-    InstanceContext.put("is.leader.node", boolean)
+  def getExternalPropStorageFactory: ExternalPropertyStoreFactory = InstanceContext.get[ExternalPropertyStoreFactory]
 
   def isLeaderNode: Boolean = InstanceContext.getOption("is.leader.node").getOrElse(false)
+
+  def isExternalPropStorageEnabled: Boolean = InstanceContext.getOption("external.property.storage.enabled").getOrElse(false)
+
 }

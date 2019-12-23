@@ -48,10 +48,14 @@ class SemOpTest extends TestBase {
       case _: Throwable => Assert.assertTrue(true);
     }
 
-    Assert.assertEquals(true, db.execute("return <file://./testdata/mayun1.jpeg> :: <file://./testdata/mayun1.jpeg> as r").next().get("r").asInstanceOf[Double] > 0.7);
-    Assert.assertEquals(true, db.execute("return <file://./testdata/mayun1.jpeg> :: <file://./testdata/mayun2.jpeg> as r").next().get("r").asInstanceOf[Double] > 0.6);
-    Assert.assertEquals(true, db.execute("return '杜 一' :: '杜一' > 0.6 as r").next().get("r"));
-    Assert.assertEquals(true, db.execute("return '杜 一' ::jaro '杜一' > 0.6 as r").next().get("r"));
+    Assert.assertEquals(true,
+      db.execute("return <file://./testdata/mayun1.jpeg> :: <file://./testdata/mayun1.jpeg> as r").next().get("r").asInstanceOf[Double] > 0.7);
+    Assert.assertEquals(true,
+      db.execute("return <file://./testdata/mayun1.jpeg> :: <file://./testdata/mayun2.jpeg> as r").next().get("r").asInstanceOf[Double] > 0.6);
+    Assert.assertEquals(true,
+      db.execute("return '杜 一' :: '杜一' > 0.6 as r").next().get("r"));
+    Assert.assertEquals(true,
+      db.execute("return '杜 一' ::jaro '杜一' > 0.6 as r").next().get("r"));
 
     db.execute("return '杜 一' ::jaro '杜一','Zhihong SHEN' ::levenshtein 'SHEN Z.H'");
 

@@ -1,4 +1,4 @@
-package performance
+package release
 
 import java.io.{File, FileInputStream, PrintWriter}
 import java.util.Properties
@@ -9,9 +9,9 @@ import org.junit.{Assert, Test}
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase, StatementResult}
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.io.Source
 
 /**
