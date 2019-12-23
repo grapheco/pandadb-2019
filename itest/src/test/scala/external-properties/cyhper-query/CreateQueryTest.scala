@@ -34,7 +34,6 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     assert(tmpns.nodes.get(id1).get.props.size == 0)
     assert(tmpns.nodes.get(id1).get.labels.size == 1 && tmpns.nodes.get(id1).get.labels.toList(0) == "Person")
 
-
     val query2 = "create (n1) return id(n1)"
     val rs2 = db.execute(query2)
     var id2: Long = -1
@@ -77,7 +76,6 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
     assert(tmpns.nodes.get(id2).get.labels.size == 1 && tmpns.nodes.get(id2).get.labels.toList(0) == "Man")
     assert(tmpns.nodes.get(id2).get.labels.size == 1 && tmpns.nodes.get(id2).get.labels.toList(0) == "Man")
   }
-
 
   @Test
   def test3(): Unit = {
