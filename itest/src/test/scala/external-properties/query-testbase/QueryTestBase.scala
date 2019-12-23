@@ -26,6 +26,7 @@ trait QueryTestBase {
       case "InMemoryPropertyNodeStore" =>
         InMemoryPropertyNodeStore.nodes.clear()
         InstanceContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
+        InstanceContext.put("is.leader.node", true)
 
       case "InSolrPropertyNodeStore" =>
         val configFile = new File("./testdata/neo4j.conf")
