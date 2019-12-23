@@ -39,7 +39,8 @@ object EnvironmentTest {
 
 // shall this class be established on the driver side?
 class EnvironmentTest {
-  // test zk environment
+
+  // test zk environment, make sure the cluster has the access to R/W the ZK cluster
   @Test
   def test1(): Unit = {
     if (curator.checkExists().forPath(ZKPathConfig.registryPath) == null) {

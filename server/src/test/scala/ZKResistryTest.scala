@@ -15,7 +15,6 @@ import org.junit.{Assert, FixMethodOrder, Test}
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class ZKResistryTest {
 
-//  val configFile = new File("./src/test/resources/test_pnode0.conf")
   val localNodeAddress = "10.0.88.11:1111"
   val zkServerAddress = "10.0.86.26:2181"
 
