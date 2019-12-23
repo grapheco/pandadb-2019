@@ -192,15 +192,25 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
         private Option<CustomPropertyNodeStore> customPropertyStore;
         private PropertyWriteTransaction customPropWrTx;
         private Undoable commitedTxRes;
+        private boolean isLeaderNode;
 
         public CustomPropertyWriteTransactionFacade()
         {
+            Option<Boolean> isLeaderOption = InstanceContext.getOption("is.leader.node");
+            if (isLeaderOption.isDefined()) {
+                this.isLeaderNode = true;
+            }
+            else {
+                this.isLeaderNode = false;
+            }
+
             this.customPropertyStore = InstanceContext.getOption(
                     CustomPropertyNodeStore.class.getName());
-            if (this.customPropertyStore.isDefined())
+            if (this.isLeaderNode && this.customPropertyStore.isDefined())
             {
                 this.customPropWrTx = this.customPropertyStore.get().beginWriteTransaction();
             }
+
         }
 
         private String getNodeLabelName(int label)
@@ -229,7 +239,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
         private boolean isSavePropertyToCustom()
         {
-            return this.customPropWrTx != null;
+            return this.isLeaderNode && this.customPropWrTx != null;
         }
 
         public boolean isPreventNeo4jPropStore()

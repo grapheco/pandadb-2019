@@ -6,6 +6,7 @@
     <priorities/>
     <tags/>
     <users>
+      <user displayName="excelwang" login="excelwang" roles="reviewer"/>
       <user displayName="Airzihao" login="Airzihao" roles="reviewer"/>
       <user displayName="bluejoe" login="bluejoe" roles="admin,reviewer,author"/>
     </users>

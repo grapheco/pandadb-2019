@@ -24,7 +24,7 @@ import org.neo4j.cypher.internal.v3_5.util.attribution.Id
 import org.neo4j.values.virtual.NodeValue
 
 case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
-                              (val id: Id = Id.INVALID_ID) extends PPDPipe  {
+                              (val id: Id = Id.INVALID_ID) extends PredicatePushDownPipe  {
 
   protected def internalCreateResults(state: QueryState): Iterator[ExecutionContext] = {
 
