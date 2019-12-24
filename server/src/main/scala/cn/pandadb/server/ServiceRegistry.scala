@@ -21,7 +21,8 @@ class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
   def registry(servicePath: String, localNodeAddress: String): Unit = {
     val registryPath = ZKPathConfig.registryPath
     val nodeAddress = servicePath + s"/" + localNodeAddress
-/*    node mode in zk：
+    /*
+    * node mode in zk：
     *                     pandaDB
     *               /        |        \
     *           /            |           \
