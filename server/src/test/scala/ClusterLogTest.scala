@@ -1,7 +1,6 @@
 import java.io.File
 
 import cn.pandadb.server.{DataLogDetail, JsonDataLog}
-import com.google.gson.Gson
 import org.junit.{Assert, BeforeClass, Test}
 /**
   * @Author: Airzihao

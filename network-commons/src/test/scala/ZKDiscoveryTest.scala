@@ -1,16 +1,13 @@
-import java.io.File
-import java.util.concurrent.Executors
-
 import cn.pandadb.network._
 import cn.pandadb.server.ZKServiceRegistry
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode
 import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.junit.runners.MethodSorters
 import org.junit.{Assert, FixMethodOrder, Test}
-import org.neo4j.kernel.configuration.Config
 
+import ZKDiscoveryTest.{listenerList, localNodeAddress, ordinadyNodeRegistry}
 /**
   * @Author: Airzihao
   * @Description:
@@ -24,13 +21,7 @@ class FakeListener(listenerId: Int) {
   var CHILD_REMOVED = 0
   var path = s"";
 }
-
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-class ZKDiscoveryTest {
-
-  //FIXME: use base class to init
-  val configFile = new File(this.getClass.getClassLoader.getResource("test_pnode0.conf").getPath)
-
+object ZKDiscoveryTest {
   val zkServerAddress = "10.0.86.26:2181";
   val localNodeAddress = "10.0.88.11:1111"
   val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkServerAddress,
@@ -39,42 +30,10 @@ class ZKDiscoveryTest {
 
   val listenerList: List[FakeListener] = List(new FakeListener(1), new FakeListener(2))
   val ordinadyNodeRegistry = new ZKServiceRegistry(zkServerAddress)
-  testZKServiceDiscovery(curator, listenerList)
-  var funcNum = 0
 
-  @Test
-  def test0(): Unit = {
+  val initListenerList = _addListener(curator, listenerList)
 
-    funcNum = 1
-    for (listener <- listenerList) {
-      Assert.assertEquals(0, listener.CHILD_ADDED)
-      Assert.assertEquals(0, listener.CHILD_REMOVED)
-      Assert.assertEquals("", listener.path)
-    }
-    funcNum = 11
-
-    funcNum = 2
-    ordinadyNodeRegistry.registerAsOrdinaryNode(NodeAddress.fromString(localNodeAddress))
-    Thread.sleep(1000)
-    for (listener <- listenerList) {
-      Assert.assertEquals(1, listener.CHILD_ADDED)
-      Assert.assertEquals(0, listener.CHILD_REMOVED)
-      Assert.assertEquals("10.0.88.11:1111", listener.path)
-    }
-    funcNum = 22
-
-    funcNum = 3
-    ordinadyNodeRegistry.unRegisterOrdinaryNode(NodeAddress.fromString(localNodeAddress))
-    Thread.sleep(1000)
-
-    for (listener <- listenerList) {
-      Assert.assertEquals(1, listener.CHILD_ADDED)
-      Assert.assertEquals(1, listener.CHILD_REMOVED)
-    }
-    funcNum = 33
-  }
-
-  def testZKServiceDiscovery(curator: CuratorFramework, listenerList: List[FakeListener]) {
+  private def _addListener(curator: CuratorFramework, listenerList: List[FakeListener]) {
 
     val nodesChildrenCache = new PathChildrenCache(curator, ZKPathConfig.ordinaryNodesPath, false)
 
@@ -106,5 +65,39 @@ class ZKDiscoveryTest {
     }
     nodesChildrenCache.getListenable().addListener(listener)
   }
+}
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+class ZKDiscoveryTest {
+
+  @Test
+  def test0(): Unit = {
+    for (listener <- listenerList) {
+      Assert.assertEquals(0, listener.CHILD_ADDED)
+      Assert.assertEquals(0, listener.CHILD_REMOVED)
+      Assert.assertEquals("", listener.path)
+    }
+  }
+
+  @Test
+  def test1(): Unit = {
+    ordinadyNodeRegistry.registerAsOrdinaryNode(NodeAddress.fromString(localNodeAddress))
+    Thread.sleep(1000)
+    for (listener <- listenerList) {
+      Assert.assertEquals(1, listener.CHILD_ADDED)
+      Assert.assertEquals(0, listener.CHILD_REMOVED)
+      Assert.assertEquals("10.0.88.11:1111", listener.path)
+    }
+  }
+
+  @Test
+  def test2(): Unit = {
+    ordinadyNodeRegistry.unRegisterOrdinaryNode(NodeAddress.fromString(localNodeAddress))
+    Thread.sleep(1000)
+
+    for (listener <- listenerList) {
+      Assert.assertEquals(1, listener.CHILD_ADDED)
+      Assert.assertEquals(1, listener.CHILD_REMOVED)
+    }
+  }
 }
