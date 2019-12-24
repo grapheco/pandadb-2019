@@ -22,6 +22,8 @@ package cn.pandadb.util
 
 import java.io.File
 
+import scala.collection.mutable.ArrayBuffer
+
 /**
   * Created by bluejoe on 2019/7/23.
   */
@@ -113,4 +115,48 @@ object ConfigUtils {
   implicit def contextMapOps(conf: ContextMap): ConfigurationOps = new ConfigurationOps(new Configuration() {
     override def getRaw(name: String): Option[String] = conf.getOption(name)
   });
+}
+
+trait ParameterParser {
+  def parse(conf: Configuration): Iterable[(String, _)];
+}
+
+trait PandaConfigSetting {
+  def register(parser: ParameterParser);
+}
+
+class PandaConfigSettingImpl() extends PandaConfigSetting {
+  val parsers = ArrayBuffer[ParameterParser]();
+
+  override def register(parser: ParameterParser): Unit = {
+    parsers += parser;
+  }
+
+  def dump(map: Map[String, String], contextMap: ContextMap): Unit = {
+    val conf: Configuration = new Configuration() {
+      override def getRaw(name: String): Option[String] = map.get(name)
+    }
+
+    contextMap.putAll(parsers.flatMap(_.parse(conf)).toMap)
+  }
+}
+
+abstract class SingleParameter[T](name: String) extends ParameterParser {
+  override def parse(conf: Configuration): Iterable[Pair[String, _]] =
+    Some(name -> conf.getRaw(name).map(convert(_)).get)
+
+  def withDefault(value: T): ParameterParser = new ParameterParser() {
+    override def parse(conf: Configuration): Iterable[Pair[String, _]] =
+      Some(name -> conf.getRaw(name).map(convert(_)).getOrElse(value))
+  }
+
+  def convert(value: String): T;
+}
+
+case class StringParameter(name: String) extends SingleParameter[String](name) {
+  override def convert(value: String): String = value
+}
+
+case class IntegerParameter(name: String) extends SingleParameter[Int](name) {
+  override def convert(value: String): Int = value.toInt
 }
