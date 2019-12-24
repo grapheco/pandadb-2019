@@ -25,8 +25,6 @@ class InSolrPropertyTest {
 
   //val collectionName = "test"
 
-
-
 //test for node label add and remove
   @Test
   def test1() {
