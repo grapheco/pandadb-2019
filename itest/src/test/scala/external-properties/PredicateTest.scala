@@ -97,16 +97,16 @@ class PredicateTest {
     Assert.assertEquals(3, res1.size)
 
     res1 = solrNodeStore.filterNodes(NFEquals("age", Values.of(18)))
-    Assert.assertEquals("Airzihao", res1.head.mutable().props.head._2.asObject())
+    Assert.assertEquals("Airzihao", res1.head.mutable().props.get("name").get.asObject())
 
 
     res1 = solrNodeStore.filterNodes(NFContainsWith("name", "joe"))
     Assert.assertEquals(1, res1.size)
-    Assert.assertEquals("bluejoe", res1.head.mutable().props.head._2.asObject())
+    Assert.assertEquals("bluejoe", res1.head.mutable().props.get("name").get.asObject())
 
     res1 = solrNodeStore.filterNodes(NFEndsWith("name", "son"))
     Assert.assertEquals(1, res1.size)
-    Assert.assertEquals(39, res1.head.mutable().props.last._2.asObject().toString.toLong)
+    Assert.assertEquals(39.toLong, res1.head.mutable().props.get("age").get.asObject())
 
     res1 = solrNodeStore.filterNodes(NFStartsWith("name", "pan"))
     Assert.assertEquals(1, res1.size)
