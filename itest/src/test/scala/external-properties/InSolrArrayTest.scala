@@ -6,7 +6,8 @@ import java.io.{File, FileInputStream}
 import java.util.Properties
 
 import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InSolrPropertyNodeStore, MutableNodeWithProperties, NodeWithProperties}
-import cn.pandadb.server.{GlobalContext, PNodeServer}
+import cn.pandadb.server.{PNodeServer}
+
 import org.junit.{After, Assert, Before, Test}
 import org.neo4j.driver.{AuthTokens, GraphDatabase, Transaction, TransactionWork}
 import org.neo4j.graphdb.GraphDatabaseService
@@ -14,7 +15,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.io.fs.FileUtils
 import org.neo4j.values.{AnyValue, AnyValues}
 import org.neo4j.values.storable.{BooleanArray, LongArray, StringArray, Values}
-
+import cn.pandadb.util.InstanceContext
 
 /**
  * Created by codeBabyLin on 2019/12/5.
@@ -33,7 +34,7 @@ trait QueryTestBase {
     nodeStore match {
       case "InMemoryPropertyNodeStore" =>
         InMemoryPropertyNodeStore.nodes.clear()
-        GlobalContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
+        InstanceContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
 
       case "InSolrPropertyNodeStore" =>
         val configFile = new File("./testdata/neo4j.conf")
@@ -43,7 +44,7 @@ trait QueryTestBase {
         val collectionName = props.getProperty("external.properties.store.solr.collection")
         val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
         solrNodeStore.clearAll()
-        GlobalContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
+        InstanceContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
     }
   }
 
@@ -75,8 +76,6 @@ class InSolrArrayTest extends CreateQueryTestBase{
 
   //val collectionName = "test"
 
-
-
   //test for node label add and remove
   @Test
   def test1() {
@@ -98,14 +97,9 @@ class InSolrArrayTest extends CreateQueryTestBase{
     }
     Assert.assertEquals(1, solrNodeStore.getRecorderSize)
     val res = solrNodeStore.getNodeById(0)
-
-
-
-
     val titles = Array("ceo", "ui", "dev")
     val salaries = Array(10000, 20000, 30597, 500954)
     val boolattr = Array(false, true, false, true)
-
 
     //scalastyle:off println
 
