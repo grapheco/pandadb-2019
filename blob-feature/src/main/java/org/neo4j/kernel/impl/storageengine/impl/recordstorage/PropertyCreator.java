@@ -19,7 +19,6 @@
  */
 package org.neo4j.kernel.impl.storageengine.impl.recordstorage;
 
-import cn.pandadb.context.InstanceContext;
 import org.neo4j.kernel.impl.store.DynamicRecordAllocator;
 import org.neo4j.kernel.impl.store.PropertyStore;
 import org.neo4j.kernel.impl.store.PropertyType;
@@ -170,7 +169,7 @@ public class PropertyCreator
     {
         host.removePropertyBlock( block.getKeyIndexId() );
         //on delete
-        block.getType().onPropertyDelete( InstanceContext.of( this.propertyRecordIdGenerator ), primitive, host, block);
+        block.getType().onPropertyDelete(primitive, host, block);
 
         host.setChanged( primitive );
         for ( DynamicRecord record : block.getValueRecords() )

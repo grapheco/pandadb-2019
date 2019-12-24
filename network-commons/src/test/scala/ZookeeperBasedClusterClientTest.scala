@@ -1,16 +1,11 @@
-import java.io.File
-
-import cn.pandadb.context.Neo4jConfigUtils
-import cn.pandadb.network.{NodeAddress, ZKConstants, ZookeeperBasedClusterClient}
+import cn.pandadb.network.{NodeAddress, ZookeeperBasedClusterClient}
 import cn.pandadb.server.ZKServiceRegistry
-import cn.pandadb.util.ConfigUtils
 import org.junit.runners.MethodSorters
 import org.junit.{Assert, FixMethodOrder, Test}
-import org.neo4j.kernel.configuration.Config
 
 /**
   * @Author: Airzihao
-  * @Description:
+  * @Description: add some cases to fully test the func.
   * @Date: Created at 10:32 2019/11/27
   * @Modified By:
   */
@@ -18,13 +13,8 @@ import org.neo4j.kernel.configuration.Config
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class ZookeeperBasedClusterClientTest {
 
-  val configFile = new File(this.getClass.getClassLoader.getResource("test_pnode0.conf").getPath)
-  val neo4jConfig = Config.builder().withFile(configFile).build()
-  val pandaConfig = Neo4jConfigUtils.neo4jConfig2Config(neo4jConfig)
-  val pandaConfigEX = ConfigUtils.config2Ex(pandaConfig)
-  val zkConstants = new ZKConstants(pandaConfigEX)
-
-  val zkString = zkConstants.zkServerAddress
+  val zkString = "10.0.86.26:2181"
+  val localNodeAddress = "10.0.88.11:1111"
 
   val clusterClient = new ZookeeperBasedClusterClient(zkString)
   val register = new ZKServiceRegistry(zkString)
@@ -38,7 +28,7 @@ class ZookeeperBasedClusterClientTest {
   // getAllNodes, will get test node
   @Test
   def test2(): Unit = {
-    register.registerAsOrdinaryNode(zkConstants.localNodeAddress)
+    register.registerAsOrdinaryNode(NodeAddress.fromString(localNodeAddress))
     Thread.sleep(1000)
     Assert.assertEquals(false, clusterClient.getAllNodes().isEmpty)
     Assert.assertEquals(NodeAddress.fromString("10.0.88.11:1111"), clusterClient.getAllNodes().iterator.next())
@@ -47,14 +37,15 @@ class ZookeeperBasedClusterClientTest {
   // empty after test node unRegister itself
   @Test
   def test3(): Unit = {
-    register.unRegisterOrdinaryNode(zkConstants.localNodeAddress)
+    register.unRegisterOrdinaryNode(NodeAddress.fromString(localNodeAddress))
+    Thread.sleep(1000)
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
   }
 
   // test leader
   @Test
   def test4(): Unit = {
-    register.registerAsLeader(zkConstants.localNodeAddress)
+    register.registerAsLeader(NodeAddress.fromString(localNodeAddress))
     Thread.sleep(1000)
     Assert.assertEquals(NodeAddress.fromString("10.0.88.11:1111"), clusterClient.getWriteMasterNode("").get)
   }

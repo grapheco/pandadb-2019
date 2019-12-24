@@ -1,15 +1,6 @@
 
-import java.io.File
-
-import org.junit.{Test, Assert}
-
+import org.junit.Test
 import org.neo4j.graphdb.Result
-import scala.collection.JavaConverters._
-import cn.pandadb.server.{GlobalContext, PNodeServer}
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.io.fs.FileUtils
-import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
 
 
 trait MatchQueryTestBase extends QueryTestBase {
@@ -26,7 +17,7 @@ trait MatchQueryTestBase extends QueryTestBase {
         |CREATE (n1:Person:Student{name: 'test01',age:15, sex:'male', school: 'No1 Middle School'}),
         |(n2:Person:Teacher{name: 'test02', age: 30, sex:'male', school: 'No1 Middle School', class: 'math'}),
         |(n3:Person:Teacher{name: 'test03', age: 40, sex:'female', school: 'No1 Middle School', class: 'chemistry'})
-        |""".stripMargin
+        | """.stripMargin
     doCreate(queryStr)
   }
 
@@ -50,7 +41,7 @@ class MatchQueryTest extends MatchQueryTestBase {
     // Get all nodes
     val query1 =
       """match (n) return n
-        |""".stripMargin
+        | """.stripMargin
     val rs = db.execute(query1)
     assert(rsRowCount(rs) == 3)
 
@@ -109,7 +100,6 @@ class MatchQueryTest extends MatchQueryTestBase {
       assert("No1 Middle School" == school)
     }
   }
-
 
 
 }

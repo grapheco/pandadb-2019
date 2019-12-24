@@ -3,7 +3,7 @@ package ppd
 import java.io.File
 
 import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
-import cn.pandadb.server.GlobalContext
+import cn.pandadb.util.InstanceContext
 import org.junit.{After, Before, Test}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
@@ -18,11 +18,13 @@ trait QueryCase {
     FileUtils.deleteRecursively(dbFile);
     dbFile.mkdirs();
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
-    GlobalContext.put(classOf[CustomPropertyNodeStore].getName, store)
+    InstanceContext.put(classOf[CustomPropertyNodeStore].getName, store)
 
     // create one node
-    val query = "CREATE (n:Person {age: 10, name: 'bob'})"
+    val query = "CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})"
     db.execute(query)
+    val query2 = "CREATE INDEX ON :Person(address)"
+    db.execute(query2)
   }
 
   @After
@@ -82,6 +84,11 @@ trait QueryCase {
   @Test
   def join(): Unit = {
     testQuery("Match p=()--() return count(p)", "count(p)")
+  }
+
+  @Test
+  def indexStringEndsWith(): Unit = {
+    testQuery("match (n:Person) where n.address ENDS WITH 'China' return id(n)", "id(n)")
   }
 
 }

@@ -66,7 +66,7 @@ import static org.neo4j.values.storable.Values.NO_VALUE;
 
 // NOTE: pandadb
 import cn.pandadb.externalprops.CustomPropertyNodeStore;
-import cn.pandadb.server.GlobalContext;
+import cn.pandadb.util.InstanceContext;
 // END-NOTE
 
 
@@ -123,7 +123,7 @@ public class TxState implements TransactionState, RelationshipVisitor.Home
     {
         this.collectionsFactory = collectionsFactory;
         // NOTE: pandadb
-        isPreventNeo4jPropertyStore = GlobalContext.getOption(
+        isPreventNeo4jPropertyStore = InstanceContext.getOption(
                 CustomPropertyNodeStore.class.getName()).isDefined();
         // END-NOTE
     }
