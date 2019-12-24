@@ -38,7 +38,6 @@ object SolrUtil {
 
 }
 
-
 class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore =
     new InSolrPropertyNodeStore(
@@ -278,7 +277,6 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
       mutiNode.labels ++= addedLabels
       mutiNode.labels --= removedLabels
 
-
       visitAddNode(nodeId, mutiNode.props.toMap, mutiNode.labels.toArray)
     }
 
@@ -287,7 +285,6 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
       val oldNode = oldState.get(nodeId).head
       addNodes(Iterable(NodeWithProperties(nodeId, oldNode.props.toMap, oldNode.labels)))
     }
-
 
   }
 
