@@ -16,7 +16,6 @@ class DriverTest {
   props.load(new FileInputStream(configFile))
   val pandaString = s"panda://" + props.getProperty("zkServerAddress") + s"/db"
 
-
   @Test
   def test0() {
     val driver = GraphDatabase.driver(pandaString,
@@ -77,7 +76,6 @@ class DriverTest {
       AuthTokens.basic("", ""));
     var session = driver.session()
 
-
     val result = session.writeTransaction(new TransactionWork[Unit] {
       override def execute(transaction: Transaction): Unit = {
         val res1 = transaction.run("create (n:person{name:'bluejoe'})")
@@ -100,6 +98,5 @@ class DriverTest {
     session.close();
     driver.close();
   }
-
 
 }
