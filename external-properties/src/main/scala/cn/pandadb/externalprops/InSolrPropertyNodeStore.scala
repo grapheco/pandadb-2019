@@ -6,16 +6,20 @@ import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
-import org.neo4j.values.storable.{Value, Values}
+import org.neo4j.values.storable.{ArrayValue, StringArray, StringValue, Value, Values}
+import org.neo4j.values.storable.Values
+import java.util
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
+import scala.collection.{JavaConversions, mutable}
 import scala.collection.mutable.ArrayBuffer
 
-object SolrUtil {
+object SolrUtil{
   val idName = "id"
   val labelName = "labels"
   val tik = "id,labels,_version_"
+  val arrayName = "Array"
+  val dateType = "time"
 
   def removeBrackets(value: String): String = {
     var tempStr = value
@@ -24,19 +28,64 @@ object SolrUtil {
     if (tempStr.contains("]")) retStr = tempStr.replace("]", "")
     retStr
   }
-
   def solrDoc2nodeWithProperties(doc: SolrDocument): NodeWithProperties = {
+    val props = mutable.Map[String, Value]()
     val id = doc.get(idName)
-    val labels = if (doc.get(labelName) == null) ArrayBuffer[String]()
-    else removeBrackets(doc.get(labelName).toString).split(",").toBuffer
+    val labels = ArrayBuffer[String]()
+    if (doc.get(labelName) != null) doc.get(labelName).asInstanceOf[util.ArrayList[String]].foreach(u => labels += u)
     val fieldsName = doc.getFieldNames
-    val fields = for (y <- fieldsName if tik.indexOf(y) < 0) yield (y, Values.of(removeBrackets(doc.get(y).toString)))
-    NodeWithProperties(id.toString.toLong, fields.toMap, labels)
+    fieldsName.foreach(y => {
+      if (tik.indexOf(y) < 0) {
+        if (doc.get(y).getClass.getName.contains(arrayName)) {
+          val tempArray = ArrayBuffer[AnyRef]()
+          //scalastyle:off println
+          println(doc.get(y))
+          doc.get(y).asInstanceOf[util.ArrayList[AnyRef]].foreach(u => tempArray += u)
+          if (tempArray.size<=1) props += y -> Values.of(tempArray.head)
+          else props += y -> getValueFromArray(tempArray)
+        }
+        else props += y -> Values.of(doc.get(y))
+      }
+    })
+    NodeWithProperties(id.toString.toLong, props.toMap, labels)
+  }
 
+  def getValueFromArray(value: ArrayBuffer[AnyRef]): Value = {
+    val typeName = value.head.getClass.getTypeName
+    typeName match {
+      case "java.lang.String" =>
+        //var test = new StringArray(value)
+        // value.map(_.asInstanceOf[String]).asJavaCollection
+        //value.map(_.asInstanceOf[String]).foreach(u => test. u.toString)
+        //Values.stringArray(value.map(_.asInstanceOf[String]).asInstanceOf[Set[String]])
+//        Values.stringArray(value.map(_.asInstanceOf[String]).toArray)
+        val jArr = value
+//        import scala.collection.JavaConverters._
+//        Values.stringArray(jArr.toArray)
+//        null
+        val strArr = value.map(_.toString).toArray
+        val result = Values.stringArray(strArr: _*)
+        result
+//              null
+      case "java.lang.Boolean" =>
+        Values.booleanArray(value.map(_.asInstanceOf[Boolean]).toArray)
+      case "java.lang.Long" =>
+        Values.longArray(value.map(_.asInstanceOf[Long]).toArray)
+      case "java.lang.Byte" =>
+        Values.byteArray(value.map(_.asInstanceOf[Byte]).toArray)
+      case "java.lang.Short" =>
+        Values.shortArray(value.map(_.asInstanceOf[Short]).toArray)
+      case "java.lang.Integer" =>
+        Values.intArray(value.map(_.asInstanceOf[Int]).toArray)
+      case "java.lang.Double" =>
+        Values.doubleArray(value.map(_.asInstanceOf[Double]).toArray)
+      case "java.lang.Float" =>
+        Values.floatArray(value.map(_.asInstanceOf[Float]).toArray)
+      case _ => null
+    }
   }
 
 }
-
 
 class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore =
@@ -75,14 +124,22 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   }
 
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
+
     _solrClient.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
-      x.props.foreach(y => doc.addField(y._1, y._2.asObject));
+      x.props.foreach(y => {
+        if (Values.isArrayValue(y._2)) {
+          y._2.asInstanceOf[ArrayValue].foreach(u => doc.addField(y._1, u.asInstanceOf[Value].asObject()))
+        }
+        else doc.addField(y._1, y._2.asObject())
+      });
       doc.addField(SolrUtil.idName, x.id);
-      doc.addField(SolrUtil.labelName, x.labels.mkString(","));
+      x.labels.foreach(label => doc.addField(SolrUtil.labelName, label))
       doc
     })
+
     _solrClient.commit();
+
   }
 
   private def predicate2SolrQuery(expr: NFPredicate): String = {
@@ -210,14 +267,21 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
   var newState = mutable.Map[Long, MutableNodeWithProperties]();
 
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
+
     _solrClient.add(docsToAdded.map { x =>
       val doc = new SolrInputDocument();
-      x.props.foreach(y => doc.addField(y._1, y._2.asObject));
+      x.props.foreach(y => {
+        if (Values.isArrayValue(y._2)) {
+          y._2.asInstanceOf[ArrayValue].foreach(u => doc.addField(y._1, u.asInstanceOf[Value].asObject()))
+        }
+        else doc.addField(y._1, y._2.asObject())
+      });
       doc.addField(SolrUtil.idName, x.id);
-      doc.addField(SolrUtil.labelName, x.labels.mkString(","));
+      x.labels.foreach(label => doc.addField(SolrUtil.labelName, label))
       doc
     })
     _solrClient.commit();
+
   }
 
   def getNodeWithPropertiesById(nodeId: Long): NodeWithProperties = {
@@ -277,7 +341,6 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
       mutiNode.labels ++= addedLabels
       mutiNode.labels --= removedLabels
 
-
       visitAddNode(nodeId, mutiNode.props.toMap, mutiNode.labels.toArray)
     }
 
@@ -286,7 +349,6 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
       val oldNode = oldState.get(nodeId).head
       addNodes(Iterable(NodeWithProperties(nodeId, oldNode.props.toMap, oldNode.labels)))
     }
-
 
   }
 
