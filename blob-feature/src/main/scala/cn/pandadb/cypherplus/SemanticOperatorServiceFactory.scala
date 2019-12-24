@@ -12,8 +12,8 @@ import org.springframework.context.support.FileSystemXmlApplicationContext
   */
 class SemanticOperatorServiceFactory extends InstanceBoundServiceFactory with Logging {
   def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {
-    val configuration = ctx.configuration;
-    val cypherPluginRegistry = configuration.getRaw("blob.plugins.conf").map(x => {
+    val configuration = ctx.instanceContext;
+    val cypherPluginRegistry = configuration.getOption[String]("blob.plugins.conf").map(x => {
       val xml = new File(x);
 
       val path =
@@ -21,7 +21,7 @@ class SemanticOperatorServiceFactory extends InstanceBoundServiceFactory with Lo
           xml.getPath
         }
         else {
-          val configFilePath = configuration.getRaw("config.file.path")
+          val configFilePath = configuration.getOption[String]("config.file.path")
           if (configFilePath.isDefined) {
             new File(new File(configFilePath.get).getParentFile, x).getAbsoluteFile.getCanonicalPath
           }

@@ -19,7 +19,6 @@
  */
 package org.neo4j.bolt.v1.runtime;
 
-import cn.pandadb.server.PNodeServerContext;
 import cn.pandadb.server.internode.PNodeStatementProcessor;
 import org.neo4j.bolt.runtime.BoltConnectionFatality;
 import org.neo4j.bolt.runtime.BoltStateMachineSPI;
@@ -39,22 +38,16 @@ public class BoltAuthenticationHelper {
             AuthenticationResult authResult = boltSpi.authenticate(authToken);
             String username = authResult.getLoginContext().subject().username();
             context.authenticatedAsUser(username, userAgent);
-
             StatementProcessor statementProcessor = new TransactionStateMachine(boltSpi.transactionSpi(), authResult, context.clock());
-
             //NOTE: pandadb
             statementProcessor = new PNodeStatementProcessor(statementProcessor, boltSpi.transactionSpi());
-
             //NOTE
-
             context.connectionState().setStatementProcessor(statementProcessor);
-
             if (authResult.credentialsExpired()) {
                 context.connectionState().onMetadata("credentials_expired", Values.TRUE);
             }
             context.connectionState().onMetadata("server", Values.stringValue(boltSpi.version()));
             boltSpi.udcRegisterClient(userAgent);
-
             return true;
         } catch (Throwable t) {
             context.handleFailure(t, true);

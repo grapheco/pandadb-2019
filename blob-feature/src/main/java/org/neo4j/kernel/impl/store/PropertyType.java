@@ -21,9 +21,6 @@ package org.neo4j.kernel.impl.store;
 
 import java.util.Arrays;
 import java.util.List;
-
-import cn.pandadb.context.InstanceContext;
-import cn.pandadb.util.ContextMap;
 import org.neo4j.kernel.impl.blob.StoreBlobIO;
 import org.neo4j.kernel.impl.store.format.standard.PropertyRecordFormat;
 import org.neo4j.kernel.impl.store.record.DynamicRecord;
@@ -184,15 +181,14 @@ public enum PropertyType
         }
 
         @Override
-        public void onPropertyDelete( ContextMap ic, PrimitiveRecord primitive, PropertyRecord propRecord, PropertyBlock block )
+        public void onPropertyDelete( PrimitiveRecord primitive, PropertyRecord propRecord, PropertyBlock block )
         {
             List<DynamicRecord> values = block.getValueRecords();
             byte itemType = values.get( 0 ).getData( )[0];
             if ( itemType == BLOB.byteValue() )
             {
-                BlobArray value = (BlobArray) DynamicArrayStore.getRightArray(ic,
-                        AbstractDynamicStore.readFullByteArrayFromHeavyRecords( block.getValueRecords(), PropertyType.ARRAY ) );
-                StoreBlobIO.deleteBlobArrayProperty( ic, value );
+                BlobArray value = (BlobArray) DynamicArrayStore.getRightArray( AbstractDynamicStore.readFullByteArrayFromHeavyRecords( block.getValueRecords(), PropertyType.ARRAY ) );
+                StoreBlobIO.deleteBlobArrayProperty( value );
             }
         }
     },
@@ -257,7 +253,7 @@ public enum PropertyType
         @Override
         public Value value( PropertyBlock block, PropertyStore store )
         {
-            return StoreBlobIO.readBlobValue( InstanceContext.of( store ), block );
+            return StoreBlobIO.readBlobValue( block );
         }
 
         @Override
@@ -267,9 +263,9 @@ public enum PropertyType
         }
 
         @Override
-        public void onPropertyDelete( ContextMap ic, PrimitiveRecord primitive, PropertyRecord propRecord, PropertyBlock block )
+        public void onPropertyDelete( PrimitiveRecord primitive, PropertyRecord propRecord, PropertyBlock block )
         {
-            StoreBlobIO.deleteBlobProperty( ic, primitive,  propRecord,  block );
+            StoreBlobIO.deleteBlobProperty( primitive,  propRecord,  block );
         }
     };
 
@@ -388,7 +384,7 @@ public enum PropertyType
         throw new UnsupportedOperationException();
     }
 
-    public void onPropertyDelete( ContextMap ic, PrimitiveRecord primitive, PropertyRecord propRecord, PropertyBlock block )
+    public void onPropertyDelete( PrimitiveRecord primitive, PropertyRecord propRecord, PropertyBlock block )
     {
         //do nothing
     }

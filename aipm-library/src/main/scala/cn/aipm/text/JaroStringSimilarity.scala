@@ -1,7 +1,7 @@
 package cn.aipm.text
 
 import cn.pandadb.cypherplus.ValueComparator
-import cn.pandadb.util.Configuration
+import cn.pandadb.util.{ContextMap, Configuration}
 import info.debatty.java.stringsimilarity.{Cosine, Jaccard, JaroWinkler}
 
 /**
@@ -13,7 +13,7 @@ class JaroWinklerStringSimilarity extends ValueComparator {
     jw.similarity(str1.asInstanceOf[String], str2.asInstanceOf[String]);
   }
 
-  override def initialize(conf: Configuration): Unit = {
+  override def initialize(conf: ContextMap): Unit = {
 
   }
 }
@@ -24,7 +24,7 @@ class JaccardStringSimilarity extends ValueComparator {
     jw.similarity(str1.asInstanceOf[String], str2.asInstanceOf[String]);
   }
 
-  override def initialize(conf: Configuration): Unit = {
+  override def initialize(conf: ContextMap): Unit = {
 
   }
 }
@@ -35,7 +35,7 @@ class CosineStringSimilarity extends ValueComparator {
     jw.similarity(str1.asInstanceOf[String], str2.asInstanceOf[String]);
   }
 
-  override def initialize(conf: Configuration): Unit = {
+  override def initialize(conf: ContextMap): Unit = {
 
   }
 }

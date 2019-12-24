@@ -1,7 +1,7 @@
 package cn.pandadb.server.neo4j
 
 import cn.pandadb.network.internal.message.{InternalRpcRequest, InternalRpcResponse}
-import cn.pandadb.server.rpc.{NettyRpcServer, RequestHandler}
+import cn.pandadb.server.rpc.RequestHandler
 
 /**
   * Created by bluejoe on 2019/11/25.

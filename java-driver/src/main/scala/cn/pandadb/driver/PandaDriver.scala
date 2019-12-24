@@ -31,6 +31,8 @@ import org.reactivestreams.Publisher
 import scala.collection.JavaConversions
 import cn.pandadb.driver.PandaTransaction
 
+import scala.util.matching.Regex
+
 
 /**
  * Created by bluejoe on 2019/11/21.
@@ -105,9 +107,10 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
   }
 
   private def createClusterClient(uri: String): ClusterClient = {
-    val zkString = uri.substring(uri.indexOf(":") + 3, uri.indexOf("/d") - 1)
+    //scalastyle:off
+    val pattern = new Regex("((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?):[0-9]{1,5}")
+    val zkString = (pattern findAllIn uri).mkString(",")
     new ZookeeperBasedClusterClient(zkString)
-    //null
   }
 }
 

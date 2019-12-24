@@ -1,15 +1,8 @@
 
-import java.io.File
-
-import org.junit.{Assert, Test}
-import org.neo4j.graphdb.{GraphDatabaseService, Label, Result}
+import org.junit.Test
+import org.neo4j.graphdb.Label
 
 import scala.collection.JavaConverters._
-import cn.pandadb.server.{GlobalContext, PNodeServer}
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.io.fs.FileUtils
-import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
-import scala.collection.mutable
 
 class MatchQueryAPITest extends MatchQueryTestBase {
 

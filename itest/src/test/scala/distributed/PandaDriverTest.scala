@@ -145,13 +145,7 @@ class PandaDriverTest {
   }
 
   //add a test, to test different menthod to run statement.
-
-
   private def _createAndMerge(): Unit = {
-//    val clusterResult = pandaDriver.session().run("Match(n) Where n.prop='panda' Return n")
-//    val node0Result = neoDriver0.session().run("Match(n) Where n.prop='panda' Return n")
-//    val node1Result = neoDriver1.session().run("Match(n) Where n.prop='panda' Return n")
-
     // Problem: the result is not available real-time.
     val clusterResult = pandaDriver.session().run("Match(n) Return n")
     val node0Result = neoDriver0.session().run("Match(n) Return n")
@@ -174,9 +168,6 @@ class PandaDriverTest {
     tx.success()
     tx.close()
     session.close()
-//    val clusterResult1 = pandaDriver.session().run("Match(n) Where n.prop='panda' Return n")
-//    val node0Result1 = neoDriver0.session().run("Match(n) Where n.prop='panda' Return n")
-//    val node1Result1 = neoDriver1.session().run("Match(n) Where n.prop='panda' Return n")
     val clusterResult1 = pandaDriver.session().run("Match(n) Return n")
     val node0Result1 = neoDriver0.session().run("Match(n) Return n")
     val node1Result1 = neoDriver1.session().run("Match(n) Return n")

@@ -7,7 +7,7 @@ import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.values.storable.{StringValue}
 import org.neo4j.values.virtual.NodeValue
 
-trait PPDPipe extends Pipe{
+trait PredicatePushDownPipe extends Pipe{
 
   var nodeStore: Option[CustomPropertyNodeStore] = None
 

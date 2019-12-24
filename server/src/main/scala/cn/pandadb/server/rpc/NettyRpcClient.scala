@@ -9,7 +9,7 @@ import net.neoremind.kraps.rpc.{RpcAddress, RpcEnv, RpcEnvClientConfig}
 import net.neoremind.kraps.rpc.netty.NettyRpcEnvFactory
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 
 object PNodeRpcClient {
   val rpcEnv: RpcEnv = {

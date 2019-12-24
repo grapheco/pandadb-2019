@@ -1,6 +1,6 @@
 package cn.pandadb.server
 
-import cn.pandadb.network.{NodeAddress, ZKConstants, ZKPathConfig}
+import cn.pandadb.network.{NodeAddress, ZKPathConfig}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.{CreateMode, ZooDefs}
@@ -10,7 +10,6 @@ trait ServiceRegistry {
   def registry(servicePath: String, localNodeAddress: String)
 }
 
-// TODO: Reconstruct this class, localNodeAddress as a parameter.
 class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
 
   var localNodeAddress: String = _
@@ -60,48 +59,29 @@ class ZKServiceRegistry(zkString: String) extends ServiceRegistry {
     }
   }
 
-  def registerAsOrdinaryNode(nodeAddress: String): Unit = {
-    localNodeAddress = nodeAddress
-    registry(ZKPathConfig.ordinaryNodesPath, localNodeAddress)
-  }
-
   def registerAsOrdinaryNode(nodeAddress: NodeAddress): Unit = {
-    localNodeAddress = nodeAddress.getAsStr()
+    localNodeAddress = nodeAddress.getAsString
     registry(ZKPathConfig.ordinaryNodesPath, localNodeAddress)
   }
 
   def registerAsLeader(nodeAddress: NodeAddress): Unit = {
-    localNodeAddress = nodeAddress.getAsStr()
-    registerAsLeader(localNodeAddress)
-  }
-
-  def registerAsLeader(nodeAddress: String): Unit = {
-    localNodeAddress = nodeAddress
+    localNodeAddress = nodeAddress.getAsString
     registry(ZKPathConfig.leaderNodePath, localNodeAddress)
   }
 
-  // ugly funcion! to satisfy curator event listener.
-  def unRegisterOrdinaryNode(node: String): Unit = {
-    val nodeAddress = node
+  def unRegisterOrdinaryNode(node: NodeAddress): Unit = {
+    val nodeAddress = node.getAsString
     val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + nodeAddress
     if(curator.checkExists().forPath(ordinaryNodePath) != null) {
       curator.delete().forPath(ordinaryNodePath)
     }
   }
 
-  def unRegisterOrdinaryNode(node: NodeAddress): Unit = {
-    unRegisterOrdinaryNode(node.getAsStr())
-  }
-
-  def unRegisterLeaderNode(node: String): Unit = {
-    val nodeAddress = node
+  def unRegisterLeaderNode(node: NodeAddress): Unit = {
+    val nodeAddress = node.getAsString
     val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + nodeAddress
     if(curator.checkExists().forPath(leaderNodePath) != null) {
       curator.delete().forPath(leaderNodePath)
     }
-  }
-
-  def unRegisterLeaderNode(node: NodeAddress): Unit = {
-    unRegisterLeaderNode(node.getAsStr())
   }
 }

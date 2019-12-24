@@ -1,4 +1,4 @@
-package performance
+package release
 
 import java.io.{File, FileInputStream, PrintWriter}
 import java.util.Properties
@@ -9,9 +9,9 @@ import org.junit.{Assert, Test}
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase, StatementResult}
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.io.Source
 
 /**
@@ -157,8 +157,7 @@ class MergePerformanceTest extends PandaDBPerformanceTest {
 
   @Test
   def test0(): Unit = {
-    val list = List(1)
-//    val list = List(1, 2, 3, 4, 5)
+    val list = List(1, 2, 3, 4, 5)
     list.foreach(i => circularTest(i))
   }
 

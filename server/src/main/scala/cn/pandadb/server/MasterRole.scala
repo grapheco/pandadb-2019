@@ -18,25 +18,19 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 trait Master {
 
-  // get from zkBasedClusterClient
   var allNodes: Iterable[NodeAddress]
 
-  //zkBasedClusterClient
   val clusterClient: ClusterClient
 
-  // delay all write/read requests, implements by curator
-  var globalWriteLock: NaiveLock //:curator lock
+  var globalWriteLock: NaiveLock
 
-  // delay write requests only, implements by curator
-  var globalReadLock: NaiveLock //:curator lock
+  var globalReadLock: NaiveLock
 
-  // inform these listeners the cluster context change?
   var listenerList: List[ZKClusterEventListener]
 
   def addListener(listener: ZKClusterEventListener)
 
   def clusterWrite(cypher: String)
-
 }
 
 class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: NodeAddress) extends Master {
@@ -47,7 +41,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   // how to init it?
   private var currentState: ClusterState = new ClusterState {}
   override val clusterClient = zkClusterClient
-  val masterNodeAddress = clusterClient.getWriteMasterNode("").get.getAsStr()
+  val masterNodeAddress = localAddress.getAsString
   override var allNodes: Iterable[NodeAddress] = clusterClient.getAllNodes()
   override var globalReadLock: NaiveLock = new NaiveReadLock(clusterClient)
   override var globalWriteLock: NaiveLock = new NaiveWriteLock(clusterClient)
@@ -62,14 +56,13 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   }
 
   private def distributeWriteStatement(cypher: String): Unit = {
-
     var tempResult: StatementResult = null
     var futureTasks = new ListBuffer[Future[Boolean]]
     for (nodeAddress <- allNodes) {
-      if (nodeAddress.getAsStr() != masterNodeAddress) {
+      if (nodeAddress.getAsString != masterNodeAddress) {
         val future = Future[Boolean] {
           try {
-            val uri = s"bolt://" + nodeAddress.getAsStr()
+            val uri = s"bolt://" + nodeAddress.getAsString
             val driver = GraphDatabase.driver(uri,
               AuthTokens.basic("", ""))
             val session = driver.session()
@@ -93,20 +86,16 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
 
   // TODO finetune the state change mechanism
   override def clusterWrite(cypher: String): Unit = {
-
     val preVersion = zkClusterClient.getClusterDataVersion()
     initWriteContext()
     setClusterState(new Writing)
+    allNodes = clusterClient.getAllNodes()
     globalWriteLock.lock()
-
     // key func
     distributeWriteStatement(cypher)
-
     globalWriteLock.unlock()
     setClusterState(new Finished)
     setClusterState(new UnlockedServing)
-
-    // had better put these operations to FINISH state
     val curVersion = preVersion + 1
     _setDataVersion(curVersion)
   }
@@ -115,7 +104,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
     val iter = allNodes.iterator
     var statementResult: StatementResult = null;
     while (iter.hasNext) {
-      val str = iter.next().getAsStr()
+      val str = iter.next().getAsString
       if( str != masterNodeAddress) {
         val uri = s"bolt://" + str
         val driver = GraphDatabase.driver(uri)
@@ -135,7 +124,6 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
   }
 
   private def _updateFreshNode(): Unit = {
-
     val children = clusterClient.curator.getChildren.forPath(ZKPathConfig.freshNodePath)
     // delete old node
     if(children.isEmpty == false) {
@@ -145,17 +133,15 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
         clusterClient.curator.delete().forPath(fullPath)
       }
     }
-
     val curFreshNodeRpc = PNodeServerContext.getLocalIpAddress + ":" + PNodeServerContext.getRpcPort.toString
     clusterClient.curator.create().creatingParentsIfNeeded()
       .withMode(CreateMode.PERSISTENT)
       .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
       .forPath(ZKPathConfig.freshNodePath + s"/" + curFreshNodeRpc)
   }
-
 }
 
-// todo: use this class to do multi threads write operation.
+// In future, use this class to do multi threads write operation.
 case class DriverWriteThread(driver: Driver, cypher: String) extends Thread {
 
   override def run(): Unit = {

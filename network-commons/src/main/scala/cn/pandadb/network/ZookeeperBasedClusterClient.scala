@@ -26,16 +26,13 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
   curator.start()
 
   private var currentState: ClusterState = _
-
   var listenerList: List[ZKClusterEventListener] = List[ZKClusterEventListener]()
 
-  // query from zk when init.
   private var availableNodes: Set[NodeAddress] = {
     val pathArrayList = curator.getChildren.forPath(ZKPathConfig.ordinaryNodesPath).asScala
     pathArrayList.map(NodeAddress.fromString(_)).toSet
   }
 
-  // add listener, to monitor zk nodes change
   addCuratorListener()
 
   override def getWriteMasterNode(): NodeAddress = {
@@ -58,7 +55,6 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
     }
   }
 
-  // return variable availableNodes, don't query from zk every time.
   override def getAllNodes(): Iterable[NodeAddress] = {
     availableNodes
   }
@@ -72,7 +68,8 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
     listenerList = listener.asInstanceOf[ZKClusterEventListener] :: listenerList
   }
 
-  override def waitFor(state: ClusterState): Unit = null
+  override def waitFor(state: ClusterState): Unit = {
+  }
 
   def getCurator(): CuratorFramework = {
     curator
@@ -92,9 +89,9 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
       curator.setData().forPath(ZKPathConfig.dataVersionPath, BytesTransform.serialize(-1))
       BytesTransform.deserialize(curator.getData.forPath(ZKPathConfig.dataVersionPath))
     } else {
-      // stat.version == 0, means not init
       val stat = new Stat()
       val version = curator.getData.storingStatIn(stat).forPath(ZKPathConfig.dataVersionPath)
+      // stat.version == 0, means not init
       if (stat.getVersion == 0) {
         curator.setData().forPath(ZKPathConfig.dataVersionPath, BytesTransform.serialize(-1))
         BytesTransform.deserialize(curator.getData.forPath(ZKPathConfig.dataVersionPath))
@@ -105,7 +102,6 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
   }
 
   def addCuratorListener(): Unit = {
-
     val nodesChildrenCache = new PathChildrenCache(curator, ZKPathConfig.ordinaryNodesPath, true)
     nodesChildrenCache.start(StartMode.BUILD_INITIAL_CACHE)
     nodesChildrenCache.getListenable().addListener(
@@ -122,7 +118,6 @@ class ZookeeperBasedClusterClient(zkString: String) extends ClusterClient {
                 val nodeAddress = NodeAddress.fromString(pathChildrenCacheEvent.getData.getPath.split(s"/").last)
                 availableNodes -= nodeAddress
                 for (listener <- listenerList) listener.onEvent(NodeDisconnected(NodeAddress.fromString(pathChildrenCacheEvent.getData.getPath)));
-
               // What to do if a node's data is updated?
               case PathChildrenCacheEvent.Type.CHILD_UPDATED => ;
               case _ => ;

@@ -21,7 +21,7 @@
 import java.io.{File, FileInputStream}
 
 import cn.pandadb.blob.Blob
-import cn.pandadb.context.InstanceContext
+import cn.pandadb.util.InstanceContext
 import org.apache.commons.io.IOUtils
 import org.neo4j.graphdb.Node
 import org.neo4j.kernel.impl.blob.BlobStorage
@@ -82,7 +82,7 @@ class LocalPandaTest extends FunSuite with BeforeAndAfter with TestBase {
 
   test("remove a blob property") {
     val db2 = openDatabase();
-    assert(InstanceContext.of(db2).get[BlobStorage].iterator().size == 8);
+    assert(InstanceContext.get[BlobStorage].iterator().size == 8);
 
     val tx2 = db2.beginTx();
 
@@ -93,17 +93,17 @@ class LocalPandaTest extends FunSuite with BeforeAndAfter with TestBase {
     v1.removeProperty("photo");
 
     //should not be deleted now
-    assert(InstanceContext.of(db2).get[BlobStorage].iterator().size == 8);
+    assert(InstanceContext.get[BlobStorage].iterator().size == 8);
 
     tx2.success();
     tx2.close();
-    assert(InstanceContext.of(db2).get[BlobStorage].iterator().size == 7);
+    assert(InstanceContext.get[BlobStorage].iterator().size == 7);
     db2.shutdown();
   }
 
   test("remove a blob array property") {
     val db2 = openDatabase();
-    assert(InstanceContext.of(db2).get[BlobStorage].iterator().size == 8);
+    assert(InstanceContext.get[BlobStorage].iterator().size == 8);
 
     val tx2 = db2.beginTx();
 
@@ -111,16 +111,16 @@ class LocalPandaTest extends FunSuite with BeforeAndAfter with TestBase {
     val it = db2.getAllNodes().iterator();
     val v1: Node = it.next();
     v1.removeProperty("album");
-    assert(InstanceContext.of(db2).get[BlobStorage].iterator().size == 8);
+    assert(InstanceContext.get[BlobStorage].iterator().size == 8);
     tx2.success();
     tx2.close();
-    assert(InstanceContext.of(db2).get[BlobStorage].iterator().size == 2);
+    assert(InstanceContext.get[BlobStorage].iterator().size == 2);
     db2.shutdown();
   }
 
   test("set a blob property to other") {
     val db2 = openDatabase();
-    assert(InstanceContext.of(db2).get[BlobStorage].iterator().size == 8);
+    assert(InstanceContext.get[BlobStorage].iterator().size == 8);
 
     val tx2 = db2.beginTx();
 
@@ -133,7 +133,7 @@ class LocalPandaTest extends FunSuite with BeforeAndAfter with TestBase {
 
     tx2.success();
     tx2.close();
-    assert(InstanceContext.of(db2).get[BlobStorage].iterator().size == 1);
+    assert(InstanceContext.get[BlobStorage].iterator().size == 1);
 
     db2.shutdown();
   }
@@ -150,7 +150,7 @@ class LocalPandaTest extends FunSuite with BeforeAndAfter with TestBase {
 
     tx2.success();
     tx2.close();
-    assert(InstanceContext.of(db2).get[BlobStorage].iterator().size == 1);
+    assert(InstanceContext.get[BlobStorage].iterator().size == 1);
 
     db2.shutdown();
   }

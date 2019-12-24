@@ -2,53 +2,62 @@ package cn.pandadb.server
 
 import java.io.File
 
+import cn.pandadb.externalprops.ExternalPropertyStoreFactory
 import cn.pandadb.network.ClusterClient
-import cn.pandadb.util.ContextMap
+import cn.pandadb.util.InstanceContext
 
 /**
-  * @Author: Airzihao
-  * @Description:
-  * @Date: Created at 12:49 2019/12/9
-  * @Modified By:
+  * wrapper of InstanceContext
   */
-object PNodeServerContext extends ContextMap {
+object PNodeServerContext {
 
   def bindStoreDir(storeDir: File): Unit = {
-    GlobalContext.put[File]("pnode.store.dir", storeDir)
+    InstanceContext.put[File]("pnode.store.dir", storeDir)
   }
 
   def bindRpcPort(port: Int): Unit = {
-    this.put("pnode.rpc.port", port)
+    InstanceContext.put("pnode.rpc.port", port)
   }
 
   def bindLocalIpAddress(address: String): Unit = {
-    this.put("pnode.local.ipAddress", address)
+    InstanceContext.put("pnode.local.ipAddress", address)
   }
 
   def bindJsonDataLog(jsonDataLog: JsonDataLog): Unit = {
-    this.put[JsonDataLog]("pnode.dataLog", jsonDataLog)
+    InstanceContext.put[JsonDataLog]("pnode.dataLog", jsonDataLog)
   }
 
   def bindMasterRole(masterRole: MasterRole): Unit =
-    this.put[MasterRole](masterRole)
+    InstanceContext.put[MasterRole](masterRole)
 
   def bindClusterClient(client: ClusterClient): Unit =
-    this.put[ClusterClient](client)
-
-  def getMasterRole: MasterRole = this.get[MasterRole]
-
-  def getClusterClient: ClusterClient = this.get[ClusterClient]
-
-  def getStoreDir: File = GlobalContext.get[File]("pnode.store.dir")
-
-  def getJsonDataLog: JsonDataLog = this.get[JsonDataLog]("pnode.dataLog")
-
-  def getRpcPort: Int = this.get[Int]("pnode.rpc.port")
-
-  def getLocalIpAddress: String = this.get[String]("pnode.local.ipAddress")
+    InstanceContext.put[ClusterClient](client)
 
   def bindLeaderNode(boolean: Boolean): Unit =
-    this.put("is.leader.node", boolean)
+    InstanceContext.put("is.leader.node", boolean)
 
-  def isLeaderNode: Boolean = this.getOption("is.leader.node").getOrElse(false)
+  def bindExternalPropStorage(boolean: Boolean): Unit =
+    InstanceContext.put("external.property.storage.enabled", boolean)
+
+  def bindExternalPropStorageFactory(exPropStorageFactory: ExternalPropertyStoreFactory): Unit =
+    InstanceContext.put[ExternalPropertyStoreFactory](exPropStorageFactory)
+
+  def getMasterRole: MasterRole = InstanceContext.get[MasterRole]
+
+  def getClusterClient: ClusterClient = InstanceContext.get[ClusterClient]
+
+  def getStoreDir: File = InstanceContext.get[File]("pnode.store.dir")
+
+  def getJsonDataLog: JsonDataLog = InstanceContext.get[JsonDataLog]("pnode.dataLog")
+
+  def getRpcPort: Int = InstanceContext.get[Int]("pnode.rpc.port")
+
+  def getLocalIpAddress: String = InstanceContext.get[String]("pnode.local.ipAddress")
+
+  def getExternalPropStorageFactory: ExternalPropertyStoreFactory = InstanceContext.get[ExternalPropertyStoreFactory]
+
+  def isLeaderNode: Boolean = InstanceContext.getOption("is.leader.node").getOrElse(false)
+
+  def isExternalPropStorageEnabled: Boolean = InstanceContext.getOption("external.property.storage.enabled").getOrElse(false)
+
 }

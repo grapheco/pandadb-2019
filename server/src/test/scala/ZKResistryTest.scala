@@ -1,14 +1,9 @@
-import java.io.File
-
-import cn.pandadb.context.Neo4jConfigUtils
-import cn.pandadb.network.{ZKConstants, ZKPathConfig}
+import cn.pandadb.network.{NodeAddress, ZKPathConfig}
 import cn.pandadb.server.ZKServiceRegistry
-import cn.pandadb.util.ConfigUtils
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.junit.runners.MethodSorters
-import org.junit.{After, Assert, FixMethodOrder, Test}
-import org.neo4j.kernel.configuration.Config
+import org.junit.{Assert, FixMethodOrder, Test}
 
 /**
   * @Author: Airzihao
@@ -20,20 +15,17 @@ import org.neo4j.kernel.configuration.Config
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class ZKResistryTest {
 
-  val configFile = new File("./src/test/resources/test_pnode0.conf")
-  val neo4jConfig = Config.builder().withFile(configFile).build()
-  val pandaConfig = Neo4jConfigUtils.neo4jConfig2Config(neo4jConfig)
-  val pandaConfigEX = ConfigUtils.config2Ex(pandaConfig)
-  val zkConstants = new ZKConstants(pandaConfigEX)
+  val localNodeAddress = "10.0.88.11:1111"
+  val zkServerAddress = "10.0.86.26:2181"
 
-  val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + zkConstants.localNodeAddress
-  val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + zkConstants.localNodeAddress
+  val ordinaryNodePath = ZKPathConfig.ordinaryNodesPath + s"/" + localNodeAddress
+  val leaderNodePath = ZKPathConfig.leaderNodePath + s"/" + localNodeAddress
 
-  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkConstants.zkServerAddress,
+  val curator: CuratorFramework = CuratorFrameworkFactory.newClient(zkServerAddress,
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
-  val ordinadyNodeRegistry = new ZKServiceRegistry(zkConstants.zkServerAddress)
-  val leaderNodeRegistry = new ZKServiceRegistry(zkConstants.zkServerAddress)
+  val ordinadyNodeRegistry = new ZKServiceRegistry(zkServerAddress)
+  val leaderNodeRegistry = new ZKServiceRegistry(zkServerAddress)
 
   // no ordinaryNode before registry.
   @Test
@@ -45,10 +37,10 @@ class ZKResistryTest {
   // exist ordinaryNode after registry
   @Test
   def test2(): Unit = {
-    ordinadyNodeRegistry.registerAsOrdinaryNode(zkConstants.localNodeAddress)
+    ordinadyNodeRegistry.registerAsOrdinaryNode(NodeAddress.fromString(localNodeAddress))
     val flag = curator.checkExists().forPath(ordinaryNodePath)
     Assert.assertEquals(true, flag != null)
-    val ordinaryNodeAddress = curator.getChildren().forPath("/pandaNodes/ordinaryNodes") // returned type is ArrayList[String]
+    val ordinaryNodeAddress = curator.getChildren().forPath(ZKPathConfig.ordinaryNodesPath) // returned type is ArrayList[String]
     Assert.assertEquals("10.0.88.11:1111", ordinaryNodeAddress.get(0))
     ordinadyNodeRegistry.curator.close()
   }
@@ -70,7 +62,7 @@ class ZKResistryTest {
   // exist leader node after registry
   @Test
   def test5(): Unit = {
-    leaderNodeRegistry.registerAsLeader(zkConstants.localNodeAddress)
+    leaderNodeRegistry.registerAsLeader(NodeAddress.fromString(localNodeAddress))
     val flag = curator.checkExists().forPath(leaderNodePath)
     Assert.assertEquals(true, flag != false)
     leaderNodeRegistry.curator.close()
