@@ -16,7 +16,6 @@ class InMemoryPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore = InMemoryPropertyNodeStore;
 }
 
-
 /**
   * used for unit test
   */
@@ -40,11 +39,9 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <=
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
 
-
       case NFGreaterThanOrEqual(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() >=
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
-
 
     /*  case NFEquals(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() ==
@@ -62,10 +59,6 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
       case NFEndsWith(propName, text) =>
         nodes.values.filter(x => x.mutable().props.get(propName).map(_.asInstanceOf[StringValue].stringValue().endsWith(text)
         ).getOrElse(false))
-
-
-
-
 
     }
   }
@@ -102,7 +95,6 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
       }
     deleteNodes(Iterable(nodeId))
     addNodes(Iterable(NodeWithProperties(nodeId, n.props.toMap, n.labels)))
-
 
   }
   def getNodeBylabelAndfilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
@@ -142,9 +134,7 @@ class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeW
   var oldState = mutable.Map[Long, MutableNodeWithProperties]();
   var newState = mutable.Map[Long, MutableNodeWithProperties]();
 
-
   override def start(ops: GroupedOps): Unit = {
-
 
     this.oldState = ops.oldState
     this.newState = ops.newState
@@ -163,8 +153,6 @@ class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeW
     else {
       InMemoryPropertyNodeStore.deleteNodes(Iterable(nodeId))
     }
-
-
 
   }
 
