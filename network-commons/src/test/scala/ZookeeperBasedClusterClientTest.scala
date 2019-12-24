@@ -1,5 +1,3 @@
-import java.io.File
-
 import cn.pandadb.network.{NodeAddress, ZookeeperBasedClusterClient}
 import cn.pandadb.server.ZKServiceRegistry
 import org.junit.runners.MethodSorters
@@ -7,7 +5,7 @@ import org.junit.{Assert, FixMethodOrder, Test}
 
 /**
   * @Author: Airzihao
-  * @Description:
+  * @Description: add some cases to fully test the func.
   * @Date: Created at 10:32 2019/11/27
   * @Modified By:
   */

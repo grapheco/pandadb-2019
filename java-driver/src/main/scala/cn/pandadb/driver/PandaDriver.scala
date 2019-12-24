@@ -33,7 +33,6 @@ import cn.pandadb.driver.PandaTransaction
 
 import scala.util.matching.Regex
 
-
 /**
  * Created by bluejoe on 2019/11/21.
  */
@@ -65,7 +64,6 @@ class PandaDriver(uri: String, authToken: AuthToken, config: Config) extends Dri
   override def rxSession(sessionConfig: SessionConfig): RxSession = {
     throw new NotImplementedException("rxSession")
   }
-
 
   /**
    *   verifyConnectivityAsync and verifyConnectivity  is not right ,  because uri is zkString

@@ -117,7 +117,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
       println(PNodeServer.logo);
 
       PNodeServerContext.bindJsonDataLog(_getJsonDataLog())
-      if (_isUpToDate() == false) {
+      if(_isUpToDate() == false){
         _updataLocalData()
       }
       _joinInLeaderSelection()
