@@ -2,7 +2,6 @@ package cn.pandadb.externalprops
 
 import cn.pandadb.context.InstanceBoundServiceContext
 import cn.pandadb.util.ConfigUtils._
-import cn.pandadb.util.Ctrl._
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.{SolrDocument, SolrInputDocument}
@@ -51,14 +50,14 @@ class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   * Created by bluejoe on 2019/10/7.
   */
 class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends CustomPropertyNodeStore {
-  val _solrClient =
-    run("initialize solr connection") {
-      val client = new CloudSolrClient(zkUrl);
-      client.setZkClientTimeout(30000);
-      client.setZkConnectTimeout(50000);
-      client.setDefaultCollection(collectionName);
-      client
-    }
+  //initialize solr connection
+  val _solrClient = {
+    val client = new CloudSolrClient(zkUrl);
+    client.setZkClientTimeout(30000);
+    client.setZkConnectTimeout(50000);
+    client.setDefaultCollection(collectionName);
+    client
+  }
 
   def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
     _solrClient.deleteById(docsToBeDeleted.map(_.toString).toList);

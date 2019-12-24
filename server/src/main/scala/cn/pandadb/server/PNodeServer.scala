@@ -1,8 +1,8 @@
 package cn.pandadb.server
 
 import java.io.{File, FileInputStream}
-import java.util.{Optional, Properties}
 import java.util.concurrent.CountDownLatch
+import java.util.{Optional, Properties}
 
 import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
 import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
@@ -11,8 +11,7 @@ import cn.pandadb.network.{NodeAddress, ZKPathConfig, ZookeeperBasedClusterClien
 import cn.pandadb.server.internode.InterNodeRequestHandler
 import cn.pandadb.server.neo4j.Neo4jRequestHandler
 import cn.pandadb.server.rpc.{NettyRpcServer, PNodeRpcClient}
-import cn.pandadb.util.Ctrl._
-import cn.pandadb.util.{InstanceContext, Logging}
+import cn.pandadb.util._
 import org.apache.commons.io.IOUtils
 import org.apache.curator.framework.recipes.leader.{LeaderSelector, LeaderSelectorListenerAdapter}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
@@ -29,12 +28,11 @@ import scala.collection.JavaConversions
 object PNodeServer extends Logging {
   val logo = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("logo.txt"), "utf-8");
 
-  run("registering global database lifecycle service") {
-    InstanceBoundServiceFactoryRegistry.register[BlobStorageServiceFactory];
-    InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
-    InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
-    InstanceBoundServiceFactoryRegistry.register[CustomPropertyNodeStoreHolderFactory];
-  }
+  //registering global database lifecycle service
+  InstanceBoundServiceFactoryRegistry.register[BlobStorageServiceFactory];
+  InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
+  InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
+  InstanceBoundServiceFactoryRegistry.register[CustomPropertyNodeStoreHolderFactory];
 
   def startServer(dbDir: File, configFile: File, overrided: Map[String, String] = Map()): PNodeServer = {
     val props = new Properties()
@@ -45,14 +43,41 @@ object PNodeServer extends Logging {
   }
 }
 
+class MainServerModule extends PandaModule {
+  override def init(ctx: PandaModuleContext): Unit = {
+    ctx.declareParameter(StringParameter("xxx"));
+    ctx.declareParameter(IntegerParameter("xxx").withDefault(121));
+    ctx.declareParameter(NodeAddressParameter("zookeeper.address"));
+  }
+
+  override def stop(ctx: PandaModuleContext): Unit = {
+
+  }
+
+  override def start(ctx: PandaModuleContext): Unit = {
+
+  }
+}
+
 class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   extends LeaderSelectorListenerAdapter with Logging {
   //TODO: we will replace neo4jServer with InterNodeRpcServer someday!!
   val neo4jServer = new CommunityBootstrapper();
   val runningLock = new CountDownLatch(1)
 
+  val modules = new PandaModules();
+  val config = new PandaConfigSettingImpl();
+  val context = PandaModuleContext(InstanceContext, config);
+
+  modules.add(new MainServerModule());
+  //...
+
+  modules.init(context);
+  config.dump(props, InstanceContext);
+  logger.debug(s"keys: ${InstanceContext.keys}")
+
   //prepare args for ZKClusterClient
-  InstanceContext.putAll(props)
+
   import cn.pandadb.util.ConfigUtils._
 
   val zkString: String = props.getRequiredValueAsString("zookeeper.address")
@@ -85,14 +110,14 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
     PNodeServerContext.bindClusterClient(clusterClient);
 
     neo4jServer.start(dbDir, Optional.empty(),
-     JavaConversions.mapAsJavaMap(props + ("dbms.connector.bolt.listen_address" -> np.getAsString)));
+      JavaConversions.mapAsJavaMap(props + ("dbms.connector.bolt.listen_address" -> np.getAsString)));
 
     serverKernel.start({
       //scalastyle:off
       println(PNodeServer.logo);
 
       PNodeServerContext.bindJsonDataLog(_getJsonDataLog())
-      if(_isUpToDate() == false){
+      if (_isUpToDate() == false) {
         _updataLocalData()
       }
       _joinInLeaderSelection()
@@ -164,4 +189,8 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
     new JsonDataLog(logFile)
   }
 
+}
+
+case class NodeAddressParameter(name: String) extends ParameterParser {
+  override def parse(conf: Configuration): Iterable[Pair[String, _]] = conf.getRaw(name).map(name -> NodeAddress.fromString(_))
 }
