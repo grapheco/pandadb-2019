@@ -92,7 +92,6 @@ case class MutableNodeWithProperties(id: Long) {
   val labels = ArrayBuffer[String]();
 }
 
-
 class BufferedExternalPropertyWriteTransaction(
                                                    nodeReader: CustomPropertyNodeReader,
                                                    commitPerformer: GroupedOpVisitor,
@@ -129,7 +128,6 @@ class BufferedExternalPropertyWriteTransaction(
   private def isNodeExitInOldState(nodeId: Long): Boolean = {
     oldState.contains(nodeId)
   }
-
 
   override def addNode(nodeId: Long): Unit = {
     //bufferedOps += BufferedAddNodeOp(nodeId)
@@ -220,15 +218,10 @@ class BufferedExternalPropertyWriteTransaction(
   }
 }
 
-
-
-
-
 /**
   * buffer based implementation of ExternalPropertyWriteTransaction
   * this is a template class which should be derived
   */
-
 
 case class GroupedOps(ops: Array[BufferedPropertyOp]) {
   //commands-->combined

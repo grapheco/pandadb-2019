@@ -1,15 +1,12 @@
 package cn.pandadb.driver
 
-
 import java.util
 
 import cn.pandadb.cypherplus.utils.CypherPlusUtils
 import cn.pandadb.network.{ClusterClient, NodeAddress}
 import org.neo4j.driver.internal.{AbstractStatementRunner, SessionConfig}
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase, Record, Session, Statement, StatementResult, StatementRunner, Transaction, TransactionConfig, Value, Values}
-
 import scala.collection.mutable.ArrayBuffer
-
 
 /**
  * @Author: codeBabyLin
@@ -17,7 +14,6 @@ import scala.collection.mutable.ArrayBuffer
  * @Date: Created in 9:06 2019/11/26
  * @Modified By:
  */
-
 
 class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, clusterOperator: ClusterClient) extends Transaction{
 
@@ -54,9 +50,6 @@ class PandaTransaction(sessionConfig: SessionConfig, config: TransactionConfig, 
     this.transaction
 
   }
-
-
-
 
   override def success(): Unit = {
     if (this.transactionArray.nonEmpty) this.transactionArray.foreach(trans => trans.success())
