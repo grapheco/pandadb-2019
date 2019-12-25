@@ -20,11 +20,9 @@ trait QueryCase {
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
     InstanceContext.put(classOf[CustomPropertyNodeStore].getName, store)
 
-    // create one node
-    val query = "CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})"
-    db.execute(query)
-    val query2 = "CREATE INDEX ON :Person(address)"
-    db.execute(query2)
+    db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
+    db.execute("CREATE INDEX ON :Person(address)")
+
   }
 
   @After
@@ -88,7 +86,7 @@ trait QueryCase {
 
   @Test
   def indexStringEndsWith(): Unit = {
-    testQuery("match (n:Person) where n.address ENDS WITH 'China' return id(n)", "id(n)")
+    testQuery("match (n:Person) USING INDEX n:Person(address) where n.address ENDS WITH 'China' return id(n)", "id(n)")
   }
 
 }
