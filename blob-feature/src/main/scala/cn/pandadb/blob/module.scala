@@ -19,10 +19,9 @@
  */
 package cn.pandadb.blob
 
-import cn.pandadb.context.{InstanceBoundServiceFactoryRegistry, InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
-import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
-import cn.pandadb.util.{PandaModuleContext, PandaModule, Logging}
-import org.neo4j.kernel.impl.blob.{DefaultBlobFunctions, BlobStorage}
+import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory, InstanceBoundServiceFactoryRegistry}
+import cn.pandadb.util.{Logging, PandaModule, PandaModuleContext}
+import org.neo4j.kernel.impl.blob.{BlobStorage, DefaultBlobFunctions}
 import org.neo4j.kernel.impl.proc.Procedures
 
 class BlobStorageModule extends PandaModule {
