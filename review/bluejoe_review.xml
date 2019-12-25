@@ -6,16 +6,13 @@
     <priorities/>
     <tags/>
     <users>
-      <user displayName="excelwang" login="excelwang" roles="reviewer"/>
       <user displayName="Airzihao" login="Airzihao" roles="reviewer"/>
       <user displayName="bluejoe" login="bluejoe" roles="admin,reviewer,author"/>
+      <user displayName="excelwang" login="excelwang" roles="reviewer"/>
     </users>
   </referential>
   <filescope pathPattern="file[*]:*//*"/>
   <issues>
-    <issue filePath="external-properties/src/main/scala/org/neo4j/cypher/internal/runtime/interpreted/pipes/PPDPipe.scala" summary="rename PPDPipe to a long name" vcsRev="8754c90154d4c1d9379bdcb4fb23d74f38b69b4c" lineStart="-1" lineEnd="-1" hash="1496523782" status="resolved">
-      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2019-12-20 17:14:12 +0800" lastUpdatedOn="2019-12-20 17:14:12 +0800"/>
-    </issue>
     <issue filePath="network-commons/src/main/scala/cn/pandadb/network/net.scala" summary="getAsStr() --&gt; getAsString" vcsRev="342ce04b6d9af02a8b7c923f971af6a7f7752fed" localRev="1576837237706" lineStart="11" lineEnd="11" hash="-1197482572" status="closed" assignees="Airzihao">
       <history createdBy="bluejoe" lastUpdatedBy="Airzihao" createdOn="2019-12-20 18:20:37 +0800" lastUpdatedOn="2019-12-20 20:23:33 +0800"/>
       <notes>
@@ -24,6 +21,9 @@
     </issue>
     <issue filePath="server/src/main/scala/cn/pandadb/server/ServiceRegistry.scala" summary="use NodeAddress as parameter" vcsRev="342ce04b6d9af02a8b7c923f971af6a7f7752fed" lineStart="60" lineEnd="60" hash="-238245066" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2019-12-20 18:40:27 +0800" lastUpdatedOn="2019-12-20 18:40:27 +0800"/>
+    </issue>
+    <issue summary="rename PPDPipe to a long name" vcsRev="8754c90154d4c1d9379bdcb4fb23d74f38b69b4c" lineStart="-1" lineEnd="-1" hash="1496523782" status="resolved">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2019-12-20 17:14:12 +0800" lastUpdatedOn="2019-12-20 17:14:12 +0800"/>
     </issue>
   </issues>
 </review>

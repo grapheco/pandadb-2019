@@ -1,8 +1,8 @@
+import NaiveLockTest._
 import cn.pandadb.network.{NodeAddress, ZookeeperBasedClusterClient}
 import cn.pandadb.server.{MasterRole, ZKServiceRegistry}
 import org.junit.runners.MethodSorters
 import org.junit.{Assert, FixMethodOrder, Test}
-
 /**
   * @Author: Airzihao
   * @Description:
@@ -10,20 +10,31 @@ import org.junit.{Assert, FixMethodOrder, Test}
   * @Modified By:
   */
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-class NaiveLockTest {
-
+object NaiveLockTest {
   val zkString = "10.0.86.26:2181"
   val localNodeAddress = "10.0.88.11:1111"
-  val clusterClient = new ZookeeperBasedClusterClient(zkString)
-  val master = new MasterRole(clusterClient, NodeAddress.fromString(localNodeAddress))
-  val register = new ZKServiceRegistry(zkString)
 
+//  val localPNodeServer = new LocalServerThread(0)
   val nodeList = List("10.0.88.11:1111", "10.0.88.22:2222", "10.0.88.33:3333", "10.0.88.44:4444")
+  val clusterClient = new ZookeeperBasedClusterClient(zkString)
+  val master = {
+    val _register = new ZKServiceRegistry(zkString)
+    _register.registerAsLeader(NodeAddress.fromString("10.0.88.11:1111"))
+    val mR = new MasterRole(clusterClient, NodeAddress.fromString(localNodeAddress))
+    _register.unRegisterLeaderNode(NodeAddress.fromString("10.0.88.11:1111"))
+    _register.unRegisterOrdinaryNode(NodeAddress.fromString("10.0.88.11:1111"))
+    mR
+  }
+  val register = new ZKServiceRegistry(zkString)
+}
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+class NaiveLockTest {
 
   //register nodes
   @Test
   def test1(): Unit = {
+
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
     Assert.assertEquals(true, clusterClient.getWriteMasterNode("").isEmpty)
 
@@ -39,6 +50,7 @@ class NaiveLockTest {
   // test write lock
   @Test
   def test2(): Unit = {
+
     master.globalWriteLock.lock()
     Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
     Assert.assertEquals(true, clusterClient.getWriteMasterNode("").isEmpty)
@@ -52,8 +64,8 @@ class NaiveLockTest {
   def test3(): Unit = {
     master.globalReadLock.lock()
     Thread.sleep(3000)
-    Assert.assertEquals(true, clusterClient.getAllNodes().isEmpty)
-    Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsString)
+    Assert.assertEquals(true, compareList(nodeList, clusterClient.getAllNodes()))
+    Assert.assertEquals(false, clusterClient.getWriteMasterNode("").getOrElse(false))
     master.globalReadLock.unlock()
     Thread.sleep(3000)
     Assert.assertEquals(nodeList.head, clusterClient.getWriteMasterNode("").get.getAsString)

@@ -86,12 +86,12 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
 
     neo4jServer.start(dbDir, Optional.empty(),
      JavaConversions.mapAsJavaMap(props + ("dbms.connector.bolt.listen_address" -> np.getAsString)));
+    PNodeServerContext.bindJsonDataLog(_getJsonDataLog())
 
     serverKernel.start({
       //scalastyle:off
       println(PNodeServer.logo);
 
-      PNodeServerContext.bindJsonDataLog(_getJsonDataLog())
       if(_isUpToDate() == false){
         _updataLocalData()
       }
