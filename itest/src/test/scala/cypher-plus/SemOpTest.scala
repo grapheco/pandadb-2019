@@ -1,5 +1,6 @@
 import java.io.File
 
+import cn.pandadb.server.PNodeServer
 import org.apache.commons.io.FileUtils
 import org.junit.{Assert, Test}
 

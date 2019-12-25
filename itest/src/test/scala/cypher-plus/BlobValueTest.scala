@@ -28,7 +28,7 @@ import org.apache.commons.io.IOUtils
 import org.neo4j.driver._
 import org.scalatest.{BeforeAndAfter, FunSuite}
 
-class RemotePandaTest extends FunSuite with BeforeAndAfter with TestBase {
+class BlobValueTest extends FunSuite with BeforeAndAfter with TestBase {
   var server: PNodeServer = _;
 
   before {

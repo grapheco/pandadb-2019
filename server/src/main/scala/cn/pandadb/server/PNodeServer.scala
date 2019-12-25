@@ -4,9 +4,8 @@ import java.io.{File, FileInputStream}
 import java.util.concurrent.CountDownLatch
 import java.util.{Optional, Properties}
 
-import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
-import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
-import cn.pandadb.externalprops.CustomPropertyNodeStoreHolderFactory
+import cn.pandadb.blob.BlobStorageModule
+import cn.pandadb.externalprops.ExternalPropetiesModule
 import cn.pandadb.network.{NodeAddress, ZKPathConfig, ZookeeperBasedClusterClient}
 import cn.pandadb.server.internode.InterNodeRequestHandler
 import cn.pandadb.server.neo4j.Neo4jRequestHandler
@@ -17,7 +16,6 @@ import org.apache.curator.framework.recipes.leader.{LeaderSelector, LeaderSelect
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.neo4j.driver.GraphDatabase
-import org.neo4j.kernel.impl.blob.{BlobStorageServiceFactory, DefaultBlobFunctionsServiceFactory}
 import org.neo4j.server.CommunityBootstrapper
 
 import scala.collection.JavaConversions
@@ -27,12 +25,6 @@ import scala.collection.JavaConversions
   */
 object PNodeServer extends Logging {
   val logo = IOUtils.toString(this.getClass.getClassLoader.getResourceAsStream("logo.txt"), "utf-8");
-
-  //registering global database lifecycle service
-  InstanceBoundServiceFactoryRegistry.register[BlobStorageServiceFactory];
-  InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
-  InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
-  InstanceBoundServiceFactoryRegistry.register[CustomPropertyNodeStoreHolderFactory];
 
   def startServer(dbDir: File, configFile: File, overrided: Map[String, String] = Map()): PNodeServer = {
     val props = new Properties()
@@ -70,6 +62,8 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   val context = PandaModuleContext(InstanceContext, config);
 
   modules.add(new MainServerModule());
+  modules.add(new BlobStorageModule());
+  modules.add(new ExternalPropetiesModule());
   //...
 
   modules.init(context);
@@ -117,7 +111,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
       println(PNodeServer.logo);
 
       PNodeServerContext.bindJsonDataLog(_getJsonDataLog())
-      if(_isUpToDate() == false){
+      if (_isUpToDate() == false) {
         _updataLocalData()
       }
       _joinInLeaderSelection()
