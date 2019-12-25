@@ -60,14 +60,12 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
 
   val modules = new PandaModules();
   val config = new PropertyRegistryImpl();
-  val context = PandaModuleContext(InstanceContext, config);
+  val context = PandaModuleContext(InstanceContext, config, dbDir);
 
   modules.add(new MainServerModule())
     .add(new BlobStorageModule())
     .add(new ExternalPropetiesModule())
     .add(new CypherPlusModule())
-
-  //...
 
   modules.init(context);
   config.dump(props, InstanceContext);
