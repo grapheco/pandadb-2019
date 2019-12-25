@@ -38,9 +38,9 @@ object PNodeServer extends Logging {
 
 class MainServerModule extends PandaModule {
   override def init(ctx: PandaModuleContext): Unit = {
-    ctx.declareParameter(StringProperty("xxx"));
-    ctx.declareParameter(IntegerProperty("xxx").withDefault(121));
-    ctx.declareParameter(NodeAddressProperty("zookeeper.address"));
+    ctx.declareProperty(StringProperty("xxx"));
+    ctx.declareProperty(IntegerProperty("xxx").withDefault(121));
+    ctx.declareProperty(NodeAddressProperty("zookeeper.address"));
   }
 
   override def stop(ctx: PandaModuleContext): Unit = {
@@ -62,14 +62,10 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   val config = new PropertyRegistryImpl();
   val context = PandaModuleContext(InstanceContext, config);
 
-  Array(
-    new MainServerModule(),
-    new BlobStorageModule(),
-    new ExternalPropetiesModule(),
-    new CypherPlusModule()
-  ).foreach { module =>
-    modules.add(_)
-  }
+  modules.add(new MainServerModule())
+    .add(new BlobStorageModule())
+    .add(new ExternalPropetiesModule())
+    .add(new CypherPlusModule())
 
   //...
 

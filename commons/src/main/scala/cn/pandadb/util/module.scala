@@ -11,13 +11,16 @@ trait PandaModule {
 }
 
 case class PandaModuleContext(instanceContext: ContextMap, config: PropertyRegistry) {
-  def declareParameter(parser: PropertyParser): Unit = config.register(parser);
+  def declareProperty(parser: PropertyParser): Unit = config.register(parser);
 }
 
 class PandaModules extends Logging {
   val modules = ArrayBuffer[PandaModule]();
 
-  def add(module: PandaModule): Unit = modules += module;
+  def add(module: PandaModule): PandaModules = {
+    modules += module
+    this
+  }
 
   def init(ctx: PandaModuleContext): Unit = modules.foreach { module =>
     module.init(ctx)

@@ -13,7 +13,7 @@ class JaroWinklerStringSimilarity extends ValueComparator {
     jw.similarity(str1.asInstanceOf[String], str2.asInstanceOf[String]);
   }
 
-  override def initialize(conf: ContextMap): Unit = {
+  override def initialize(conf: Configuration): Unit = {
 
   }
 }
@@ -24,7 +24,7 @@ class JaccardStringSimilarity extends ValueComparator {
     jw.similarity(str1.asInstanceOf[String], str2.asInstanceOf[String]);
   }
 
-  override def initialize(conf: ContextMap): Unit = {
+  override def initialize(conf: Configuration): Unit = {
 
   }
 }
@@ -35,7 +35,7 @@ class CosineStringSimilarity extends ValueComparator {
     jw.similarity(str1.asInstanceOf[String], str2.asInstanceOf[String]);
   }
 
-  override def initialize(conf: ContextMap): Unit = {
+  override def initialize(conf: Configuration): Unit = {
 
   }
 }

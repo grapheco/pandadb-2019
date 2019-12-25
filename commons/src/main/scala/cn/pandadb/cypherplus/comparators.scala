@@ -1,9 +1,9 @@
 package cn.pandadb.cypherplus
 
-import cn.pandadb.util.{ContextMap}
+import cn.pandadb.util.{Configuration}
 
 trait AnyComparator {
-  def initialize(conf: ContextMap);
+  def initialize(conf: Configuration);
 }
 
 trait ValueComparator extends AnyComparator {
