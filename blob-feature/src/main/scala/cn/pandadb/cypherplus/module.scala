@@ -3,10 +3,23 @@ package cn.pandadb.cypherplus
 import java.io.File
 
 import cn.pandadb.blob.CypherPluginRegistry
-import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
-import cn.pandadb.util.Logging
+import cn.pandadb.context.{InstanceBoundServiceFactoryRegistry, InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
+import cn.pandadb.util.{PandaModuleContext, PandaModule, Logging}
 import org.springframework.context.support.FileSystemXmlApplicationContext
 
+class CypherPlusModule extends PandaModule {
+  override def init(ctx: PandaModuleContext): Unit = {
+    InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
+  }
+
+  override def stop(ctx: PandaModuleContext): Unit = {
+
+  }
+
+  override def start(ctx: PandaModuleContext): Unit = {
+
+  }
+}
 /**
   * Created by bluejoe on 2019/11/7.
   */

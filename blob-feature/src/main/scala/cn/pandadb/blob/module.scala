@@ -29,8 +29,6 @@ class BlobStorageModule extends PandaModule {
   override def init(ctx: PandaModuleContext): Unit = {
     InstanceBoundServiceFactoryRegistry.register[BlobStorageServiceFactory];
     InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
-    InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
-
     //declare properties
   }
 

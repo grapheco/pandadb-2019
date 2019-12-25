@@ -5,6 +5,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.{Optional, Properties}
 
 import cn.pandadb.blob.BlobStorageModule
+import cn.pandadb.cypherplus.CypherPlusModule
 import cn.pandadb.externalprops.ExternalPropetiesModule
 import cn.pandadb.network.{NodeAddress, ZKPathConfig, ZookeeperBasedClusterClient}
 import cn.pandadb.server.internode.InterNodeRequestHandler
@@ -61,9 +62,10 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   val config = new PropertyRegistryImpl();
   val context = PandaModuleContext(InstanceContext, config);
 
-  modules.add(new MainServerModule());
-  modules.add(new BlobStorageModule());
-  modules.add(new ExternalPropetiesModule());
+  Array(new MainServerModule(), new BlobStorageModule(), new ExternalPropetiesModule(), new CypherPlusModule()).foreach{module =>
+    modules.add(_)
+  }
+
   //...
 
   modules.init(context);
