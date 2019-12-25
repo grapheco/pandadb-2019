@@ -14,12 +14,15 @@ case class PandaModuleContext(instanceContext: ContextMap, config: PropertyRegis
   def declareParameter(parser: PropertyParser): Unit = config.register(parser);
 }
 
-class PandaModules {
+class PandaModules extends Logging {
   val modules = ArrayBuffer[PandaModule]();
 
   def add(module: PandaModule): Unit = modules += module;
 
-  def init(ctx: PandaModuleContext): Unit = modules.foreach(_.init(ctx))
+  def init(ctx: PandaModuleContext): Unit = modules.foreach { module =>
+    module.init(ctx)
+    logger.info(s"initialized ${module.getClass.getSimpleName}")
+  }
 
   def start(ctx: PandaModuleContext): Unit = modules.foreach(_.start(ctx))
 
