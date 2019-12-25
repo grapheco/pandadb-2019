@@ -38,9 +38,9 @@ object PNodeServer extends Logging {
 
 class MainServerModule extends PandaModule {
   override def init(ctx: PandaModuleContext): Unit = {
-    ctx.declareProperty(StringProperty("xxx"));
-    ctx.declareProperty(IntegerProperty("xxx").withDefault(121));
-    ctx.declareProperty(NodeAddressProperty("zookeeper.address"));
+    ctx.declareProperty(StringProperty("node.server.address"));
+    ctx.declareProperty(StringProperty("zookeeper.address"));
+    ctx.declareProperty(IntegerProperty("rpcPort").withDefault(1224));
   }
 
   override def stop(ctx: PandaModuleContext): Unit = {
