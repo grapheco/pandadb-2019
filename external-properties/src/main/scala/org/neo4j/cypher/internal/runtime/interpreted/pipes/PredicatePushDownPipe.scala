@@ -17,8 +17,7 @@ trait PredicatePushDownPipe extends Pipe{
 
   var labelName: String = null
 
-
-  def predicatePushDown(nodeStore: CustomPropertyNodeStore, fatherPipe: FilterPipe, predicate: Expression, label: String = null): Unit = {
+  def pushDownPredicate(nodeStore: CustomPropertyNodeStore, fatherPipe: FilterPipe, predicate: Expression, label: String = null): Unit = {
     this.nodeStore = Some(nodeStore)
     this.fatherPipe = Some(fatherPipe)
     this.predicate = Some(predicate)
