@@ -9,16 +9,7 @@ import org.neo4j.driver.{AuthTokens, GraphDatabase, Transaction, TransactionWork
 import org.neo4j.values.AnyValues
 import org.neo4j.values.storable.Values
 
-/**
- * Created by codeBabyLin on 2019/12/4.
- */
-
-
-  //test CRUD
-
-
 class InMemPropertyTest {
-
 
   //test node add 、delete,and property add and remove
   @Test
@@ -66,7 +57,6 @@ class InMemPropertyTest {
     Assert.assertEquals(0, InMemoryPropertyNodeStore.nodes.size)
 
   }
-
 
   @Test
   def test3() {
@@ -117,6 +107,5 @@ class InMemPropertyTest {
     val labels = node.get.mutable().labels
     assert(labels.size == 2 && labels.contains("person") && labels.contains("Man"))
   }
-
 
 }

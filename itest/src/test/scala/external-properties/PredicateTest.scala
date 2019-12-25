@@ -24,8 +24,6 @@ class PredicateTest {
   val zkString = props.getProperty("external.properties.store.solr.zk")
   val collectionName = props.getProperty("external.properties.store.solr.collection")
 
-
-
   def prepareData(solrNodeStore: InSolrPropertyNodeStore): Int = {
 
     val node1 = MutableNodeWithProperties(1)
@@ -38,7 +36,6 @@ class PredicateTest {
     node2.labels += "database"
     node2.props += "name" -> Values.of("neo4j")
     node2.props += "age" -> Values.of(5)
-
 
     val node3 = MutableNodeWithProperties(3)
     node3.labels += "person"
@@ -65,24 +62,19 @@ class PredicateTest {
     solrNodeStore.getRecorderSize
   }
 
-
   @Test
   def test3() {
     val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
     solrNodeStore.clearAll()
     Assert.assertEquals(0, solrNodeStore.getRecorderSize)
 
-
     Assert.assertEquals(5, prepareData(solrNodeStore))
-
-
 
     val nodeList1 = solrNodeStore.getNodesByLabel("person")
     val nodeList2 = solrNodeStore.getNodesByLabel("database")
 
     Assert.assertEquals(3, nodeList1.size)
     Assert.assertEquals(2, nodeList2.size)
-
 
     var res1 = solrNodeStore.filterNodes(NFGreaterThan("age", Values.of(39)))
     Assert.assertEquals(1, res1.size)
@@ -97,21 +89,19 @@ class PredicateTest {
     Assert.assertEquals(3, res1.size)
 
     res1 = solrNodeStore.filterNodes(NFEquals("age", Values.of(18)))
-    Assert.assertEquals("Airzihao", res1.head.mutable().props.head._2.asObject())
-
+    Assert.assertEquals("Airzihao", res1.head.mutable().props.get("name").get.asObject())
 
     res1 = solrNodeStore.filterNodes(NFContainsWith("name", "joe"))
     Assert.assertEquals(1, res1.size)
-    Assert.assertEquals("bluejoe", res1.head.mutable().props.head._2.asObject())
+    Assert.assertEquals("bluejoe", res1.head.mutable().props.get("name").get.asObject())
 
     res1 = solrNodeStore.filterNodes(NFEndsWith("name", "son"))
     Assert.assertEquals(1, res1.size)
-    Assert.assertEquals(39, res1.head.mutable().props.last._2.asObject().toString.toLong)
+    Assert.assertEquals(39.toLong, res1.head.mutable().props.get("age").get.asObject())
 
     res1 = solrNodeStore.filterNodes(NFStartsWith("name", "pan"))
     Assert.assertEquals(1, res1.size)
     Assert.assertEquals("database", res1.head.labels.head)
-
 
     res1 = solrNodeStore.filterNodes(NFStartsWith("name", "pan"))
     Assert.assertEquals(1, res1.size)
@@ -120,15 +110,12 @@ class PredicateTest {
     res1 = solrNodeStore.filterNodes(NFFalse())
     Assert.assertEquals(0, res1.size)
 
-
     res1 = solrNodeStore.filterNodes(NFTrue())
     Assert.assertEquals(5, res1.size)
-
 
     res1 = solrNodeStore.filterNodes(NFHasProperty("nation"))
     Assert.assertEquals(1, res1.size)
     Assert.assertEquals("pandaDB", res1.head.props.get("name").get.asObject())
-
 
     res1 = solrNodeStore.filterNodes(NFIsNull("nation"))
     Assert.assertEquals(4, res1.size)
@@ -143,7 +130,6 @@ class PredicateTest {
     res1 = solrNodeStore.filterNodes(NFRegexp("name", ".?lue.*"))
     Assert.assertEquals(40, res1.head.mutable().props.get("age").get.asObject().toString.toLong)
 
-
     res1 = solrNodeStore.filterNodes(NFAnd(NFIsNull("nation"), NFLessThanOrEqual("age", Values.of(18))))
     Assert.assertEquals(2, res1.size)
 
@@ -153,15 +139,6 @@ class PredicateTest {
 
     res1 = solrNodeStore.filterNodes(NFOr(NFNotNull("nation"), NFGreaterThanOrEqual("age", Values.of(40))))
     Assert.assertEquals(2, res1.size)
-
-
-
-
-
-
-
-
-
 
     solrNodeStore.clearAll()
     Assert.assertEquals(0, solrNodeStore.getRecorderSize)
