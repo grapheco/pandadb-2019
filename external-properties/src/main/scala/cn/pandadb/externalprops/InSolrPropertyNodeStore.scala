@@ -38,8 +38,6 @@ object SolrUtil{
       if (tik.indexOf(y) < 0) {
         if (doc.get(y).getClass.getName.contains(arrayName)) {
           val tempArray = ArrayBuffer[AnyRef]()
-          //scalastyle:off println
-          println(doc.get(y))
           doc.get(y).asInstanceOf[util.ArrayList[AnyRef]].foreach(u => tempArray += u)
           if (tempArray.size<=1) props += y -> Values.of(tempArray.head)
           else props += y -> getValueFromArray(tempArray)
@@ -54,19 +52,9 @@ object SolrUtil{
     val typeName = value.head.getClass.getTypeName
     typeName match {
       case "java.lang.String" =>
-        //var test = new StringArray(value)
-        // value.map(_.asInstanceOf[String]).asJavaCollection
-        //value.map(_.asInstanceOf[String]).foreach(u => test. u.toString)
-        //Values.stringArray(value.map(_.asInstanceOf[String]).asInstanceOf[Set[String]])
-//        Values.stringArray(value.map(_.asInstanceOf[String]).toArray)
-        val jArr = value
-//        import scala.collection.JavaConverters._
-//        Values.stringArray(jArr.toArray)
-//        null
         val strArr = value.map(_.toString).toArray
         val result = Values.stringArray(strArr: _*)
         result
-//              null
       case "java.lang.Boolean" =>
         Values.booleanArray(value.map(_.asInstanceOf[Boolean]).toArray)
       case "java.lang.Long" =>
@@ -302,9 +290,6 @@ class InSolrGroupedOpVisitor(isCommit: Boolean, _solrClient: CloudSolrClient) ex
   }
 
   override def end(ops: GroupedOps): Unit = {
-
-    //this.oldState.clear()
-    //this.newState.clear()
 
   }
 
