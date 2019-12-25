@@ -117,18 +117,18 @@ object ConfigUtils {
   });
 }
 
-trait ParameterParser {
+trait PropertyParser {
   def parse(conf: Configuration): Iterable[(String, _)];
 }
 
-trait PandaConfigSetting {
-  def register(parser: ParameterParser);
+trait PropertyRegistry {
+  def register(parser: PropertyParser);
 }
 
-class PandaConfigSettingImpl() extends PandaConfigSetting {
-  val parsers = ArrayBuffer[ParameterParser]();
+class PropertyRegistryImpl() extends PropertyRegistry {
+  val parsers = ArrayBuffer[PropertyParser]();
 
-  override def register(parser: ParameterParser): Unit = {
+  override def register(parser: PropertyParser): Unit = {
     parsers += parser;
   }
 
@@ -141,11 +141,11 @@ class PandaConfigSettingImpl() extends PandaConfigSetting {
   }
 }
 
-abstract class SingleParameter[T](name: String) extends ParameterParser {
+abstract class SingleProperty[T](name: String) extends PropertyParser {
   override def parse(conf: Configuration): Iterable[Pair[String, _]] =
     Some(name -> conf.getRaw(name).map(convert(_)).get)
 
-  def withDefault(value: T): ParameterParser = new ParameterParser() {
+  def withDefault(value: T): PropertyParser = new PropertyParser() {
     override def parse(conf: Configuration): Iterable[Pair[String, _]] =
       Some(name -> conf.getRaw(name).map(convert(_)).getOrElse(value))
   }
@@ -153,10 +153,10 @@ abstract class SingleParameter[T](name: String) extends ParameterParser {
   def convert(value: String): T;
 }
 
-case class StringParameter(name: String) extends SingleParameter[String](name) {
+case class StringProperty(name: String) extends SingleProperty[String](name) {
   override def convert(value: String): String = value
 }
 
-case class IntegerParameter(name: String) extends SingleParameter[Int](name) {
+case class IntegerProperty(name: String) extends SingleProperty[Int](name) {
   override def convert(value: String): Int = value.toInt
 }

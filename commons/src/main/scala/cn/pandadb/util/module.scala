@@ -10,8 +10,8 @@ trait PandaModule {
   def stop(ctx: PandaModuleContext);
 }
 
-case class PandaModuleContext(instanceContext: ContextMap, config: PandaConfigSetting) {
-  def declareParameter(parser: ParameterParser): Unit = config.register(parser);
+case class PandaModuleContext(instanceContext: ContextMap, config: PropertyRegistry) {
+  def declareParameter(parser: PropertyParser): Unit = config.register(parser);
 }
 
 class PandaModules {
