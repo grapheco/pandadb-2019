@@ -1,7 +1,6 @@
 import java.io.File
 
 import cn.pandadb.blob.Blob
-import cn.pandadb.db.PandaDB
 import org.apache.commons.io.FileUtils
 import org.neo4j.graphdb.GraphDatabaseService
 
@@ -39,10 +38,5 @@ trait TestBase {
     tx.success();
     tx.close();
     db.shutdown();
-  }
-
-  def openDatabase(dbdir: File = testDbDir, conf: String = testConfPath): GraphDatabaseService = {
-    PandaDB.openDatabase(dbdir.getAbsoluteFile.getCanonicalFile,
-      new File(conf).getAbsoluteFile.getCanonicalFile, Map("external.properties.store.factory" -> null));
   }
 }

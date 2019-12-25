@@ -17,12 +17,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.neo4j.kernel.impl.blob
+package cn.pandadb.blob
 
-import cn.pandadb.context.InstanceBoundService
-import cn.pandadb.context.{InstanceBoundServiceContext, InstanceBoundServiceFactory}
-import cn.pandadb.util.Logging
+import cn.pandadb.context.{InstanceBoundServiceFactoryRegistry, InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
+import cn.pandadb.cypherplus.SemanticOperatorServiceFactory
+import cn.pandadb.util.{PandaModuleContext, PandaModule, Logging}
+import org.neo4j.kernel.impl.blob.{DefaultBlobFunctions, BlobStorage}
 import org.neo4j.kernel.impl.proc.Procedures
+
+class BlobStorageModule extends PandaModule {
+  override def init(ctx: PandaModuleContext): Unit = {
+    InstanceBoundServiceFactoryRegistry.register[BlobStorageServiceFactory];
+    InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
+    InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
+
+    //declare properties
+  }
+
+  override def stop(ctx: PandaModuleContext): Unit = {
+
+  }
+
+  override def start(ctx: PandaModuleContext): Unit = {
+
+  }
+}
 
 class BlobStorageServiceFactory extends InstanceBoundServiceFactory with Logging {
   override def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {
