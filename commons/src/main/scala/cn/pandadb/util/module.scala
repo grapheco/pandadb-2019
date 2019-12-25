@@ -1,5 +1,7 @@
 package cn.pandadb.util
 
+import java.io.File
+
 import scala.collection.mutable.ArrayBuffer
 
 trait PandaModule {
@@ -10,7 +12,7 @@ trait PandaModule {
   def stop(ctx: PandaModuleContext);
 }
 
-case class PandaModuleContext(instanceContext: ContextMap, config: PropertyRegistry) {
+case class PandaModuleContext(instanceContext: ContextMap, config: PropertyRegistry, storeDir: File) {
   def declareProperty(parser: PropertyParser): Unit = config.register(parser);
 }
 
