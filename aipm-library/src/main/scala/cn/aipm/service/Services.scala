@@ -132,7 +132,7 @@ class Services(private val _aipmHttpHostUrl: String) {
 trait ServiceInitializer extends AnyComparator {
   var service: Services = null
 
-  override def initialize(conf: ContextMap): Unit = {
+  override def initialize(conf: Configuration): Unit = {
     val aipmHttpHostUrl = conf.getRequiredValueAsString("aipm.http.host.url")
     service = new Services(aipmHttpHostUrl)
   }

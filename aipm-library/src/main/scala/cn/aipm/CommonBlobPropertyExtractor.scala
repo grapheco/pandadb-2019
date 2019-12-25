@@ -14,7 +14,7 @@ class CommonPropertyExtractor extends PropertyExtractor {
     Map("class" -> x.getClass.getName)
   }
 
-  override def initialize(conf: ContextMap) {
+  override def initialize(conf: Configuration) {
   }
 }
 
@@ -27,6 +27,6 @@ class CommonBlobPropertyExtractor extends PropertyExtractor {
     }
   }
 
-  override def initialize(conf: ContextMap) {
+  override def initialize(conf: Configuration) {
   }
 }

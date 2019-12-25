@@ -17,7 +17,7 @@ class ImageMetaDataExtractor extends PropertyExtractor {
     Map("height" -> srcImage.getHeight(), "width" -> srcImage.getWidth());
   })
 
-  override def initialize(conf: ContextMap): Unit = {
+  override def initialize(conf: Configuration): Unit = {
 
   }
 }

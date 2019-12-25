@@ -4,12 +4,12 @@ import java.io.File
 
 import cn.pandadb.blob.CypherPluginRegistry
 import cn.pandadb.context.{InstanceBoundServiceFactoryRegistry, InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
-import cn.pandadb.util.{PandaModuleContext, PandaModule, Logging}
+import cn.pandadb.util._
 import org.springframework.context.support.FileSystemXmlApplicationContext
 
 class CypherPlusModule extends PandaModule {
   override def init(ctx: PandaModuleContext): Unit = {
-    InstanceBoundServiceFactoryRegistry.register[SemanticOperatorServiceFactory];
+    ctx.declareProperty(new CypherPluginPropertyParser())
   }
 
   override def stop(ctx: PandaModuleContext): Unit = {
@@ -20,13 +20,10 @@ class CypherPlusModule extends PandaModule {
 
   }
 }
-/**
-  * Created by bluejoe on 2019/11/7.
-  */
-class SemanticOperatorServiceFactory extends InstanceBoundServiceFactory with Logging {
-  def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {
-    val configuration = ctx.instanceContext;
-    val cypherPluginRegistry = configuration.getOption[String]("blob.plugins.conf").map(x => {
+
+class CypherPluginPropertyParser extends PropertyParser with Logging {
+  override def parse(conf: Configuration): Iterable[Pair[String, _]] = {
+    val cypherPluginRegistry = conf.getRaw("blob.plugins.conf").map(x => {
       val xml = new File(x);
 
       val path =
@@ -34,7 +31,7 @@ class SemanticOperatorServiceFactory extends InstanceBoundServiceFactory with Lo
           xml.getPath
         }
         else {
-          val configFilePath = configuration.getOption[String]("config.file.path")
+          val configFilePath = conf.getRaw("config.file.path")
           if (configFilePath.isDefined) {
             new File(new File(configFilePath.get).getParentFile, x).getAbsoluteFile.getCanonicalPath
           }
@@ -51,12 +48,12 @@ class SemanticOperatorServiceFactory extends InstanceBoundServiceFactory with Lo
       new CypherPluginRegistry()
     }
 
-    val customPropertyProvider = cypherPluginRegistry.createCustomPropertyProvider(configuration);
-    val valueMatcher = cypherPluginRegistry.createValueComparatorRegistry(configuration);
+    val customPropertyProvider = cypherPluginRegistry.createCustomPropertyProvider(conf);
+    val valueMatcher = cypherPluginRegistry.createValueComparatorRegistry(conf);
 
-    ctx.instanceContext.put[CustomPropertyProvider](customPropertyProvider);
-    ctx.instanceContext.put[ValueMatcher](valueMatcher);
-
-    None;
+    Array(
+      classOf[CustomPropertyProvider].getName -> customPropertyProvider,
+      classOf[ValueMatcher].getName -> valueMatcher
+    )
   }
 }

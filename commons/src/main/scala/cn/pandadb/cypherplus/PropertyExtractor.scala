@@ -1,6 +1,6 @@
 package cn.pandadb.cypherplus
 
-import cn.pandadb.util.{ContextMap}
+import cn.pandadb.util.{Configuration}
 
 /**
   * Created by bluejoe on 2019/7/22.
@@ -8,7 +8,7 @@ import cn.pandadb.util.{ContextMap}
 trait PropertyExtractor {
   def declareProperties(): Map[String, Class[_]];
 
-  def initialize(conf: ContextMap);
+  def initialize(conf: Configuration);
 
   def extract(value: Any): Map[String, Any];
 }
