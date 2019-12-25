@@ -37,9 +37,9 @@ object PNodeServer extends Logging {
 
 class MainServerModule extends PandaModule {
   override def init(ctx: PandaModuleContext): Unit = {
-    ctx.declareParameter(StringParameter("xxx"));
-    ctx.declareParameter(IntegerParameter("xxx").withDefault(121));
-    ctx.declareParameter(NodeAddressParameter("zookeeper.address"));
+    ctx.declareParameter(StringProperty("xxx"));
+    ctx.declareParameter(IntegerProperty("xxx").withDefault(121));
+    ctx.declareParameter(NodeAddressProperty("zookeeper.address"));
   }
 
   override def stop(ctx: PandaModuleContext): Unit = {
@@ -58,7 +58,7 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   val runningLock = new CountDownLatch(1)
 
   val modules = new PandaModules();
-  val config = new PandaConfigSettingImpl();
+  val config = new PropertyRegistryImpl();
   val context = PandaModuleContext(InstanceContext, config);
 
   modules.add(new MainServerModule());
@@ -185,6 +185,6 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
 
 }
 
-case class NodeAddressParameter(name: String) extends ParameterParser {
+case class NodeAddressProperty(name: String) extends PropertyParser {
   override def parse(conf: Configuration): Iterable[Pair[String, _]] = conf.getRaw(name).map(name -> NodeAddress.fromString(_))
 }
