@@ -1,5 +1,3 @@
-import java.io.File
-
 import cn.pandadb.network.ZKPathConfig
 import org.junit.{Assert, Test}
 
@@ -10,7 +8,6 @@ import org.junit.{Assert, Test}
   * @Modified By:
   */
 class ZKConstantsTest {
-  val configFile = new File(this.getClass.getClassLoader.getResource("test_pnode0.conf").getPath)
 
   @Test
   def testZKPathConfig(): Unit = {
