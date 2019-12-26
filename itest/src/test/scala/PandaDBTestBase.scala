@@ -1,11 +1,9 @@
 import java.io.{File, FileInputStream}
 import java.util.Properties
-import java.util.concurrent.{ExecutorService, Executors, ThreadPoolExecutor}
+import java.util.concurrent.{ExecutorService, Executors}
 
-import sys.process._
 import cn.pandadb.network.NodeAddress
 import cn.pandadb.tool.PNodeServerStarter
-import distributed.PNodeServerStarterTest
 import org.junit.Test
 import org.neo4j.driver.{Driver, GraphDatabase, StatementResult}
 

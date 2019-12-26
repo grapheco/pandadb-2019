@@ -20,14 +20,14 @@
             <artifactId>commons</artifactId>
             <version>${pandadb.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>net.neoremind</groupId>-->
-            <!--<artifactId>kraps-rpc_2.11</artifactId>-->
-        <!--</dependency>-->
         <dependency>
-            <groupId>cn.pandadb</groupId>
-            <artifactId>fat-rpc</artifactId>
+            <groupId>net.neoremind</groupId>
+            <artifactId>kraps-rpc_2.11</artifactId>
         </dependency>
+        <!--<dependency>-->
+            <!--<groupId>cn.pandadb</groupId>-->
+            <!--<artifactId>fat-rpc</artifactId>-->
+        <!--</dependency>-->
         <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-framework -->
         <dependency>
             <groupId>org.apache.curator</groupId>
