@@ -4,7 +4,8 @@ import cn.pandadb.externalprops.CustomPropertyNodeStore
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.{Expression, ParameterExpression, Property}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.predicates._
 import org.neo4j.cypher.internal.runtime.interpreted._
-import org.neo4j.values.storable.{StringValue}
+import org.neo4j.cypher.internal.v3_5.util.{Fby, Last, NonEmptyList}
+import org.neo4j.values.storable.StringValue
 import org.neo4j.values.virtual.NodeValue
 
 trait PredicatePushDownPipe extends Pipe{
@@ -24,31 +25,46 @@ trait PredicatePushDownPipe extends Pipe{
     this.labelName = label
   }
 
-  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Iterator[NodeValue] = {
-    if ( predicate.isDefined ) {
-      val expr: NFPredicate = predicate.get match {
-        case GreaterThan(a: Property, b: ParameterExpression) =>
-          NFGreaterThan(a.propertyKey.name, b.apply(baseContext, state))
-        case GreaterThanOrEqual(a: Property, b: ParameterExpression) =>
-          NFGreaterThanOrEqual(a.propertyKey.name, b.apply(baseContext, state))
-        case LessThan(a: Property, b: ParameterExpression) =>
-          NFLessThan(a.propertyKey.name, b.apply(baseContext, state))
-        case LessThanOrEqual(a: Property, b: ParameterExpression) =>
-          NFLessThanOrEqual(a.propertyKey.name, b.apply(baseContext, state))
-        case Equals(a: Property, b: ParameterExpression) =>
-          NFEquals(a.propertyKey.name, b.apply(baseContext, state))
-        case Contains(a: Property, b: ParameterExpression) =>
-          NFContainsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
-        case StartsWith(a: Property, b: ParameterExpression) =>
-          NFStartsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
-        case EndsWith(a: Property, b: ParameterExpression) =>
-          NFEndsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
-        case RegularExpression(a: Property, b: ParameterExpression) =>
-          NFRegexp(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
-        case _ =>
-          null
-      }
+  private def convert2NFPredicate(expression: Expression, state: QueryState, baseContext: ExecutionContext): NFPredicate = {
+    val expr: NFPredicate = expression match {
+      case GreaterThan(a: Property, b: ParameterExpression) =>
+        NFGreaterThan(a.propertyKey.name, b.apply(baseContext, state))
+      case GreaterThanOrEqual(a: Property, b: ParameterExpression) =>
+        NFGreaterThanOrEqual(a.propertyKey.name, b.apply(baseContext, state))
+      case LessThan(a: Property, b: ParameterExpression) =>
+        NFLessThan(a.propertyKey.name, b.apply(baseContext, state))
+      case LessThanOrEqual(a: Property, b: ParameterExpression) =>
+        NFLessThanOrEqual(a.propertyKey.name, b.apply(baseContext, state))
+      case Equals(a: Property, b: ParameterExpression) =>
+        NFEquals(a.propertyKey.name, b.apply(baseContext, state))
+      case Contains(a: Property, b: ParameterExpression) =>
+        NFContainsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
+      case StartsWith(a: Property, b: ParameterExpression) =>
+        NFStartsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
+      case EndsWith(a: Property, b: ParameterExpression) =>
+        NFEndsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
+      case RegularExpression(a: Property, b: ParameterExpression) =>
+        NFRegexp(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
+      case _ =>
+        null
+    }
+    expr
+  }
 
+  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Iterator[NodeValue] = {
+    if (this.predicate.isDefined) {
+      var expr: NFPredicate = convert2NFPredicate(this.predicate.get, state, baseContext)
+      if (expr == null) {
+        expr = predicate.get match {
+          case Ands(Fby(left, Last(right))) =>
+            NFAnd(
+              convert2NFPredicate(left, state, baseContext),
+              convert2NFPredicate(right, state, baseContext)
+            )
+          case _ =>
+            null
+        }
+      }
       if (expr != null) {
         fatherPipe.get.bypass()
         if (labelName != null) {
