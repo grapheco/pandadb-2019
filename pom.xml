@@ -15,11 +15,11 @@
         <module>aipm-library</module>
         <module>external-properties</module>
         <module>server</module>
-        <module>itest</module>
         <module>commons</module>
         <module>neo4j-hacking</module>
         <module>network-commons</module>
         <module>tools</module>
+        <module>itest</module>
     </modules>
 
     <properties>
@@ -296,7 +296,6 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
@@ -323,7 +322,6 @@
                     </programs>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 </project>
