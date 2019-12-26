@@ -34,6 +34,7 @@ trait QueryTestBase {
     nodeStore match {
       case "InMemoryPropertyNodeStore" =>
         InMemoryPropertyNodeStore.nodes.clear()
+        InstanceContext.put("is.leader.node", true)
         InstanceContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
 
       case "InSolrPropertyNodeStore" =>
@@ -44,6 +45,7 @@ trait QueryTestBase {
         val collectionName = props.getProperty("external.properties.store.solr.collection")
         val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
         solrNodeStore.clearAll()
+        InstanceContext.put("is.leader.node", true)
         InstanceContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
     }
   }
