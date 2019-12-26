@@ -70,6 +70,11 @@ trait QueryCase {
   }
 
   @Test
+  def stringEndsWithAnd(): Unit = {
+    testQuery("match (n) where n.name ENDS WITH 'b' AND n.address ENDS WITH 'China' return id(n)", "id(n)")
+  }
+
+  @Test
   def label(): Unit = {
     testQuery("match (n:Person) return id(n)", "id(n)")
   }
