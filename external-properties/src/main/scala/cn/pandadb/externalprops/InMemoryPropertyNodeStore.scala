@@ -21,19 +21,18 @@ class InMemoryPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   */
 object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   val nodes = mutable.Map[Long, NodeWithProperties]();
-
-  def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
+  def firstFilterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
     expr match {
       case NFGreaterThan(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() >
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
 
       /*case NFLessThan(fieldName: String, value: AnyValue) =>
-        nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <
-          value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))*/
+      nodes.values.filter(x => x.field(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <
+        value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))*/
       case NFLessThan(fieldName: String, value: AnyValue) =>
-     nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <
-       value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
+        nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <
+          value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
 
       case NFLessThanOrEqual(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() <=
@@ -43,7 +42,7 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() >=
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))
 
-    /*  case NFEquals(fieldName: String, value: AnyValue) =>
+      /*  case NFEquals(fieldName: String, value: AnyValue) =>
         nodes.values.filter(x => x.mutable().props.get(fieldName).map(_.asInstanceOf[NumberValue].doubleValue() ==
           value.asInstanceOf[NumberValue].doubleValue()).getOrElse(false))*/
       case NFEquals(fieldName: String, value: AnyValue) =>
@@ -59,7 +58,14 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
       case NFEndsWith(propName, text) =>
         nodes.values.filter(x => x.mutable().props.get(propName).map(_.asInstanceOf[StringValue].stringValue().endsWith(text)
         ).getOrElse(false))
-
+    }
+  }
+  def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
+    expr match {
+      case NFAnd(a, b) => filterNodes(a).toSet & filterNodes(b).toSet
+      case NFNot(a) => nodes.values.toSet -- firstFilterNodes(a)
+      case NFOr(a, b) => firstFilterNodes(a).toSet | firstFilterNodes(b).toSet
+      case _ => firstFilterNodes(expr)
     }
   }
 
@@ -105,11 +111,13 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val res = mutable.ArrayBuffer[NodeWithProperties]()
     nodes.map(n => {
+      //println(n)
       if (n._2.labels.toArray.contains(label)) {
         res.append(n._2)
       }
 
     })
+
     res
   }
 
