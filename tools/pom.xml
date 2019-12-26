@@ -31,7 +31,6 @@
     </dependencies>
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
@@ -50,7 +49,7 @@
                     <!--lib下直接存放jar，没有路径文件夹（如com/apache)，如果没有这个选项则放在lib下的jar包会被com/apache类似的多层文件夹包裹起来-->
                     <repositoryLayout>flat</repositoryLayout>
                     <configurationDirectory>conf</configurationDirectory>
-                    <configurationSourceDirectory>F:\IdCode\pandadb-2019\itest\testdata</configurationSourceDirectory>
+                    <configurationSourceDirectory>../itest/testdata</configurationSourceDirectory>
                     <copyConfigurationDirectory>true</copyConfigurationDirectory>
                     <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
                     <!--生成的项目的目录位置，这里的client是项目的名称，你可以根据你的需要自己随便命名-->
@@ -75,21 +74,28 @@
                     </programs>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>cn.pandadb.tool.UnsafePNodeLauncher</mainClass>
-                </configuration>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.codehaus.mojo</groupId>-->
+                <!--<artifactId>exec-maven-plugin</artifactId>-->
+                <!--<version>1.2.1</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<goals>-->
+                            <!--<goal>exec</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+                <!--<configuration>-->
+                    <!--<executable>java</executable>-->
+                    <!--<arguments>-->
+                        <!--<argument>-cp</argument>-->
+                        <!--<argument>./Panda-server/target/classes</argument>-->
+                        <!--<argument>cn.pandadb.tool.UnsafePNodeLauncher</argument>-->
+                        <!--<argument>-A</argument>-->
+                        <!--<argument>${argumentA}</argument>-->
+                    <!--</arguments>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
         </plugins>
     </build>
 </project>

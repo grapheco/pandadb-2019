@@ -7,8 +7,8 @@ import cn.pandadb.tool.PNodeServerStarter
   */
 object PNodeServerStarterTest {
   def main(args: Array[String]) {
-    val num = 1
-    PNodeServerStarter.main(Array(s"./itest/output/testdb/db${num}",
-      s"./itest/testdata/gnode${num}.conf"));
+    val num = args(0)
+    PNodeServerStarter.main(Array(s"./output/testdb/db${num}",
+      s"./testdata/localnode${num}.conf"));
   }
 }
