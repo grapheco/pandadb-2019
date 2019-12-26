@@ -19,7 +19,7 @@ trait QueryCase {
     dbFile.mkdirs();
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
     InstanceContext.put(classOf[CustomPropertyNodeStore].getName, store)
-
+    InstanceContext.put("is.leader.node", true)
     db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
     db.execute("CREATE INDEX ON :Person(address)")
 
@@ -67,6 +67,11 @@ trait QueryCase {
   @Test
   def stringStartsWith(): Unit = {
     testQuery("match (n) where n.name STARTS WITH 'b' return id(n)", "id(n)")
+  }
+
+  @Test
+  def stringEndsWithAnd(): Unit = {
+    testQuery("match (n) where n.name ENDS WITH 'b' AND n.address ENDS WITH 'China' return id(n)", "id(n)")
   }
 
   @Test
