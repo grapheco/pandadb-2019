@@ -157,7 +157,7 @@ class MergePerformanceTest extends PandaDBPerformanceTest {
 
   @Test
   def test0(): Unit = {
-    val list = List(1, 2, 3, 4, 5)
+    val list = List(1)
     list.foreach(i => circularTest(i))
   }
 
