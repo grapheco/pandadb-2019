@@ -109,7 +109,7 @@ class InSolrArrayTest extends CreateQueryTestBase{
    // println(res.get.props.get("titles").get.asObject().getClass)
    // println(res.get.props.get("salaries").get.asObject().getClass)
    // println(res.get.props.get("boolattr").get.asObject().getClass)
-   // Assert.assertEquals(3, res.get.props.get("titles").get.asInstanceOf[StringArray].length())
+    Assert.assertEquals(3, res.get.props.get("titles").get.asInstanceOf[StringArray].length())
     Assert.assertEquals(4, res.get.props.get("salaries").get.asInstanceOf[LongArray].length())
     Assert.assertEquals(4, res.get.props.get("boolattr").get.asInstanceOf[BooleanArray].length())
     //Assert.assertEquals(boolattr, res.get.props.get("boolattr").get.asObject())
