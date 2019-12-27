@@ -50,7 +50,7 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
                                   tokenContext: TokenContext)
                                  (implicit semanticTable: SemanticTable) extends PipeBuilder with Logging {
 
-  val nodeStore: Option[CustomPropertyNodeStore] = ExternalPropertiesContext.getOption(classOf[CustomPropertyNodeStore].getName)
+  val nodeStore: Option[CustomPropertyNodeStore] = ExternalPropertiesContext.maybeCustomPropertyNodeStore
 
   private def getBuildExpression(id: Id) = rewriteAstExpression andThen
     ((e: ASTExpression) => expressionConverters.toCommandExpression(id, e)) andThen

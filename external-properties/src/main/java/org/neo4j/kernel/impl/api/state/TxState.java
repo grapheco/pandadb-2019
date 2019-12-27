@@ -123,8 +123,7 @@ public class TxState implements TransactionState, RelationshipVisitor.Home
     {
         this.collectionsFactory = collectionsFactory;
         // NOTE: pandadb
-        isPreventNeo4jPropertyStore = ExternalPropertiesContext.getOption(
-                CustomPropertyNodeStore.class.getName()).isDefined();
+        isPreventNeo4jPropertyStore = ExternalPropertiesContext.isExternalPropStorageEnabled();
         // END-NOTE
     }
 

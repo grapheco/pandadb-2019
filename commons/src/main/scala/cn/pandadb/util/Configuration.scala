@@ -108,9 +108,7 @@ object ConfigUtils {
 
   implicit def mapOps(map: Map[String, String]): ConfigurationOps = new ConfigurationOps(map2Config(map));
 
-  implicit def contextMapOps(conf: ContextMap): ConfigurationOps = new ConfigurationOps(new Configuration() {
-    override def getRaw(name: String): Option[String] = conf.getOption(name)
-  });
+  implicit def contextMapOps(conf: ContextMap): ConfigurationOps = new ConfigurationOps(conf.toConfiguration);
 
   implicit def map2Config(map: Map[String, String]): Configuration = new Configuration() {
     override def getRaw(name: String): Option[String] = map.get(name)
