@@ -1,12 +1,19 @@
 package cn.pandadb.externalprops
 
-import cn.pandadb.context.InstanceBoundServiceFactoryRegistry
-import cn.pandadb.util.{PandaModuleContext, PandaModule}
+import cn.pandadb.util._
 
-class ExternalPropetiesModule extends PandaModule {
+class ExternalPropertiesModule extends PandaModule {
   override def init(ctx: PandaModuleContext): Unit = {
-    InstanceBoundServiceFactoryRegistry.register[CustomPropertyNodeStoreHolderFactory];
-    //declare properties
+    val conf = ctx.configuration;
+    val maybeFactoryClassName = conf.getRaw("external.properties.store.factory")
+
+    maybeFactoryClassName.foreach(className => {
+      val store = Class.forName(className).newInstance().asInstanceOf[ExternalPropertyStoreFactory].create(conf)
+      ExternalPropertiesContext.put[CustomPropertyNodeStore](store);
+    })
+
+    import cn.pandadb.util.ConfigUtils._
+    ExternalPropertiesContext.put("isExternalPropStorageEnabled", conf.getValueAsBoolean("external.property.storage.enabled", false))
   }
 
   override def stop(ctx: PandaModuleContext): Unit = {
@@ -16,4 +23,10 @@ class ExternalPropetiesModule extends PandaModule {
   override def start(ctx: PandaModuleContext): Unit = {
 
   }
+}
+
+object ExternalPropertiesContext extends ContextMap {
+  def customPropertyNodeStore: CustomPropertyNodeStore = get[CustomPropertyNodeStore]();
+
+  def isExternalPropStorageEnabled: Boolean = super.get("isExternalPropStorageEnabled")
 }

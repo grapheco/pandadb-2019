@@ -4,14 +4,6 @@ import java.io.File
 import scala.collection.Set
 import scala.collection.mutable.{Map => MMap}
 
-object InstanceContext extends ContextMap {
-  def bindStoreDir(storeDir: File): Unit = {
-    this.put[File]("pnode.store.dir", storeDir)
-  }
-
-  def getStoreDir: File = this.get[File]("pnode.store.dir")
-}
-
 class ContextMap {
   private val _map = MMap[String, Any]();
 

@@ -19,16 +19,22 @@
  */
 package cn.pandadb.blob
 
-import cn.pandadb.context.{InstanceBoundServiceFactoryRegistry, InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
-import cn.pandadb.util.{PandaModuleContext, PandaModule, Logging}
-import org.neo4j.kernel.impl.blob.{DefaultBlobFunctions, BlobStorage}
+import java.io.File
+
+import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory, InstanceBoundServiceFactoryRegistry}
+import cn.pandadb.util._
+import org.neo4j.kernel.impl.blob.{BlobStorage, DefaultBlobFunctions}
 import org.neo4j.kernel.impl.proc.Procedures
 
 class BlobStorageModule extends PandaModule {
   override def init(ctx: PandaModuleContext): Unit = {
-    InstanceBoundServiceFactoryRegistry.register[BlobStorageServiceFactory];
     InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
-    //declare properties
+
+    val conf = ctx.configuration;
+    val blobStorage = BlobStorage.create(conf);
+    BlobStorageContext.put[BlobStorage](blobStorage);
+    import ConfigUtils._
+    BlobStorageContext.put("blob.storage.file.dir", conf.getAsFile("blob.storage.file.dir", ctx.storeDir, new File(ctx.storeDir, "/blob")));
   }
 
   override def stop(ctx: PandaModuleContext): Unit = {
@@ -40,12 +46,10 @@ class BlobStorageModule extends PandaModule {
   }
 }
 
-class BlobStorageServiceFactory extends InstanceBoundServiceFactory with Logging {
-  override def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {
-    val blobStorage = BlobStorage.create(ctx.instanceContext);
-    ctx.instanceContext.put[BlobStorage](blobStorage);
-    Some(blobStorage)
-  }
+object BlobStorageContext extends ContextMap {
+  def blobStorage: BlobStorage = get[BlobStorage]();
+
+  def blobStorageDir: File = get("blob.storage.file.dir");
 }
 
 class DefaultBlobFunctionsServiceFactory extends InstanceBoundServiceFactory with Logging {

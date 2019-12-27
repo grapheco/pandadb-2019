@@ -16,9 +16,9 @@ case class DataVersionRecoveryArgs(val localLogFile: File, val clusterLogFile: F
                                    val localNodeAddress: NodeAddress)
 
 class LocalDataVersionRecovery(args: DataVersionRecoveryArgs) {
-  val localLog = new JsonDataLog(args.localLogFile)
+  val localLog = new JsonDataLogRW(args.localLogFile)
   val sinceVersion: Int = localLog.getLastVersion()
-  val clusterLog = new JsonDataLog(args.clusterLogFile)
+  val clusterLog = new JsonDataLogRW(args.clusterLogFile)
   val clusterVersion: Int = clusterLog.getLastVersion()
 
   private def _collectCypherList(): List[String] = {

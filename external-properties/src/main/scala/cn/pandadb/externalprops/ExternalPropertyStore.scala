@@ -1,7 +1,7 @@
 package cn.pandadb.externalprops
 
 import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext}
-import cn.pandadb.util.PandaException
+import cn.pandadb.util.{Configuration, PandaException}
 import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 import org.neo4j.values.storable.{Value, Values}
 import org.neo4j.values.virtual.{NodeValue, VirtualValues}
@@ -13,7 +13,7 @@ import scala.collection.mutable.ArrayBuffer
   * Created by bluejoe on 2019/10/7.
   */
 trait ExternalPropertyStoreFactory {
-  def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore;
+  def create(conf: Configuration): CustomPropertyNodeStore;
 }
 
 trait CustomPropertyNodeReader {

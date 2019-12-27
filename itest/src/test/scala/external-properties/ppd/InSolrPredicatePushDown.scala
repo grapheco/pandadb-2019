@@ -4,8 +4,7 @@ import java.io.{File, FileInputStream}
 import java.util.Properties
 
 import org.junit.Before
-import cn.pandadb.externalprops.{CustomPropertyNodeStore, InSolrPropertyNodeStore}
-import cn.pandadb.util.InstanceContext
+import cn.pandadb.externalprops.{ExternalPropertiesContext, CustomPropertyNodeStore, InSolrPropertyNodeStore}
 
 class InSolrPredicatePushDown extends QueryCase {
 
@@ -17,7 +16,7 @@ class InSolrPredicatePushDown extends QueryCase {
     val zkString = props.getProperty("external.properties.store.solr.zk")
     val collectionName = props.getProperty("external.properties.store.solr.collection")
     val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
-    InstanceContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
+    ExternalPropertiesContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
     solrNodeStore.clearAll()
     buildDB(solrNodeStore)
   }

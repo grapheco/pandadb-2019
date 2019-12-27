@@ -4,7 +4,7 @@ import java.time.Duration
 import java.util
 
 import cn.pandadb.cypherplus.utils.CypherPlusUtils
-import cn.pandadb.server.{DataLogDetail, PNodeServerContext}
+import cn.pandadb.server.{MainServerContext, DataLogDetail}
 import org.neo4j.bolt.runtime.{BoltResult, StatementMetadata, StatementProcessor, TransactionStateMachineSPI}
 import org.neo4j.bolt.v1.runtime.bookmarking.Bookmark
 import org.neo4j.function.{ThrowingBiConsumer, ThrowingConsumer}
@@ -42,8 +42,8 @@ class PNodeStatementProcessor(source: StatementProcessor, spi: TransactionStateM
 
     //pickup a runnable node
     if (CypherPlusUtils.isWriteStatement(statement)) {
-      if (PNodeServerContext.isLeaderNode) {
-        val masterRole = PNodeServerContext.getMasterRole
+      if (MainServerContext.isLeaderNode) {
+        val masterRole = MainServerContext.masterRole
         masterRole.clusterWrite(statement)
       }
       val metaData = source.run(statement, params)
@@ -56,13 +56,13 @@ class PNodeStatementProcessor(source: StatementProcessor, spi: TransactionStateM
   }
 
   private def _getLocalDataVersion(): Int = {
-    PNodeServerContext.getJsonDataLog.getLastVersion
+    MainServerContext.dataLogWriter.getLastVersion
   }
 
   // pandaDB
   private def _writeDataLog(curVersion: Int, cypher: String): Unit = {
     val logItem = new DataLogDetail(curVersion, cypher)
-    PNodeServerContext.getJsonDataLog.write(logItem)
+    MainServerContext.dataLogWriter.write(logItem)
   }
 
   override def streamResult(resultConsumer: ThrowingConsumer[BoltResult, Exception]): Bookmark = {

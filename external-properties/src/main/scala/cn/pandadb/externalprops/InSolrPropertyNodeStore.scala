@@ -2,6 +2,7 @@ package cn.pandadb.externalprops
 
 import cn.pandadb.context.InstanceBoundServiceContext
 import cn.pandadb.util.ConfigUtils._
+import cn.pandadb.util.Configuration
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.{SolrDocument, SolrInputDocument}
@@ -76,10 +77,10 @@ object SolrUtil{
 }
 
 class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
-  override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore =
+  override def create(conf: Configuration): CustomPropertyNodeStore =
     new InSolrPropertyNodeStore(
-      ctx.instanceContext.getRequiredValueAsString("external.properties.store.solr.zk"),
-      ctx.instanceContext.getRequiredValueAsString("external.properties.store.solr.collection")
+      conf.getRequiredValueAsString("external.properties.store.solr.zk"),
+      conf.getRequiredValueAsString("external.properties.store.solr.collection")
     )
 }
 

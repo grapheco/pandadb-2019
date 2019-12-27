@@ -2,14 +2,13 @@
 import java.io.{File, FileInputStream}
 import java.util.Properties
 
-import cn.pandadb.server.PNodeServer
+import cn.pandadb.server.{MainServerContext, PNodeServer}
 import org.junit.{After, AfterClass, Assert, Before, BeforeClass, Test}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.{GraphDatabaseService, Result}
 import org.neo4j.io.fs.FileUtils
-import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory, InSolrPropertyNodeStore}
+import cn.pandadb.externalprops._
 import org.neo4j.values.storable.{DateTimeValue, DateValue, LocalDateTimeValue, TimeValue}
-import cn.pandadb.util.InstanceContext
 
 trait QueryTestBase {
   var db: GraphDatabaseService = null
@@ -25,8 +24,8 @@ trait QueryTestBase {
     nodeStore match {
       case "InMemoryPropertyNodeStore" =>
         InMemoryPropertyNodeStore.nodes.clear()
-        InstanceContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
-        InstanceContext.put("is.leader.node", true)
+        ExternalPropertiesContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
+        MainServerContext.put("is.leader.node", true)
 
       case "InSolrPropertyNodeStore" =>
         val configFile = new File("./testdata/neo4j.conf")
@@ -36,7 +35,7 @@ trait QueryTestBase {
         val collectionName = props.getProperty("external.properties.store.solr.collection")
         val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
         solrNodeStore.clearAll()
-        InstanceContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
+        ExternalPropertiesContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
     }
   }
 

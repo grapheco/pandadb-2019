@@ -1,6 +1,6 @@
 import java.io.File
 
-import cn.pandadb.server.{DataLogDetail, JsonDataLog}
+import cn.pandadb.server.{DataLogDetail, JsonDataLogRW}
 import org.junit.{Assert, BeforeClass, Test}
 /**
   * @Author: Airzihao
@@ -25,7 +25,7 @@ class ClusterLogTest {
   val logFilePath: String = "./datalog.json"
   val logFile = new File(logFilePath)
 
-  val jsonDataLog = new JsonDataLog(logFile)
+  val jsonDataLog = new JsonDataLogRW(logFile)
   val expectedLogArray1: Array[String] = Array("Match(n2), return n2;")
   val expectedLogArray2: Array[String] = Array("Match(n2), return n2;", "Match(n3), return n3;")
 
@@ -43,7 +43,7 @@ class ClusterLogTest {
 
   @Test
   def test3(): Unit = {
-    val jsonDataLog = new JsonDataLog(logFile)
+    val jsonDataLog = new JsonDataLogRW(logFile)
     jsonDataLog.write(DataLogDetail(300, "Match(n3), return n3;"))
     val commandList = jsonDataLog.consume(logItem => logItem.command, 150)
     Assert.assertEquals(true, expectedLogArray2.sameElements(commandList))

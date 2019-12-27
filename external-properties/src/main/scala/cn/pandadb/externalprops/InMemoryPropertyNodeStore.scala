@@ -1,6 +1,7 @@
 package cn.pandadb.externalprops
 
 import cn.pandadb.context.InstanceBoundServiceContext
+import cn.pandadb.util.Configuration
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.values.AnyValue
 import org.neo4j.values.storable.{NumberValue, StringValue, Value}
@@ -13,7 +14,7 @@ import scala.util.matching.Regex
   * Created by bluejoe on 2019/10/7.
   */
 class InMemoryPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
-  override def create(ctx: InstanceBoundServiceContext): CustomPropertyNodeStore = InMemoryPropertyNodeStore;
+  override def create(conf: Configuration): CustomPropertyNodeStore = InMemoryPropertyNodeStore;
 }
 
 /**

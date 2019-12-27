@@ -1,6 +1,6 @@
 package cn.pandadb.cypherplus
 
-import cn.pandadb.util.InstanceContext
+import cn.pandadb.blob.BlobStorageContext
 import org.neo4j.cypher.internal.runtime.interpreted.commands.AstNode
 import org.neo4j.cypher.internal.runtime.interpreted.commands.convert.{ExpressionConverters, ExtendedCommandExpr}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.{Expression => CommandExpression}
@@ -180,10 +180,10 @@ case class SemanticSetInExpr(lhs: Expression, ant: Option[AlgoNameWithThresholdE
 
 case class QueryStateEx(state: QueryState) {
   def getCustomPropertyProvider(): CustomPropertyProvider =
-    InstanceContext.get[CustomPropertyProvider]()
+    BlobStorageContext.get[CustomPropertyProvider]()
 
   def getValueMatcher(): ValueMatcher =
-    InstanceContext.get[ValueMatcher]()
+    BlobStorageContext.get[ValueMatcher]()
 }
 
 case class CustomPropertyCommand(mapExpr: CommandExpression, propertyKey: KeyToken)

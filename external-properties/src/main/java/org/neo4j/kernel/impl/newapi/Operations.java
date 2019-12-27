@@ -19,6 +19,7 @@
  */
 package org.neo4j.kernel.impl.newapi;
 
+import cn.pandadb.externalprops.ExternalPropertiesContext;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -115,7 +116,6 @@ import org.neo4j.internal.kernel.api.exceptions.PropertyKeyIdNotFoundKernelExcep
 import cn.pandadb.externalprops.CustomPropertyNodeStore;
 import cn.pandadb.externalprops.PropertyWriteTransaction;
 import cn.pandadb.externalprops.NodeWithProperties;
-import cn.pandadb.util.InstanceContext;
 import org.neo4j.values.virtual.NodeValue;
 import scala.Option;
 import scala.collection.mutable.Undoable;
@@ -196,7 +196,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
         public CustomPropertyWriteTransactionFacade()
         {
-            Option<Boolean> isLeaderOption = InstanceContext.getOption("is.leader.node");
+            Option<Boolean> isLeaderOption = ExternalPropertiesContext.getOption("is.leader.node");
             if (isLeaderOption.isDefined()) {
                 this.isLeaderNode = true;
             }
@@ -204,7 +204,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
                 this.isLeaderNode = false;
             }
 
-            this.customPropertyStore = InstanceContext.getOption(
+            this.customPropertyStore = ExternalPropertiesContext.getOption(
                     CustomPropertyNodeStore.class.getName());
             if (this.isLeaderNode && this.customPropertyStore.isDefined())
             {

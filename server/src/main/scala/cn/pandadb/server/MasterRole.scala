@@ -133,7 +133,7 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
         clusterClient.curator.delete().forPath(fullPath)
       }
     }
-    val curFreshNodeRpc = PNodeServerContext.getLocalIpAddress + ":" + PNodeServerContext.getRpcPort.toString
+    val curFreshNodeRpc = MainServerContext.nodeAddress.getAsString
     clusterClient.curator.create().creatingParentsIfNeeded()
       .withMode(CreateMode.PERSISTENT)
       .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
