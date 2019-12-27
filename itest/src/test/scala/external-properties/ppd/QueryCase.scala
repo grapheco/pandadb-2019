@@ -18,9 +18,7 @@ trait QueryCase {
     dbFile.mkdirs();
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
     ExternalPropertiesContext.put(classOf[CustomPropertyNodeStore].getName, store)
-
-    InstanceContext.put(classOf[CustomPropertyNodeStore].getName, store)
-    InstanceContext.put("is.leader.node", true)
+    ExternalPropertiesContext.put("is.leader.node", true)
     db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
     db.execute("CREATE INDEX ON :Person(address)")
 
