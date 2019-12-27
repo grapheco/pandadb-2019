@@ -1,6 +1,7 @@
 package cn.pandadb.network
 
-import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
+import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.{CreateMode, ZooDefs}
 
 /**
@@ -16,16 +17,20 @@ object ZKPathConfig {
   val dataVersionPath = registryPath + s"/version"
   val freshNodePath = registryPath + s"/freshNode"
 
-  def initZKPath(curator: CuratorFramework): Unit = {
+  def initZKPath(zkString: String): Unit = {
+    val _curator = CuratorFrameworkFactory.newClient(zkString,
+      new ExponentialBackoffRetry(1000, 3))
+    _curator.start()
     val list = List(registryPath, ordinaryNodesPath, leaderNodePath, dataVersionPath, freshNodePath)
     list.foreach(path => {
-      if (curator.checkExists().forPath(path) == null) {
-        curator.create()
+      if (_curator.checkExists().forPath(path) == null) {
+        _curator.create()
           .creatingParentsIfNeeded()
           .withMode(CreateMode.PERSISTENT)
           .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
           .forPath(path)
       }
     })
+    _curator.close()
   }
 }
