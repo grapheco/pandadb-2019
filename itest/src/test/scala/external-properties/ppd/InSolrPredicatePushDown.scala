@@ -16,7 +16,7 @@ class InSolrPredicatePushDown extends QueryCase {
     val zkString = props.getProperty("external.properties.store.solr.zk")
     val collectionName = props.getProperty("external.properties.store.solr.collection")
     val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
-    ExternalPropertiesContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
+    ExternalPropertiesContext.bindCustomPropertyNodeStore(solrNodeStore)
     solrNodeStore.clearAll()
     buildDB(solrNodeStore)
   }

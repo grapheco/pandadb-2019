@@ -22,6 +22,7 @@ package cn.pandadb.blob
 import java.io.File
 
 import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory, InstanceBoundServiceFactoryRegistry}
+import cn.pandadb.util.ConfigUtils._
 import cn.pandadb.util._
 import org.neo4j.kernel.impl.blob.{BlobStorage, DefaultBlobFunctions}
 import org.neo4j.kernel.impl.proc.Procedures
@@ -32,9 +33,8 @@ class BlobStorageModule extends PandaModule {
 
     val conf = ctx.configuration;
     val blobStorage = BlobStorage.create(conf);
-    BlobStorageContext.put[BlobStorage](blobStorage);
-    import ConfigUtils._
-    BlobStorageContext.put("blob.storage.file.dir", conf.getAsFile("blob.storage.file.dir", ctx.storeDir, new File(ctx.storeDir, "/blob")));
+    BlobStorageContext.bindBlobStorage(blobStorage);
+    BlobStorageContext.bindBlobStorageDir(conf.getAsFile("blob.storage.file.dir", ctx.storeDir, new File(ctx.storeDir, "/blob")));
   }
 
   override def stop(ctx: PandaModuleContext): Unit = {
@@ -48,6 +48,12 @@ class BlobStorageModule extends PandaModule {
 
 object BlobStorageContext extends ContextMap {
   def blobStorage: BlobStorage = get[BlobStorage]();
+
+  def bindBlobStorage(blobStorage: BlobStorage): Unit = put[BlobStorage](blobStorage)
+
+  def getDefaultBlobValueStorageClass: Option[String] = getOption("default-blob-value-storage-class")
+
+  def bindBlobStorageDir(dir: File): Unit = put("blob.storage.file.dir", dir)
 
   def blobStorageDir: File = get("blob.storage.file.dir");
 }

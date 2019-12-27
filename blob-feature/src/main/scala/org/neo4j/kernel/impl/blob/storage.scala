@@ -181,7 +181,7 @@ object BlobStorage extends Logging {
 
   def createDefault(): BatchBlobValueStorage = {
     //will read "default-blob-value-storage-class" entry first
-    BlobStorageContext.getOption("default-blob-value-storage-class")
+    BlobStorageContext.getDefaultBlobValueStorageClass
       .map(Class.forName(_).newInstance().asInstanceOf[BatchBlobValueStorage])
       .getOrElse(new DefaultLocalFileSystemBlobValueStorage())
   }
