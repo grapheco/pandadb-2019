@@ -72,7 +72,6 @@ trait PredicatePushDownPipe extends Pipe{
   def fetchNodes(state: QueryState, baseContext: ExecutionContext): Iterator[NodeValue] = {
     if (predicate.isDefined) {
       val expr: NFPredicate = convertPredicate(predicate.get, state, baseContext)
-      println(expr)
       if (expr != null) {
         fatherPipe.get.bypass()
         if (labelName != null) {
