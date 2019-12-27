@@ -3,26 +3,12 @@ package cn.pandadb.cypherplus
 import java.io.File
 
 import cn.pandadb.blob.CypherPluginRegistry
-import cn.pandadb.context.{InstanceBoundServiceFactoryRegistry, InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory}
 import cn.pandadb.util._
 import org.springframework.context.support.FileSystemXmlApplicationContext
 
-class CypherPlusModule extends PandaModule {
+class CypherPlusModule extends PandaModule with Logging {
   override def init(ctx: PandaModuleContext): Unit = {
-    ctx.declareProperty(new CypherPluginPropertyParser())
-  }
-
-  override def stop(ctx: PandaModuleContext): Unit = {
-
-  }
-
-  override def start(ctx: PandaModuleContext): Unit = {
-
-  }
-}
-
-class CypherPluginPropertyParser extends PropertyParser with Logging {
-  override def parse(conf: Configuration): Iterable[Pair[String, _]] = {
+    val conf = ctx.configuration;
     val cypherPluginRegistry = conf.getRaw("blob.plugins.conf").map(x => {
       val xml = new File(x);
 
@@ -51,9 +37,21 @@ class CypherPluginPropertyParser extends PropertyParser with Logging {
     val customPropertyProvider = cypherPluginRegistry.createCustomPropertyProvider(conf);
     val valueMatcher = cypherPluginRegistry.createValueComparatorRegistry(conf);
 
-    Array(
-      classOf[CustomPropertyProvider].getName -> customPropertyProvider,
-      classOf[ValueMatcher].getName -> valueMatcher
-    )
+    CypherPlusContext.put[CustomPropertyProvider](customPropertyProvider);
+    CypherPlusContext.put[ValueMatcher](valueMatcher);
   }
+
+  override def stop(ctx: PandaModuleContext): Unit = {
+
+  }
+
+  override def start(ctx: PandaModuleContext): Unit = {
+
+  }
+}
+
+object CypherPlusContext extends ContextMap {
+  def customPropertyProvider: CustomPropertyProvider = get[CustomPropertyProvider]();
+
+  def valueMatcher: ValueMatcher = get[ValueMatcher]();
 }

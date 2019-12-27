@@ -19,6 +19,7 @@
  */
 package org.neo4j.kernel.impl.api.state;
 
+import cn.pandadb.externalprops.ExternalPropertiesContext;
 import org.eclipse.collections.api.iterator.LongIterator;
 import org.eclipse.collections.api.map.primitive.MutableLongObjectMap;
 import org.eclipse.collections.api.map.primitive.MutableObjectLongMap;
@@ -66,7 +67,6 @@ import static org.neo4j.values.storable.Values.NO_VALUE;
 
 // NOTE: pandadb
 import cn.pandadb.externalprops.CustomPropertyNodeStore;
-import cn.pandadb.util.InstanceContext;
 // END-NOTE
 
 
@@ -123,7 +123,7 @@ public class TxState implements TransactionState, RelationshipVisitor.Home
     {
         this.collectionsFactory = collectionsFactory;
         // NOTE: pandadb
-        isPreventNeo4jPropertyStore = InstanceContext.getOption(
+        isPreventNeo4jPropertyStore = ExternalPropertiesContext.getOption(
                 CustomPropertyNodeStore.class.getName()).isDefined();
         // END-NOTE
     }

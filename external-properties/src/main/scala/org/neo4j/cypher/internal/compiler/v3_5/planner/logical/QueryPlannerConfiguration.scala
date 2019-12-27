@@ -19,8 +19,7 @@
  */
 package org.neo4j.cypher.internal.compiler.v3_5.planner.logical
 
-import cn.pandadb.externalprops.CustomPropertyNodeStore
-import cn.pandadb.util.InstanceContext
+import cn.pandadb.externalprops.{ExternalPropertiesContext, CustomPropertyNodeStore}
 import org.neo4j.cypher.internal.compiler.v3_5.planner.logical.steps._
 import org.neo4j.cypher.internal.compiler.v3_5.{UpdateStrategy, defaultUpdateStrategy}
 import org.neo4j.cypher.internal.ir.v3_5.{InterestingOrder, QueryGraph}
@@ -28,7 +27,7 @@ import org.neo4j.cypher.internal.v3_5.logical.plans.LogicalPlan
 
 object QueryPlannerConfiguration {
 
-  val bypassIndex = InstanceContext.getOption(classOf[CustomPropertyNodeStore].getName).isDefined
+  val bypassIndex = ExternalPropertiesContext.getOption(classOf[CustomPropertyNodeStore].getName).isDefined
 
   private val noIndexleafPlanFromExpressions: IndexedSeq[LeafPlanner with LeafPlanFromExpressions] = IndexedSeq(
     // MATCH (n) WHERE id(n) IN ... RETURN n

@@ -19,6 +19,7 @@ case class DataLogDetail(val versionNum: Int, val command: String) {
 
 trait DataLogWriter {
   def write(row: DataLogDetail): Unit;
+  def getLastVersion(): Int;
 }
 
 trait DataLogReader {
@@ -29,7 +30,7 @@ class DataLog(arrayBuffer: ArrayBuffer[DataLogDetail]) {
   val dataLog: Array[DataLogDetail] = arrayBuffer.toArray
 }
 
-class JsonDataLog(logFile: File) extends DataLogWriter with DataLogReader {
+class JsonDataLogRW(logFile: File) extends DataLogWriter with DataLogReader {
   val gson = new Gson()
 
   var dataLog: ArrayBuffer[DataLogDetail] = {
@@ -55,7 +56,7 @@ class JsonDataLog(logFile: File) extends DataLogWriter with DataLogReader {
     fileWriter.close();
   }
 
-  def getLastVersion(): Int = {
+  override def getLastVersion(): Int = {
     if (dataLog.length == 0) {
       -1
     } else {

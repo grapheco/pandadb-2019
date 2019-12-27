@@ -19,8 +19,7 @@
  */
 package org.neo4j.cypher.internal.runtime.interpreted
 
-import cn.pandadb.externalprops.CustomPropertyNodeStore
-import cn.pandadb.util.InstanceContext
+import cn.pandadb.externalprops.{ExternalPropertiesContext, CustomPropertyNodeStore}
 import org.neo4j.cypher.internal.ir.v3_5.VarPatternLength
 import org.neo4j.cypher.internal.planner.v3_5.spi.TokenContext
 import org.neo4j.cypher.internal.runtime.ProcedureCallMode
@@ -51,7 +50,7 @@ case class InterpretedPipeBuilder(recurse: LogicalPlan => Pipe,
                                   tokenContext: TokenContext)
                                  (implicit semanticTable: SemanticTable) extends PipeBuilder with Logging {
 
-  val nodeStore: Option[CustomPropertyNodeStore] = InstanceContext.getOption(classOf[CustomPropertyNodeStore].getName)
+  val nodeStore: Option[CustomPropertyNodeStore] = ExternalPropertiesContext.getOption(classOf[CustomPropertyNodeStore].getName)
 
   private def getBuildExpression(id: Id) = rewriteAstExpression andThen
     ((e: ASTExpression) => expressionConverters.toCommandExpression(id, e)) andThen

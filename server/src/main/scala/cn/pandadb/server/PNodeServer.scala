@@ -6,8 +6,8 @@ import java.util.{Optional, Properties}
 
 import cn.pandadb.blob.BlobStorageModule
 import cn.pandadb.cypherplus.CypherPlusModule
-import cn.pandadb.externalprops.ExternalPropetiesModule
-import cn.pandadb.network.{NodeAddress, ZKPathConfig, ZookeeperBasedClusterClient}
+import cn.pandadb.externalprops.ExternalPropertiesModule
+import cn.pandadb.network.{ZKPathConfig, ZookeeperBasedClusterClient}
 import cn.pandadb.server.internode.InterNodeRequestHandler
 import cn.pandadb.server.neo4j.Neo4jRequestHandler
 import cn.pandadb.server.rpc.{NettyRpcServer, PNodeRpcClient}
@@ -36,64 +36,56 @@ object PNodeServer extends Logging {
   }
 }
 
-class MainServerModule extends PandaModule {
-  override def init(ctx: PandaModuleContext): Unit = {
-    ctx.declareProperty(StringProperty("node.server.address"));
-    ctx.declareProperty(StringProperty("zookeeper.address"));
-    ctx.declareProperty(IntegerProperty("rpcPort").withDefault(1224));
-  }
-
-  override def stop(ctx: PandaModuleContext): Unit = {
-
-  }
-
-  override def start(ctx: PandaModuleContext): Unit = {
-
-  }
-}
-
-class PNodeServer(dbDir: File, props: Map[String, String] = Map())
+class PNodeServer(dbDir: File, props: Map[String, String])
   extends LeaderSelectorListenerAdapter with Logging {
   //TODO: we will replace neo4jServer with InterNodeRpcServer someday!!
   val neo4jServer = new CommunityBootstrapper();
   val runningLock = new CountDownLatch(1)
 
   val modules = new PandaModules();
-  val config = new PropertyRegistryImpl();
-  val context = PandaModuleContext(InstanceContext, config, dbDir);
+  val context = new ContextMap();
+
+  val config = new Configuration() {
+    override def getRaw(name: String): Option[String] = props.get(name)
+  }
+
+  val pmc = PandaModuleContext(config, dbDir, context);
 
   modules.add(new MainServerModule())
     .add(new BlobStorageModule())
-    .add(new ExternalPropetiesModule())
+    .add(new ExternalPropertiesModule())
     .add(new CypherPlusModule())
 
-  modules.init(context);
-  config.dump(props, InstanceContext);
-  logger.debug(s"keys: ${InstanceContext.keys}")
-
+  modules.init(pmc);
+  //FIXME: move ZK operations outside, keep this class clean
   //prepare args for ZKClusterClient
+  import ConfigUtils._
 
-  import cn.pandadb.util.ConfigUtils._
-
-  val zkString: String = props.getRequiredValueAsString("zookeeper.address")
+  val zkString: String = config.getRequiredValueAsString("zookeeper.address")
   private val _tempCurator = CuratorFrameworkFactory.newClient(zkString,
     new ExponentialBackoffRetry(1000, 3))
   _tempCurator.start()
   ZKPathConfig.initZKPath(_tempCurator)
   _tempCurator.close()
-  val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(zkString)
-  val client = clusterClient.curator
   var masterRole: MasterRole = null
 
-  val np = NodeAddress.fromString(props.getRequiredValueAsString("node.server.address"))
-  //TODO: bindNodeAddress
-  PNodeServerContext.bindLocalIpAddress(np.host)
-  PNodeServerContext.bindRpcPort(props.getRequiredValueAsInt("rpcPort"))
+  val np = MainServerContext.nodeAddress
 
-  val serverKernel = new NettyRpcServer("0.0.0.0", PNodeServerContext.getRpcPort, "PNodeRpc-service");
+  val serverKernel = new NettyRpcServer("0.0.0.0", MainServerContext.nodeAddress.port, "PNodeRpc-service");
   serverKernel.accept(Neo4jRequestHandler());
   serverKernel.accept(InterNodeRequestHandler());
-  PNodeServerContext.bindStoreDir(dbDir)
+
+  val dataLogRW : JsonDataLogRW = {
+    val logFile = new File(dbDir, "dataVersionLog.json")
+    if (!logFile.exists) {
+      logFile.getParentFile.mkdirs()
+      logFile.createNewFile()
+    }
+    new JsonDataLogRW(logFile)
+  }
+
+  MainServerContext.bindDataLogRedaerWriter(dataLogRW, dataLogRW)
+  val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(config.getRequiredValueAsString("zookeeper.address"))
 
   def start(): Unit = {
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -102,8 +94,6 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
       }
     });
 
-    PNodeServerContext.bindClusterClient(clusterClient);
-
     neo4jServer.start(dbDir, Optional.empty(),
       JavaConversions.mapAsJavaMap(props + ("dbms.connector.bolt.listen_address" -> np.getAsString)));
 
@@ -111,7 +101,6 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
       //scalastyle:off
       println(PNodeServer.logo);
 
-      PNodeServerContext.bindJsonDataLog(_getJsonDataLog())
       if (_isUpToDate() == false) {
         _updataLocalData()
       }
@@ -128,11 +117,10 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   }
 
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
-    PNodeServerContext.bindLeaderNode(true);
 
     new ZKServiceRegistry(zkString).registerAsLeader(np)
     masterRole = new MasterRole(clusterClient, np)
-    PNodeServerContext.bindMasterRole(masterRole)
+    MainServerContext.bindMasterRole(masterRole)
 
     logger.debug(s"taken leader ship...");
     //yes, i won't quit, never!
@@ -141,14 +129,15 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   }
 
   private def _joinInLeaderSelection(): Unit = {
-    val leaderSelector = new LeaderSelector(client, ZKPathConfig.registryPath + "/_leader", this);
+    val leaderSelector = new LeaderSelector(clusterClient.curator, ZKPathConfig.registryPath + "/_leader", this);
     leaderSelector.start();
   }
 
   private def _isUpToDate(): Boolean = {
-    PNodeServerContext.getJsonDataLog.getLastVersion() == clusterClient.getClusterDataVersion()
+    dataLogRW.getLastVersion() == clusterClient.getClusterDataVersion()
   }
 
+  //FIXME: update
   private def _updataLocalData(): Unit = {
     // if can't get now, wait here.
     val cypherArr = _getRemoteLogs()
@@ -158,11 +147,11 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
     cypherArr.foreach(logItem => {
       val tx = session.beginTransaction()
       try {
-        val localPreVersion = PNodeServerContext.getJsonDataLog.getLastVersion()
+        val localPreVersion = dataLogRW.getLastVersion()
         tx.run(logItem.command)
         tx.success()
         tx.close()
-        PNodeServerContext.getJsonDataLog.write(logItem)
+        dataLogRW.write(logItem)
       }
     })
   }
@@ -170,22 +159,6 @@ class PNodeServer(dbDir: File, props: Map[String, String] = Map())
   private def _getRemoteLogs(): Array[DataLogDetail] = {
     val lastFreshNodeIP = clusterClient.getFreshNodeIp()
     val rpcClient = PNodeRpcClient.connect(lastFreshNodeIP)
-    rpcClient.getRemoteLogs(PNodeServerContext.getJsonDataLog.getLastVersion())
+    rpcClient.getRemoteLogs(dataLogRW.getLastVersion())
   }
-
-  private def _getJsonDataLog(): JsonDataLog = {
-    val logFilePath = PNodeServerContext.getStoreDir.getPath + "/dataVersionLog.json"
-    val storeDir = new File(PNodeServerContext.getStoreDir.getPath)
-    val logFile = new File(logFilePath)
-    if (logFile.exists() == false) {
-      storeDir.mkdirs()
-      logFile.createNewFile()
-    }
-    new JsonDataLog(logFile)
-  }
-
-}
-
-case class NodeAddressProperty(name: String) extends PropertyParser {
-  override def parse(conf: Configuration): Iterable[Pair[String, _]] = conf.getRaw(name).map(name -> NodeAddress.fromString(_))
 }

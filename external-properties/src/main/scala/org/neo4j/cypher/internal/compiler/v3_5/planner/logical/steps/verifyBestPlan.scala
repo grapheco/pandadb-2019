@@ -19,8 +19,7 @@
  */
 package org.neo4j.cypher.internal.compiler.v3_5.planner.logical.steps
 
-import cn.pandadb.externalprops.CustomPropertyNodeStore
-import cn.pandadb.util.InstanceContext
+import cn.pandadb.externalprops.{ExternalPropertiesContext, CustomPropertyNodeStore}
 import org.neo4j.cypher.internal.compiler.v3_5.planner.logical.{LogicalPlanningContext, PlanTransformer}
 import org.neo4j.cypher.internal.compiler.v3_5.{IndexHintUnfulfillableNotification, JoinHintUnfulfillableNotification}
 import org.neo4j.cypher.internal.ir.v3_5.PlannerQuery
@@ -32,7 +31,7 @@ import org.neo4j.cypher.internal.v3_5.util._
 
 object verifyBestPlan extends PlanTransformer {
 
-  val bypassIndex = InstanceContext.getOption(classOf[CustomPropertyNodeStore].getName).isDefined
+  val bypassIndex = ExternalPropertiesContext.getOption(classOf[CustomPropertyNodeStore].getName).isDefined
 
   def apply(plan: LogicalPlan, expected: PlannerQuery, context: LogicalPlanningContext): LogicalPlan = {
     val constructed = context.planningAttributes.solveds.get(plan.id)

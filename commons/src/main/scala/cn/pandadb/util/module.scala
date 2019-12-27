@@ -12,8 +12,7 @@ trait PandaModule {
   def stop(ctx: PandaModuleContext);
 }
 
-case class PandaModuleContext(instanceContext: ContextMap, config: PropertyRegistry, storeDir: File) {
-  def declareProperty(parser: PropertyParser): Unit = config.register(parser);
+case class PandaModuleContext(configuration: Configuration, storeDir: File, sharedContext: ContextMap) {
 }
 
 class PandaModules extends Logging {
