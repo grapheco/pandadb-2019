@@ -5,7 +5,7 @@ package Externalproperties
 import java.io.{File, FileInputStream}
 import java.util.Properties
 
-import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InSolrPropertyNodeStore, MutableNodeWithProperties, NodeWithProperties}
+import cn.pandadb.externalprops._
 import cn.pandadb.server.{PNodeServer}
 
 import org.junit.{After, Assert, Before, Test}
@@ -15,7 +15,6 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.io.fs.FileUtils
 import org.neo4j.values.{AnyValue, AnyValues}
 import org.neo4j.values.storable.{BooleanArray, LongArray, StringArray, Values}
-import cn.pandadb.util.InstanceContext
 
 /**
  * Created by codeBabyLin on 2019/12/5.
