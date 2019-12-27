@@ -20,6 +20,7 @@
 package org.neo4j.kernel.impl.newapi;
 
 import cn.pandadb.externalprops.ExternalPropertiesContext;
+import cn.pandadb.util.GlobalContext;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -196,16 +197,9 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
         public CustomPropertyWriteTransactionFacade()
         {
-            Option<Boolean> isLeaderOption = ExternalPropertiesContext.getOption("is.leader.node");
-            if (isLeaderOption.isDefined()) {
-                this.isLeaderNode = true;
-            }
-            else {
-                this.isLeaderNode = false;
-            }
+            this.isLeaderNode = GlobalContext.isLeaderNode();
 
-            this.customPropertyStore = ExternalPropertiesContext.getOption(
-                    CustomPropertyNodeStore.class.getName());
+            this.customPropertyStore = ExternalPropertiesContext.maybeCustomPropertyNodeStore();
             if (this.isLeaderNode && this.customPropertyStore.isDefined())
             {
                 this.customPropWrTx = this.customPropertyStore.get().beginWriteTransaction();

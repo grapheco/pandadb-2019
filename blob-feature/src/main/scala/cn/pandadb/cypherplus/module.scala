@@ -37,8 +37,8 @@ class CypherPlusModule extends PandaModule with Logging {
     val customPropertyProvider = cypherPluginRegistry.createCustomPropertyProvider(conf);
     val valueMatcher = cypherPluginRegistry.createValueComparatorRegistry(conf);
 
-    CypherPlusContext.put[CustomPropertyProvider](customPropertyProvider);
-    CypherPlusContext.put[ValueMatcher](valueMatcher);
+    CypherPlusContext.bindCustomPropertyProvider(customPropertyProvider);
+    CypherPlusContext.bindValueMatcher(valueMatcher);
   }
 
   override def stop(ctx: PandaModuleContext): Unit = {
@@ -53,5 +53,9 @@ class CypherPlusModule extends PandaModule with Logging {
 object CypherPlusContext extends ContextMap {
   def customPropertyProvider: CustomPropertyProvider = get[CustomPropertyProvider]();
 
+  def bindCustomPropertyProvider(customPropertyProvider: CustomPropertyProvider): Unit = put[CustomPropertyProvider](customPropertyProvider);
+
   def valueMatcher: ValueMatcher = get[ValueMatcher]();
+
+  def bindValueMatcher(valueMatcher: ValueMatcher): Unit = put[ValueMatcher](valueMatcher);
 }

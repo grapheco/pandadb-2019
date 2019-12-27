@@ -33,7 +33,7 @@ trait QueryTestBase {
     nodeStore match {
       case "InMemoryPropertyNodeStore" =>
         InMemoryPropertyNodeStore.nodes.clear()
-        ExternalPropertiesContext.put(classOf[CustomPropertyNodeStore].getName, InMemoryPropertyNodeStore)
+        ExternalPropertiesContext.bindCustomPropertyNodeStore(InMemoryPropertyNodeStore)
 
       case "InSolrPropertyNodeStore" =>
         val configFile = new File("./testdata/neo4j.conf")
@@ -43,7 +43,7 @@ trait QueryTestBase {
         val collectionName = props.getProperty("external.properties.store.solr.collection")
         val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
         solrNodeStore.clearAll()
-        ExternalPropertiesContext.put(classOf[CustomPropertyNodeStore].getName, solrNodeStore)
+        ExternalPropertiesContext.bindCustomPropertyNodeStore(solrNodeStore)
     }
   }
 

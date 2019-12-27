@@ -3,6 +3,7 @@ package ppd
 import java.io.File
 
 import cn.pandadb.externalprops.{ExternalPropertiesContext, CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
+import cn.pandadb.util.GlobalContext
 import org.junit.{After, Before, Test}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
@@ -17,8 +18,8 @@ trait QueryCase {
     FileUtils.deleteRecursively(dbFile);
     dbFile.mkdirs();
     db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
-    ExternalPropertiesContext.put(classOf[CustomPropertyNodeStore].getName, store)
-    ExternalPropertiesContext.put("is.leader.node", true)
+    ExternalPropertiesContext.bindCustomPropertyNodeStore( store)
+    GlobalContext.setLeaderNode(true)
     db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
     db.execute("CREATE INDEX ON :Person(address)")
 

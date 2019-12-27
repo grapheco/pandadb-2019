@@ -31,7 +31,7 @@ import org.neo4j.cypher.internal.v3_5.util._
 
 object verifyBestPlan extends PlanTransformer {
 
-  val bypassIndex = ExternalPropertiesContext.getOption(classOf[CustomPropertyNodeStore].getName).isDefined
+  val bypassIndex = ExternalPropertiesContext.isExternalPropStorageEnabled
 
   def apply(plan: LogicalPlan, expected: PlannerQuery, context: LogicalPlanningContext): LogicalPlan = {
     val constructed = context.planningAttributes.solveds.get(plan.id)
