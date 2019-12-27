@@ -180,10 +180,10 @@ case class SemanticSetInExpr(lhs: Expression, ant: Option[AlgoNameWithThresholdE
 
 case class QueryStateEx(state: QueryState) {
   def getCustomPropertyProvider(): CustomPropertyProvider =
-    BlobStorageContext.get[CustomPropertyProvider]()
+    CypherPlusContext.customPropertyProvider
 
   def getValueMatcher(): ValueMatcher =
-    BlobStorageContext.get[ValueMatcher]()
+    CypherPlusContext.valueMatcher
 }
 
 case class CustomPropertyCommand(mapExpr: CommandExpression, propertyKey: KeyToken)

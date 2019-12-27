@@ -27,7 +27,7 @@ import org.neo4j.cypher.internal.v3_5.logical.plans.LogicalPlan
 
 object QueryPlannerConfiguration {
 
-  val bypassIndex = ExternalPropertiesContext.getOption(classOf[CustomPropertyNodeStore].getName).isDefined
+  val bypassIndex = ExternalPropertiesContext.isExternalPropStorageEnabled
 
   private val noIndexleafPlanFromExpressions: IndexedSeq[LeafPlanner with LeafPlanFromExpressions] = IndexedSeq(
     // MATCH (n) WHERE id(n) IN ... RETURN n

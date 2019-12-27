@@ -5,6 +5,7 @@ import java.util
 
 import cn.pandadb.cypherplus.utils.CypherPlusUtils
 import cn.pandadb.server.{MainServerContext, DataLogDetail}
+import cn.pandadb.util.GlobalContext
 import org.neo4j.bolt.runtime.{BoltResult, StatementMetadata, StatementProcessor, TransactionStateMachineSPI}
 import org.neo4j.bolt.v1.runtime.bookmarking.Bookmark
 import org.neo4j.function.{ThrowingBiConsumer, ThrowingConsumer}
@@ -42,7 +43,7 @@ class PNodeStatementProcessor(source: StatementProcessor, spi: TransactionStateM
 
     //pickup a runnable node
     if (CypherPlusUtils.isWriteStatement(statement)) {
-      if (MainServerContext.isLeaderNode) {
+      if (GlobalContext.isLeaderNode) {
         val masterRole = MainServerContext.masterRole
         masterRole.clusterWrite(statement)
       }
