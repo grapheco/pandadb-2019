@@ -187,6 +187,17 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
         val paramValue = expr.text.replace(".", "")
         val paramKey = expr.propName
         q = Some(s"$paramKey:$paramValue")
+      case expr: NFAnd =>
+        val q1 = predicate2SolrQuery(expr.a)
+        val q2 = predicate2SolrQuery(expr.b)
+        q = Some(s"$q1 && $q2")
+      case expr: NFOr =>
+        val q1 = predicate2SolrQuery(expr.a)
+        val q2 = predicate2SolrQuery(expr.b)
+        q = Some(s"$q1 || $q2")
+      case expr: NFNot =>
+        val q1 = predicate2SolrQuery(expr.a)
+        q = if (q1.indexOf("-") >= 0) Some(s"${q1.substring(q1.indexOf("-") + 1)}") else Some(s"-$q1")
       case _ => q = None
     }
     q.get
