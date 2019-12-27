@@ -25,7 +25,7 @@ trait PredicatePushDownPipe extends Pipe{
     this.labelName = label
   }
 
-  private def convert2NFPredicate(expression: Expression, state: QueryState, baseContext: ExecutionContext): NFPredicate = {
+  private def convertNaivePredicate(expression: Expression, state: QueryState, baseContext: ExecutionContext): NFPredicate = {
     val expr: NFPredicate = expression match {
       case GreaterThan(a: Property, b: ParameterExpression) =>
         NFGreaterThan(a.propertyKey.name, b.apply(baseContext, state))
@@ -51,20 +51,26 @@ trait PredicatePushDownPipe extends Pipe{
     expr
   }
 
+  private def convertAndsPredicate(expression: NonEmptyList[Predicate], state: QueryState, baseContext: ExecutionContext): NFPredicate = {
+    val left = convertNaivePredicate(expression.head, state, baseContext)
+    val right = if (expression.tailOption.isDefined) convertAndsPredicate(expression.tailOption.get, state, baseContext) else null
+    if (right == null) {
+      left
+    }
+    else {
+      NFAnd(left, right)
+    }
+  }
+
   def fetchNodes(state: QueryState, baseContext: ExecutionContext): Iterator[NodeValue] = {
-    if (this.predicate.isDefined) {
-      var expr: NFPredicate = convert2NFPredicate(this.predicate.get, state, baseContext)
-      if (expr == null) {
-        expr = predicate.get match {
-          case Ands(Fby(left, Last(right))) =>
-            NFAnd(
-              convert2NFPredicate(left, state, baseContext),
-              convert2NFPredicate(right, state, baseContext)
-            )
-          case _ =>
-            null
-        }
+    if (predicate.isDefined) {
+      val expr: NFPredicate = predicate.get match {
+        case x: Ands =>
+          convertAndsPredicate(x.predicates, state, baseContext)
+        case _ =>
+          convertNaivePredicate(predicate.get, state, baseContext)
       }
+      println(expr)
       if (expr != null) {
         fatherPipe.get.bypass()
         if (labelName != null) {
