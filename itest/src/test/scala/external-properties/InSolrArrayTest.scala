@@ -5,17 +5,21 @@ package Externalproperties
 import java.io.{File, FileInputStream}
 import java.util.Properties
 
-import cn.pandadb.externalprops._
-import cn.pandadb.server.PNodeServer
+import cn.pandadb.externalprops.{CustomPropertyNodeStore, InMemoryPropertyNodeStore, InSolrPropertyNodeStore, MutableNodeWithProperties, NodeWithProperties}
+import cn.pandadb.server.{PNodeServer}
+
 import org.junit.{After, Assert, Before, Test}
+import org.neo4j.driver.{AuthTokens, GraphDatabase, Transaction, TransactionWork}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.io.fs.FileUtils
-import org.neo4j.values.storable.{BooleanArray, LongArray}
+import org.neo4j.values.{AnyValue, AnyValues}
+import org.neo4j.values.storable.{BooleanArray, LongArray, StringArray, Values}
+import cn.pandadb.util.InstanceContext
 
 /**
-  * Created by codeBabyLin on 2019/12/5.
-  */
+ * Created by codeBabyLin on 2019/12/5.
+ */
 trait QueryTestBase {
   var db: GraphDatabaseService = null
   val nodeStore = "InSolrPropertyNodeStore"
@@ -59,7 +63,6 @@ trait QueryTestBase {
     tx.close()
   }
 }
-
 trait CreateQueryTestBase extends QueryTestBase {
 
 }
@@ -90,7 +93,7 @@ class InSolrArrayTest extends CreateQueryTestBase {
     val rs = db.execute(query)
     var id1: Long = -1
     if (rs.hasNext) {
-      val row = rs.next()
+      val row = rs.next ()
       id1 = row.get("id(n1)").toString.toLong
     }
     Assert.assertEquals(1, solrNodeStore.getRecorderSize)
@@ -102,10 +105,10 @@ class InSolrArrayTest extends CreateQueryTestBase {
     //scalastyle:off println
 
     println(res)
-    // println(res.get.props.get("titles").get.asObject().getClass)
-    // println(res.get.props.get("salaries").get.asObject().getClass)
-    // println(res.get.props.get("boolattr").get.asObject().getClass)
-    // Assert.assertEquals(3, res.get.props.get("titles").get.asInstanceOf[StringArray].length())
+   // println(res.get.props.get("titles").get.asObject().getClass)
+   // println(res.get.props.get("salaries").get.asObject().getClass)
+   // println(res.get.props.get("boolattr").get.asObject().getClass)
+   // Assert.assertEquals(3, res.get.props.get("titles").get.asInstanceOf[StringArray].length())
     Assert.assertEquals(4, res.get.props.get("salaries").get.asInstanceOf[LongArray].length())
     Assert.assertEquals(4, res.get.props.get("boolattr").get.asInstanceOf[BooleanArray].length())
     //Assert.assertEquals(boolattr, res.get.props.get("boolattr").get.asObject())
