@@ -190,11 +190,11 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
       case expr: NFAnd =>
         val q1 = predicate2SolrQuery(expr.a)
         val q2 = predicate2SolrQuery(expr.b)
-        q = Some(s"$q1 && $q2")
+        q = Some(s"($q1 && $q2)")
       case expr: NFOr =>
         val q1 = predicate2SolrQuery(expr.a)
         val q2 = predicate2SolrQuery(expr.b)
-        q = Some(s"$q1 || $q2")
+        q = Some(s"($q1 || $q2)")
       case expr: NFNot =>
         val q1 = predicate2SolrQuery(expr.a)
         q = if (q1.indexOf("-") >= 0) Some(s"${q1.substring(q1.indexOf("-") + 1)}") else Some(s"-$q1")
@@ -210,11 +210,11 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
       case expr: NFAnd =>
         val q1 = predicate2SolrQuery(expr.a)
         val q2 = predicate2SolrQuery(expr.b)
-        q = Some(s"$q1 && $q2")
+        q = Some(s"($q1 && $q2)")
       case expr: NFOr =>
         val q1 = predicate2SolrQuery(expr.a)
         val q2 = predicate2SolrQuery(expr.b)
-        q = Some(s"$q1 || $q2")
+        q = Some(s"($q1 || $q2)")
 
       case expr: NFNot =>
         val q1 = predicate2SolrQuery(expr.a)
@@ -225,6 +225,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
         q = Some(s"$q1")
 
     }
+    println(q.get)
     _solrClient.query(new SolrQuery().setQuery(q.get)).getResults().foreach(
       x => {
         nodeArray += SolrUtil.solrDoc2nodeWithProperties(x)
