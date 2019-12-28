@@ -26,11 +26,7 @@ object PandaDriverTest {
   props.load(new FileInputStream(configFile))
   val pandaString = s"panda://" + props.getProperty("zkServerAddress") + s"/db"
 
-  val curator = CuratorFrameworkFactory.newClient(props.getProperty("zkServerAddress"),
-    new ExponentialBackoffRetry(1000, 3))
-  curator.start()
-  ZKPathConfig.initZKPath(curator)
-  curator.close()
+  ZKPathConfig.initZKPath(props.getProperty("zkServerAddress"))
   // correct these two addresses please
   val node0 = "bolt://localhost:7684"
   val node1 = "bolt://localhost:7685"
