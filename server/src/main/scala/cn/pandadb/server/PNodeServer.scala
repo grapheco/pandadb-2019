@@ -57,18 +57,9 @@ class PNodeServer(dbDir: File, props: Map[String, String])
     .add(new CypherPlusModule())
 
   modules.init(pmc);
-  //FIXME: move ZK operations outside, keep this class clean
-  //prepare args for ZKClusterClient
-  import ConfigUtils._
 
-  val zkString: String = config.getRequiredValueAsString("zookeeper.address")
-  private val _tempCurator = CuratorFrameworkFactory.newClient(zkString,
-    new ExponentialBackoffRetry(1000, 3))
-  _tempCurator.start()
-  ZKPathConfig.initZKPath(_tempCurator)
-  _tempCurator.close()
+  //FIXME: move ZK operations outside, keep this class clean -- Fixed.
   var masterRole: MasterRole = null
-
   val np = MainServerContext.nodeAddress
 
   val serverKernel = new NettyRpcServer("0.0.0.0", MainServerContext.nodeAddress.port, "PNodeRpc-service");
@@ -85,7 +76,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
   }
 
   MainServerContext.bindDataLogRedaerWriter(dataLogRW, dataLogRW)
-  val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(config.getRequiredValueAsString("zookeeper.address"))
+  val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(MainServerContext.zkServerAddressStr)
 
   def start(): Unit = {
     Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -105,7 +96,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
         _updataLocalData()
       }
       _joinInLeaderSelection()
-      new ZKServiceRegistry(zkString).registerAsOrdinaryNode(np)
+      new ZKServiceRegistry(MainServerContext.zkServerAddressStr).registerAsOrdinaryNode(np)
 
     });
 
@@ -118,7 +109,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
 
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
 
-    new ZKServiceRegistry(zkString).registerAsLeader(np)
+    new ZKServiceRegistry(MainServerContext.zkServerAddressStr).registerAsLeader(np)
     masterRole = new MasterRole(clusterClient, np)
     MainServerContext.bindMasterRole(masterRole)
 

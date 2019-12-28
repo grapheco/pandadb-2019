@@ -1,6 +1,6 @@
 package cn.pandadb.server
 
-import cn.pandadb.network.{ClusterClient, NodeAddress}
+import cn.pandadb.network.{ClusterClient, NodeAddress, ZKPathConfig}
 import cn.pandadb.util._
 
 class MainServerModule extends PandaModule {
@@ -8,6 +8,8 @@ class MainServerModule extends PandaModule {
     val conf = ctx.configuration;
     import ConfigUtils._
     MainServerContext.bindNodeAddress(NodeAddress.fromString(conf.getRequiredValueAsString("node.server.address")));
+    MainServerContext.bindZKServerAddressStr(conf.getRequiredValueAsString("zookeeper.address"))
+    ZKPathConfig.initZKPath(MainServerContext.zkServerAddressStr)
   }
 
   override def close(ctx: PandaModuleContext): Unit = {
@@ -30,6 +32,8 @@ object MainServerContext extends ContextMap {
     super.put[DataLogWriter](logWriter)
   }
 
+  def bindZKServerAddressStr(zkAddrStr: String): Unit = put("zookeeper.address", zkAddrStr)
+
   def dataLogWriter: DataLogWriter = super.get[DataLogWriter]
 
   def dataLogReader: DataLogReader = super.get[DataLogReader]
@@ -37,6 +41,8 @@ object MainServerContext extends ContextMap {
   def bindNodeAddress(nodeAddress: NodeAddress): Unit = put("node.server.address", nodeAddress);
 
   def nodeAddress: NodeAddress = get("node.server.address");
+
+  def zkServerAddressStr: String = get("zookeeper.address");
 
   def masterRole: MasterRole = super.get[MasterRole]
 
