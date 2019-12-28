@@ -23,8 +23,6 @@ import java.io.{File, FileInputStream, FileOutputStream, InputStream}
 import java.util.UUID
 
 import cn.pandadb.blob._
-import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext}
-import cn.pandadb.util.ConfigUtils._
 import cn.pandadb.util.StreamUtils._
 import cn.pandadb.util._
 import org.apache.commons.io.filefilter.TrueFileFilter
@@ -40,7 +38,7 @@ trait BlobStorage extends BatchBlobValueStorage {
   def delete(id: BlobId): Unit;
 }
 
-trait BatchBlobValueStorage extends InstanceBoundService {
+trait BatchBlobValueStorage extends ClosableModuleComponent {
   def saveBatch(blobs: Iterable[Blob]): Iterable[BlobId];
 
   def loadBatch(ids: Iterable[BlobId]): Iterable[Option[Blob]];
@@ -81,9 +79,9 @@ object BlobStorage extends Logging {
 
       override def iterator(): Iterator[(BlobId, Blob)] = bbvs.iterator();
 
-      override def start(ctx: InstanceBoundServiceContext): Unit = bbvs.start(ctx)
+      override def start(): Unit = bbvs.start()
 
-      override def stop(ctx: InstanceBoundServiceContext): Unit = bbvs.stop(ctx)
+      override def stop(): Unit = bbvs.close()
     };
   }
 
@@ -160,7 +158,7 @@ object BlobStorage extends Logging {
       (blobId, blob);
     }
 
-    override def start(ctx: InstanceBoundServiceContext): Unit = {
+    override def start(): Unit = {
       //val baseDir: File = new File(ctx.storeDir, ctx.neo4jConf.getValue("dbms.active_database").get().toString);
       //new File(conf.getRaw("unsupported.dbms.directories.neo4j_home").get());
       _rootDir = BlobStorageContext.blobStorageDir;
@@ -168,7 +166,7 @@ object BlobStorage extends Logging {
       logger.info(s"using storage dir: ${_rootDir.getCanonicalPath}");
     }
 
-    override def stop(ctx: InstanceBoundServiceContext): Unit = {
+    override def stop(): Unit = {
 
     }
 
