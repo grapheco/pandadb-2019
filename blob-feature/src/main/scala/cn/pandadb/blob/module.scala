@@ -21,7 +21,7 @@ package cn.pandadb.blob
 
 import java.io.File
 
-import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext, InstanceBoundServiceFactory, InstanceBoundServiceFactoryRegistry}
+import cn.pandadb.context._
 import cn.pandadb.util.ConfigUtils._
 import cn.pandadb.util._
 import org.neo4j.kernel.impl.blob.{BlobStorage, DefaultBlobFunctions}
@@ -29,7 +29,11 @@ import org.neo4j.kernel.impl.proc.Procedures
 
 class BlobStorageModule extends PandaModule {
   override def init(ctx: PandaModuleContext): Unit = {
-    InstanceBoundServiceFactoryRegistry.register[DefaultBlobFunctionsServiceFactory];
+    //GraphDatabaseStartedEvent
+    PandaEventHub.trigger({
+      case GraphDatabaseStartedEvent(proceduresService, storeDir, neo4jConf, databaseInfo) =>
+        registerProcedure(proceduresService, classOf[DefaultBlobFunctions]);
+    })
 
     val conf = ctx.configuration;
     val blobStorage = BlobStorage.create(conf);
@@ -37,12 +41,19 @@ class BlobStorageModule extends PandaModule {
     BlobStorageContext.bindBlobStorageDir(conf.getAsFile("blob.storage.file.dir", ctx.storeDir, new File(ctx.storeDir, "/blob")));
   }
 
-  override def stop(ctx: PandaModuleContext): Unit = {
+  private def registerProcedure(proceduresService: Procedures, procedures: Class[_]*) {
+    for (procedure <- procedures) {
+      proceduresService.registerProcedure(procedure);
+      proceduresService.registerFunction(procedure);
+    }
+  }
 
+  override def close(ctx: PandaModuleContext): Unit = {
+    BlobStorageContext.blobStorage.close(ctx);
   }
 
   override def start(ctx: PandaModuleContext): Unit = {
-
+    BlobStorageContext.blobStorage.start(ctx);
   }
 }
 
@@ -56,18 +67,4 @@ object BlobStorageContext extends ContextMap {
   def bindBlobStorageDir(dir: File): Unit = put("blob.storage.file.dir", dir)
 
   def blobStorageDir: File = get("blob.storage.file.dir");
-}
-
-class DefaultBlobFunctionsServiceFactory extends InstanceBoundServiceFactory with Logging {
-  override def create(ctx: InstanceBoundServiceContext): Option[InstanceBoundService] = {
-    registerProcedure(ctx.proceduresService, classOf[DefaultBlobFunctions]);
-    None
-  }
-
-  private def registerProcedure(proceduresService: Procedures, procedures: Class[_]*) {
-    for (procedure <- procedures) {
-      proceduresService.registerProcedure(procedure);
-      proceduresService.registerFunction(procedure);
-    }
-  }
 }

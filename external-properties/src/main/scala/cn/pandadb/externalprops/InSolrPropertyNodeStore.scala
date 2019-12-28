@@ -1,21 +1,20 @@
 package cn.pandadb.externalprops
 
-import cn.pandadb.context.InstanceBoundServiceContext
+import java.util
+
 import cn.pandadb.util.ConfigUtils._
-import cn.pandadb.util.Configuration
+import cn.pandadb.util.{Configuration, PandaModuleContext}
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.{SolrDocument, SolrInputDocument}
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
-import org.neo4j.values.storable.{ArrayValue, StringArray, StringValue, Value, Values}
-import org.neo4j.values.storable.Values
-import java.util
+import org.neo4j.values.storable.{ArrayValue, Value, Values}
 
 import scala.collection.JavaConversions._
-import scala.collection.{JavaConversions, mutable}
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-object SolrUtil{
+object SolrUtil {
   val idName = "id"
   val labelName = "labels"
   val tik = "id,labels,_version_"
@@ -29,6 +28,7 @@ object SolrUtil{
     if (tempStr.contains("]")) retStr = tempStr.replace("]", "")
     retStr
   }
+
   def solrDoc2nodeWithProperties(doc: SolrDocument): NodeWithProperties = {
     val props = mutable.Map[String, Value]()
     val id = doc.get(idName)
@@ -40,7 +40,7 @@ object SolrUtil{
         if (doc.get(y).getClass.getName.contains(arrayName)) {
           val tempArray = ArrayBuffer[AnyRef]()
           doc.get(y).asInstanceOf[util.ArrayList[AnyRef]].foreach(u => tempArray += u)
-          if (tempArray.size<=1) props += y -> Values.of(tempArray.head)
+          if (tempArray.size <= 1) props += y -> Values.of(tempArray.head)
           else props += y -> getValueFromArray(tempArray)
         }
         else props += y -> Values.of(doc.get(y))
@@ -248,12 +248,11 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     filterNodes(NFEquals(propName, Values.of(id))).headOption
   }
 
-  override def start(ctx: InstanceBoundServiceContext): Unit = {
-
+  override def close(ctx: PandaModuleContext): Unit = {
+    _solrClient.close()
   }
 
-  override def stop(ctx: InstanceBoundServiceContext): Unit = {
-    _solrClient.close()
+  override def start(ctx: PandaModuleContext): Unit = {
   }
 
   override def beginWriteTransaction(): PropertyWriteTransaction = {

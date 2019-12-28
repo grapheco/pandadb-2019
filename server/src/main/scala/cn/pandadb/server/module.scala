@@ -10,7 +10,7 @@ class MainServerModule extends PandaModule {
     MainServerContext.bindNodeAddress(NodeAddress.fromString(conf.getRequiredValueAsString("node.server.address")));
   }
 
-  override def stop(ctx: PandaModuleContext): Unit = {
+  override def close(ctx: PandaModuleContext): Unit = {
 
   }
 
