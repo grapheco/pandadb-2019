@@ -79,9 +79,9 @@ object BlobStorage extends Logging {
 
       override def iterator(): Iterator[(BlobId, Blob)] = bbvs.iterator();
 
-      override def start(): Unit = bbvs.start()
+      override def start(ctx: PandaModuleContext): Unit = bbvs.start(ctx)
 
-      override def stop(): Unit = bbvs.close()
+      override def close(ctx: PandaModuleContext): Unit = bbvs.close(ctx)
     };
   }
 
@@ -158,7 +158,7 @@ object BlobStorage extends Logging {
       (blobId, blob);
     }
 
-    override def start(): Unit = {
+    override def start(ctx: PandaModuleContext): Unit = {
       //val baseDir: File = new File(ctx.storeDir, ctx.neo4jConf.getValue("dbms.active_database").get().toString);
       //new File(conf.getRaw("unsupported.dbms.directories.neo4j_home").get());
       _rootDir = BlobStorageContext.blobStorageDir;
@@ -166,7 +166,7 @@ object BlobStorage extends Logging {
       logger.info(s"using storage dir: ${_rootDir.getCanonicalPath}");
     }
 
-    override def stop(): Unit = {
+    override def close(ctx: PandaModuleContext): Unit = {
 
     }
 
