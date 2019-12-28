@@ -32,5 +32,5 @@ class PandaModules extends Logging {
 
   def start(ctx: PandaModuleContext): Unit = modules.foreach(_.start(ctx))
 
-  def stop(ctx: PandaModuleContext): Unit = modules.foreach(_.close(ctx))
+  def close(ctx: PandaModuleContext): Unit = modules.foreach(_.close(ctx))
 }

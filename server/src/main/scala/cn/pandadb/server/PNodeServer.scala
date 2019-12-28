@@ -13,9 +13,8 @@ import cn.pandadb.server.neo4j.Neo4jRequestHandler
 import cn.pandadb.server.rpc.{NettyRpcServer, PNodeRpcClient}
 import cn.pandadb.util._
 import org.apache.commons.io.IOUtils
+import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderSelector, LeaderSelectorListenerAdapter}
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
-import org.apache.curator.retry.ExponentialBackoffRetry
 import org.neo4j.driver.GraphDatabase
 import org.neo4j.server.CommunityBootstrapper
 
@@ -58,15 +57,13 @@ class PNodeServer(dbDir: File, props: Map[String, String])
 
   modules.init(pmc);
 
-  //FIXME: move ZK operations outside, keep this class clean -- Fixed.
-  var masterRole: MasterRole = null
   val np = MainServerContext.nodeAddress
 
   val serverKernel = new NettyRpcServer("0.0.0.0", MainServerContext.nodeAddress.port, "PNodeRpc-service");
   serverKernel.accept(Neo4jRequestHandler());
   serverKernel.accept(InterNodeRequestHandler());
 
-  val dataLogRW : JsonDataLogRW = {
+  val dataLogRW: JsonDataLogRW = {
     val logFile = new File(dbDir, "dataVersionLog.json")
     if (!logFile.exists) {
       logFile.getParentFile.mkdirs()
@@ -88,6 +85,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
     neo4jServer.start(dbDir, Optional.empty(),
       JavaConversions.mapAsJavaMap(props + ("dbms.connector.bolt.listen_address" -> np.getAsString)));
 
+    modules.start(pmc);
     serverKernel.start({
       //scalastyle:off
       println(PNodeServer.logo);
@@ -97,12 +95,11 @@ class PNodeServer(dbDir: File, props: Map[String, String])
       }
       _joinInLeaderSelection()
       new ZKServiceRegistry(MainServerContext.zkServerAddressStr).registerAsOrdinaryNode(np)
-
     });
-
   }
 
   def shutdown(): Unit = {
+    modules.close(pmc);
     runningLock.countDown()
     serverKernel.shutdown();
   }
@@ -110,7 +107,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
   override def takeLeadership(curatorFramework: CuratorFramework): Unit = {
 
     new ZKServiceRegistry(MainServerContext.zkServerAddressStr).registerAsLeader(np)
-    masterRole = new MasterRole(clusterClient, np)
+    val masterRole = new MasterRole(clusterClient, np)
     MainServerContext.bindMasterRole(masterRole)
 
     logger.debug(s"taken leader ship...");
@@ -128,7 +125,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
     dataLogRW.getLastVersion() == clusterClient.getClusterDataVersion()
   }
 
-  //FIXME: update
+  //FIXME: updata->update
   private def _updataLocalData(): Unit = {
     // if can't get now, wait here.
     val cypherArr = _getRemoteLogs()
