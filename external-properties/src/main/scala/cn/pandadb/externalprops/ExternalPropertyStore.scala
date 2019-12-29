@@ -1,7 +1,6 @@
 package cn.pandadb.externalprops
 
-import cn.pandadb.context.{InstanceBoundService, InstanceBoundServiceContext}
-import cn.pandadb.util.{Configuration, PandaException}
+import cn.pandadb.util.{ClosableModuleComponent, Configuration, PandaException}
 import org.neo4j.cypher.internal.runtime.interpreted.NFPredicate
 import org.neo4j.values.storable.{Value, Values}
 import org.neo4j.values.virtual.{NodeValue, VirtualValues}
@@ -26,7 +25,7 @@ trait CustomPropertyNodeReader {
   def getNodeById(id: Long): Option[NodeWithProperties];
 }
 
-trait CustomPropertyNodeStore extends InstanceBoundService with CustomPropertyNodeReader {
+trait CustomPropertyNodeStore extends CustomPropertyNodeReader with ClosableModuleComponent {
   def beginWriteTransaction(): PropertyWriteTransaction;
 }
 

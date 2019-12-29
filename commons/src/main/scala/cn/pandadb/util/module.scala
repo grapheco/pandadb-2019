@@ -4,12 +4,14 @@ import java.io.File
 
 import scala.collection.mutable.ArrayBuffer
 
-trait PandaModule {
+trait ClosableModuleComponent {
+  def start(ctx: PandaModuleContext): Unit
+
+  def close(ctx: PandaModuleContext): Unit
+}
+
+trait PandaModule extends ClosableModuleComponent {
   def init(ctx: PandaModuleContext);
-
-  def start(ctx: PandaModuleContext);
-
-  def stop(ctx: PandaModuleContext);
 }
 
 case class PandaModuleContext(configuration: Configuration, storeDir: File, sharedContext: ContextMap) {
@@ -30,5 +32,5 @@ class PandaModules extends Logging {
 
   def start(ctx: PandaModuleContext): Unit = modules.foreach(_.start(ctx))
 
-  def stop(ctx: PandaModuleContext): Unit = modules.foreach(_.stop(ctx))
+  def close(ctx: PandaModuleContext): Unit = modules.foreach(_.close(ctx))
 }
