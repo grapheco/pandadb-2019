@@ -41,7 +41,7 @@ class CypherPlusModule extends PandaModule with Logging {
     CypherPlusContext.bindValueMatcher(valueMatcher);
   }
 
-  override def stop(ctx: PandaModuleContext): Unit = {
+  override def close(ctx: PandaModuleContext): Unit = {
 
   }
 

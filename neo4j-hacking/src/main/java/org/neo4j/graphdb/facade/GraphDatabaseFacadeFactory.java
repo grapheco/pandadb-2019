@@ -19,7 +19,8 @@
  */
 package org.neo4j.graphdb.facade;
 
-import cn.pandadb.context.InstanceBoundServiceFactoryRegistryHolder;
+import cn.pandadb.context.GraphDatabaseStartedEvent;
+import cn.pandadb.util.PandaEventHub;
 import org.neo4j.bolt.BoltServer;
 import org.neo4j.dbms.database.DatabaseManager;
 import org.neo4j.graphdb.DependencyResolver;
@@ -179,10 +180,6 @@ public class GraphDatabaseFacadeFactory
         Procedures procedures = setupProcedures( platform, edition, graphDatabaseFacade );
         platform.dependencies.satisfyDependency( new NonTransactionalDbmsOperations( procedures ) );
 
-        // NOTE: pandadb
-        //blob support
-        platform.life.add( new InstanceBoundServiceFactoryRegistryHolder( procedures, storeDir, config, databaseInfo ) );
-        // END-NOTE
         Logger msgLog = platform.logging.getInternalLog( getClass() ).infoLogger();
         DatabaseManager databaseManager = edition.createDatabaseManager( graphDatabaseFacade, platform, edition, procedures, msgLog );
         platform.life.add( databaseManager );
@@ -247,6 +244,11 @@ public class GraphDatabaseFacadeFactory
             throw error;
         }
 
+        // NOTE: pandadb
+        //blob support
+        PandaEventHub.publish(new GraphDatabaseStartedEvent(procedures, storeDir, config, databaseInfo));
+        //platform.life.add( new InstanceBoundServiceFactoryRegistryHolder( procedures, storeDir, config, databaseInfo ) );
+        // END-NOTE
         return databaseFacade;
     }
 

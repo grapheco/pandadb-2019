@@ -1,14 +1,12 @@
 package cn.pandadb.externalprops
 
-import cn.pandadb.context.InstanceBoundServiceContext
-import cn.pandadb.util.Configuration
+import cn.pandadb.util.{Configuration, PandaModuleContext}
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.values.AnyValue
 import org.neo4j.values.storable.{NumberValue, StringValue, Value}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.util.matching.Regex
 
 /**
   * Created by bluejoe on 2019/10/7.
@@ -22,6 +20,7 @@ class InMemoryPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
   */
 object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   val nodes = mutable.Map[Long, NodeWithProperties]();
+
   def firstFilterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
     expr match {
       case NFGreaterThan(fieldName: String, value: AnyValue) =>
@@ -61,6 +60,7 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
         ).getOrElse(false))
     }
   }
+
   def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
     expr match {
       case NFAnd(a, b) => filterNodes(a).toSet & filterNodes(b).toSet
@@ -79,36 +79,38 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   }
 
   def updateNodes(nodeId: Long, addedProps: Map[String, Value],
-                           updateProps: Map[String, Value], removeProps: Array[String],
-                           addedLabels: Array[String], removedLabels: Array[String]): Unit = {
+                  updateProps: Map[String, Value], removeProps: Array[String],
+                  addedLabels: Array[String], removedLabels: Array[String]): Unit = {
 
-      val n: MutableNodeWithProperties = nodes(nodeId).mutable()
-      if (addedProps != null && addedProps.size>0) {
-        n.props ++= addedProps
-      }
-      if (updateProps != null && updateProps.size>0) {
-        n.props ++= updateProps
-      }
-      if (removeProps != null && removeProps.size>0) {
-        removeProps.foreach(f => n.props -= f)
-      }
-      if (addedLabels != null && addedLabels.size>0) {
-        n.labels ++= addedLabels
-       // nodes(nodeId).labels = nodes(nodeId).labels.toSet
-      }
-      if (removedLabels != null && removedLabels.size>0) {
-        //val tmpLabels = nodes(nodeId).labels.toSet
-        n.labels  --= removedLabels
-      }
+    val n: MutableNodeWithProperties = nodes(nodeId).mutable()
+    if (addedProps != null && addedProps.size > 0) {
+      n.props ++= addedProps
+    }
+    if (updateProps != null && updateProps.size > 0) {
+      n.props ++= updateProps
+    }
+    if (removeProps != null && removeProps.size > 0) {
+      removeProps.foreach(f => n.props -= f)
+    }
+    if (addedLabels != null && addedLabels.size > 0) {
+      n.labels ++= addedLabels
+      // nodes(nodeId).labels = nodes(nodeId).labels.toSet
+    }
+    if (removedLabels != null && removedLabels.size > 0) {
+      //val tmpLabels = nodes(nodeId).labels.toSet
+      n.labels --= removedLabels
+    }
     deleteNodes(Iterable(nodeId))
     addNodes(Iterable(NodeWithProperties(nodeId, n.props.toMap, n.labels)))
 
   }
+
   def getNodeBylabelAndfilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
     //val propName = SolrUtil.labelName
     //filterNodes(NFAnd(NFContainsWith(propName, label), expr))
     getNodesByLabel(label).toSet & filterNodes(expr).toSet
   }
+
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val res = mutable.ArrayBuffer[NodeWithProperties]()
     nodes.map(n => {
@@ -126,11 +128,11 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     nodes.get(id)
   }
 
-  override def start(ctx: InstanceBoundServiceContext): Unit = {
+  override def start(ctx: PandaModuleContext): Unit = {
     nodes.clear()
   }
 
-  override def stop(ctx: InstanceBoundServiceContext): Unit = {
+  override def close(ctx: PandaModuleContext): Unit = {
     nodes.clear()
   }
 
@@ -138,6 +140,7 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     new BufferedExternalPropertyWriteTransaction(this, new InMemoryGroupedOpVisitor(true, nodes), new InMemoryGroupedOpVisitor(false, nodes))
   }
 }
+
 class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeWithProperties]) extends GroupedOpVisitor {
 
   var oldState = mutable.Map[Long, MutableNodeWithProperties]();
@@ -178,15 +181,15 @@ class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeW
   override def visitUpdateNode(nodeId: Long, addedProps: Map[String, Value],
                                updateProps: Map[String, Value], removeProps: Array[String],
                                addedLabels: Array[String], removedLabels: Array[String]): Unit = {
-      if (isCommit) InMemoryPropertyNodeStore.updateNodes(nodeId: Long, addedProps: Map[String, Value],
+    if (isCommit) InMemoryPropertyNodeStore.updateNodes(nodeId: Long, addedProps: Map[String, Value],
       updateProps: Map[String, Value], removeProps: Array[String],
       addedLabels: Array[String], removedLabels: Array[String])
-      else {
+    else {
 
-        val oldNode = oldState.get(nodeId).head
-        InMemoryPropertyNodeStore.addNodes(Iterable(NodeWithProperties(nodeId, oldNode.props.toMap, oldNode.labels)))
+      val oldNode = oldState.get(nodeId).head
+      InMemoryPropertyNodeStore.addNodes(Iterable(NodeWithProperties(nodeId, oldNode.props.toMap, oldNode.labels)))
 
-      }
+    }
   }
 
   override def work(): Unit = {
@@ -196,12 +199,16 @@ class InMemoryGroupedOpVisitor(isCommit: Boolean, nodes: mutable.Map[Long, NodeW
     if (isCommit) {
 
       newState.foreach(tle => nodeToAdd += NodeWithProperties(tle._1, tle._2.props.toMap, tle._2.labels))
-      oldState.foreach(tle => {if (!newState.contains(tle._1)) nodeToDelete += tle._1})
+      oldState.foreach(tle => {
+        if (!newState.contains(tle._1)) nodeToDelete += tle._1
+      })
     }
     else {
 
       oldState.foreach(tle => nodeToAdd += NodeWithProperties(tle._1, tle._2.props.toMap, tle._2.labels))
-      newState.foreach(tle => {if (!oldState.contains(tle._1)) nodeToDelete += tle._1})
+      newState.foreach(tle => {
+        if (!oldState.contains(tle._1)) nodeToDelete += tle._1
+      })
     }
 
     InMemoryPropertyNodeStore.addNodes(nodeToAdd)

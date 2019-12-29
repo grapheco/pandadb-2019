@@ -16,12 +16,12 @@ class ExternalPropertiesModule extends PandaModule {
     }
   }
 
-  override def stop(ctx: PandaModuleContext): Unit = {
-
+  override def close(ctx: PandaModuleContext): Unit = {
+    ExternalPropertiesContext.maybeCustomPropertyNodeStore.foreach(_.start(ctx))
   }
 
   override def start(ctx: PandaModuleContext): Unit = {
-
+    ExternalPropertiesContext.maybeCustomPropertyNodeStore.foreach(_.close(ctx))
   }
 }
 
