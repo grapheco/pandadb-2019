@@ -225,7 +225,6 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
         q = Some(s"$q1")
 
     }
-    println(q.get)
     _solrClient.query(new SolrQuery().setQuery(q.get)).getResults().foreach(
       x => {
         nodeArray += SolrUtil.solrDoc2nodeWithProperties(x)
