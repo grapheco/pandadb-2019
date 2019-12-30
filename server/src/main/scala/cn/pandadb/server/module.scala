@@ -9,6 +9,7 @@ class MainServerModule extends PandaModule {
     import ConfigUtils._
     MainServerContext.bindNodeAddress(NodeAddress.fromString(conf.getRequiredValueAsString("node.server.address")));
     MainServerContext.bindZKServerAddressStr(conf.getRequiredValueAsString("zookeeper.address"))
+    MainServerContext.bingRpcPort(conf.getRequiredValueAsInt("rpcPort"))
     ZKPathConfig.initZKPath(MainServerContext.zkServerAddressStr)
   }
 
@@ -39,6 +40,10 @@ object MainServerContext extends ContextMap {
   def dataLogReader: DataLogReader = super.get[DataLogReader]
 
   def bindNodeAddress(nodeAddress: NodeAddress): Unit = put("node.server.address", nodeAddress);
+
+  def bingRpcPort(port: Int): Unit = put("rpcPort", port)
+
+  def rpcPort: Int = get("rpcPort")
 
   def nodeAddress: NodeAddress = get("node.server.address");
 
