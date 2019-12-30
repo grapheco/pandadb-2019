@@ -65,7 +65,7 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     expr match {
       case NFAnd(a, b) => filterNodes(a).toSet & filterNodes(b).toSet
       case NFNot(a) => nodes.values.toSet -- firstFilterNodes(a)
-      case NFOr(a, b) => firstFilterNodes(a).toSet | firstFilterNodes(b).toSet
+      case NFOr(a, b) => filterNodes(a).toSet | filterNodes(b).toSet
       case _ => firstFilterNodes(expr)
     }
   }
