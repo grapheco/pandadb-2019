@@ -1,9 +1,9 @@
 package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import cn.pandadb.externalprops.CustomPropertyNodeStore
-import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.{Expression, ParameterExpression, Property}
+import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.{Expression, ParameterExpression, Property, SubstringFunction, ToIntegerFunction}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.predicates._
-import org.neo4j.cypher.internal.runtime.interpreted._
+import org.neo4j.cypher.internal.runtime.interpreted.{NFPredicate, _}
 import org.neo4j.cypher.internal.v3_5.util.{Fby, Last, NonEmptyList}
 import org.neo4j.values.storable.StringValue
 import org.neo4j.values.virtual.NodeValue
@@ -45,6 +45,10 @@ trait PredicatePushDownPipe extends Pipe{
         NFEndsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
       case RegularExpression(a: Property, b: ParameterExpression) =>
         NFRegexp(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
+//      case SubstringFunction(a: Property, b: ParameterExpression) =>
+//        NFSubstringFunction(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
+//      case ToIntegerFunction(a: Property, b: ParameterExpression) =>
+//        NFToIntegerFunction(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
       case x: Ands =>
         convertPredicateLoop(NFAnd, x.predicates, state, baseContext)
       case x: Ors =>
@@ -72,6 +76,7 @@ trait PredicatePushDownPipe extends Pipe{
   def fetchNodes(state: QueryState, baseContext: ExecutionContext): Iterator[NodeValue] = {
     if (predicate.isDefined) {
       val expr: NFPredicate = convertPredicate(predicate.get, state, baseContext)
+      //      println(predicate,  expr)
       if (expr != null) {
         fatherPipe.get.bypass()
         if (labelName != null) {

@@ -20,6 +20,7 @@ object SolrUtil {
   val tik = "id,labels,_version_"
   val arrayName = "Array"
   val dateType = "time"
+  val max_rows = 50000000
 
   def removeBrackets(value: String): String = {
     var tempStr = value
@@ -227,8 +228,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     }
     val query = new SolrQuery()
     query.setQuery(q.get)
-    val Num = _solrClient.query(query).getResults.getNumFound
-    query.setRows(Num.toInt)
+    query.setRows(SolrUtil.max_rows)
     val res = _solrClient.query(query).getResults
     res.foreach(
       x => {
@@ -254,7 +254,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   }
 
   override def close(ctx: PandaModuleContext): Unit = {
-    _solrClient.close()
+    //_solrClient.close()
   }
 
   override def start(ctx: PandaModuleContext): Unit = {
