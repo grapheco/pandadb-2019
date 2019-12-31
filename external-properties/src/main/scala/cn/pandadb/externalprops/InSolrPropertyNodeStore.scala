@@ -254,7 +254,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   }
 
   override def close(ctx: PandaModuleContext): Unit = {
-    _solrClient.close()
+    //_solrClient.close()
   }
 
   override def start(ctx: PandaModuleContext): Unit = {
