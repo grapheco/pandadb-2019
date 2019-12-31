@@ -21,8 +21,9 @@ trait QueryCase {
     ExternalPropertiesContext.bindCustomPropertyNodeStore( store)
     GlobalContext.setLeaderNode(true)
     db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
+    db.execute("CREATE (n:Person {age: 40, name: 'alex', address: 'CNIC, CAS, Beijing, China'})")
     db.execute("CREATE INDEX ON :Person(address)")
-
+    db.execute("match (f:Person), (s:Person) where f.age=40 AND s.age=10 CREATE (f)-[hood:Father]->(s)")
   }
 
   @After
@@ -97,6 +98,11 @@ trait QueryCase {
   @Test
   def labelAndStringEndsWith(): Unit = {
     testQuery("match (n:Person) where n.name ENDS WITH 'b' return id(n)", "id(n)")
+  }
+
+  @Test
+  def relationStringEndsWith(): Unit = {
+    testQuery("match (f:Person {age: 40})-[:Father]->(s:Person) where f.name ENDS WITH 'x' and s.name ENDS WITH 'b' return id(f)", "id(f)")
   }
 
   @Test
