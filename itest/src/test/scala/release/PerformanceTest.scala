@@ -164,18 +164,18 @@ class MergePerformanceTest extends PandaDBPerformanceTest {
   def circularTest(time: Int): Unit = {
     val pandaResult = pandaTest(time)
     val neo4jResult = neo4jTest(time)
-    neo4jResult.foreach( r => {
-      val n = r._2
-      println(r._1)
-      if(pandaResult.contains(r._1)) {
-        val p = pandaResult.get(r._1).get
-        Assert.assertEquals(n.hasNext, p.hasNext)
-        while (n.hasNext) {
-          Assert.assertEquals(n.next(), p.next())
-        }
-        Assert.assertEquals(n.hasNext, p.hasNext)
-      }
-    })
+//    neo4jResult.foreach( r => {
+//      val n = r._2
+//      println(r._1)
+//      if(pandaResult.contains(r._1)) {
+//        val p = pandaResult.get(r._1).get
+//        Assert.assertEquals(n.hasNext, p.hasNext)
+//        while (n.hasNext) {
+//          Assert.assertEquals(n.next(), p.next())
+//        }
+//        Assert.assertEquals(n.hasNext, p.hasNext)
+//      }
+//    })
   }
 
   def pandaTest(time: Int): Map[String, StatementResult] = {
