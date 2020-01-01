@@ -59,7 +59,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
 
   val np = MainServerContext.nodeAddress
 
-  val serverKernel = new NettyRpcServer("0.0.0.0", MainServerContext.nodeAddress.port, "PNodeRpc-service");
+  val serverKernel = new NettyRpcServer("0.0.0.0", MainServerContext.rpcPort, "PNodeRpc-service");
   serverKernel.accept(Neo4jRequestHandler());
   serverKernel.accept(InterNodeRequestHandler());
 
