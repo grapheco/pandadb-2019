@@ -10,3 +10,21 @@ Match(n:person) Return n.personId Order By n.citations Desc;
 Match(n:person) where n.citations>5 return distinct n.nationality, count(n) Order by count(n) desc;
 Match(n:paper) where toInteger(n.publishDate)>20000000 return distinct n.country, count(n) order by count(n) Desc;
 MATCH  (p:person)-[wp:write_paper]->(pa:paper)  -[r:paper_belong_topic]-> (t:topic)  WHERE toInteger(subString(pa.publishDate,0,4)) >= 1995 AND toInteger(subString(pa.publishDate,0,4)) <= 2019  AND t.topicId IN ['185592680'] AND t.rank = 1 WITH  DISTINCT(pa),pa.citation AS citationOfWorld  ORDER BY citationOfWorld DESC  LIMIT 10000  MATCH (p:person)-[wp:write_paper]->(pa)  WHERE p.nationality  = 'China'  RETURN  DISTINCT(toInteger(subString(pa.publishDate,0,4))) AS year,  COUNT(pa) AS statistics, '中国'  as region   order by year  UNION ALL MATCH  (p:person)-[wp:write_paper]->(pa:paper)  -[r:paper_belong_topic]-> (t:topic)  WHERE  toInteger(subString(pa.publishDate,0,4)) >= 1995 AND toInteger(subString(pa.publishDate,0,4)) <= 2019  AND (t.topicId IN ['185592680']) AND t.rank = 1 WITH  DISTINCT(pa) AS pa,pa.citation AS citation  ORDER BY citation DESC  LIMIT 10000  RETURN  DISTINCT(toInteger(subString(pa.publishDate,0,4))) AS year,  COUNT(pa) AS statistics,  '世界'  as region  order by year;
+match (n:person)-[:write_paper]->(p:paper) where p.country = 'United States' return count(n)
+match (n:person)-[:write_paper]->(p:paper) where p.country='United States' and n.citations>800 return count(n)
+match (o:organization)<-[:work_for]-(n:person)-[:write_paper]->(p:paper) where o.country='United States' and n.citations>500  and p.citations>100 return count(n)
+match (n:person)-[:write_paper]->(p:paper) where n.citations>800 and p.citation>100 return p.paperId
+match (o:organization)<-[:work_for] -(n:person)-[:write_paper]->(p:paper) where n.citations>1000 and p.citation<100 and o.latitude>30 return count(p)
+match (o:organization)<-[:work_for] -(n:person)-[:write_paper]->(p:paper)-[:paper_reference]->(p2:paper) where n.citations>1000 and p2.citation<100 and o.country='United States' return count(p)
+match (o:organization)<-[:work_for]-(n:person)-[:write_paper]->(p:paper)-[:paper_reference]->(p2:paper) where n.citations>1000 and p2.citation<100 and o.latitude>30 return count(p)
+match (o:organization)<-[:work_for]-(n:person)-[:write_paper]->(p:paper)-[:paper_belong_topic]->(t:topic) where t.rank<5 and p.citation<100 and o.latitude>30 return count(p)
+match (o:organization)<-[:work_for]-(n:person)-[:write_paper]->(p:paper)-[:paper_belong_topic]->(t:topic) where t.rank<4 and p.citation>100 and o.longitude<130 return p.paperId
+match (o:organization)<-[:work_for]-(n:person)-[:write_paper]->(p:paper)-[:paper_reference]->(p2:paper) where p.citation<100 and p2.citation>100 and o.latitude>30 return count(p)
+match (o:organization)<-[:work_for]-(n:person)-[:write_paper]->(p:paper)-[:paper_reference]->(p2:paper) where p.citation<100 and p2.citation>100 and o.country='United States' return count(p2)
+match (pu:publications)<-[]-(n:person)-[:write_paper]->(p:paper)-[:paper_reference]->(p2:paper) where p.citation<500 and p2.citation>200 and n.nationality='United States' return count(p2)
+match (n:person)-[:write_paper]->(p:paper)-[:be_cited]->(p2:paper) where p.country = 'United States' and p2.citation>500 return n.nameEn
+match (n:person)-[:write_paper]->(p:paper)-[:be_cited]->(p2:paper) where n.citations>1000 and p.citation>100 and p2.citation>500 return p2.paperId
+match (n:person)-[:write_paper]->(p:paper)-[:paper_belong_topic]->(t:topic) where n.citations>1000 and p.citation>100 and t.rank<3 return distinct(n.nameEn)
+match (o:organization)<-[:work_for]-(n:person)-[:write_paper]->(p:paper)-[:paper_belong_topic]->(t:topic) where t.rank<5 and p.citation<100 and o.country='France' return distinct(p.paperId)
+match (o:organization)<-[:work_for]-(n:person)-[:write_paper]->(p:paper)-[:paper_belong_topic]->(t:topic) where t.rank<5 and p.country='United States' and o.citations>10000000 return distinct(n.nameEn)
+match (o:organization)<-[:work_for]-(n:person)-[:write_paper]->(p:paper)-[:be_cited]->(p2:paper) where p2.citation>400 and p.country='United States' and o.citations>10000000 return distinct(n.nameEn)

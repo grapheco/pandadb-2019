@@ -21,8 +21,9 @@ trait QueryCase {
     ExternalPropertiesContext.bindCustomPropertyNodeStore( store)
     GlobalContext.setLeaderNode(true)
     db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
+    db.execute("CREATE (n:Person {age: 40, name: 'alex', address: 'CNIC, CAS, Beijing, China'})")
     db.execute("CREATE INDEX ON :Person(address)")
-
+    db.execute("match (f:Person), (s:Person) where f.age=40 AND s.age=10 CREATE (f)-[hood:Father]->(s)")
   }
 
   @After
@@ -75,8 +76,18 @@ trait QueryCase {
   }
 
   @Test
-  def stringEndsWithOr(): Unit = {
-    testQuery("match (n) where (n.name ENDS WITH 'a' or n.address ENDS WITH 'China') AND n.age = 10 return id(n)", "id(n)")
+  def tripleAnd(): Unit = {
+    testQuery("match (n) where n.name ENDS WITH 'b' and n.address ENDS WITH 'China' and n.age = 10 return id(n)", "id(n)")
+  }
+
+  @Test
+  def andOr(): Unit = {
+    testQuery("match (n) where n.name ENDS WITH 'a' OR n.address ENDS WITH 'China' AND n.age = 10 return id(n)", "id(n)")
+  }
+
+  @Test
+  def tripleOr(): Unit = {
+    testQuery("match (n) where n.name ENDS WITH 'a' OR n.address ENDS WITH 'Chinad' OR n.age = 10 return id(n)", "id(n)")
   }
 
   @Test
@@ -90,6 +101,11 @@ trait QueryCase {
   }
 
   @Test
+  def relationStringEndsWith(): Unit = {
+    testQuery("match (f:Person {age: 40})-[:Father]->(s:Person) where f.name ENDS WITH 'x' and s.name ENDS WITH 'b' return id(f)", "id(f)")
+  }
+
+  @Test
   def join(): Unit = {
     testQuery("Match p=()--() return count(p)", "count(p)")
   }
@@ -97,6 +113,11 @@ trait QueryCase {
   @Test
   def indexStringEndsWith(): Unit = {
     testQuery("match (n:Person) USING INDEX n:Person(address) where n.address ENDS WITH 'China' return id(n)", "id(n)")
+  }
+
+  @Test
+  def udf(): Unit = {
+    testQuery("match (n:Person) where toInteger(n.age) = 10 AND subString(n.address,0,4) = 'CNIC' return id(n)", "id(n)")
   }
 
 }
