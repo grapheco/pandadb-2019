@@ -153,43 +153,4 @@ class InEsPropertyTest {
     assert(node.props.get("arr3").get.equals(true))
     assert(node.props.get("arr4").get.equals(Array(1, 2, 3)))
   }
-
-  // test for serach
-  @Test
-  def test5() {
-    val esNodeStore = new InElasticSearchPropertyNodeStore(host, port, indexName, typeName)
-    esNodeStore.clearAll()
-    Assert.assertEquals(0, esNodeStore.getRecorderSize)
-    var transaction = esNodeStore.beginWriteTransaction()
-    transaction.addNode(1)
-    transaction.addLabel(1, "Person")
-    transaction.addLabel(1, "Man")
-    transaction.addProperty(1, "name", Values.of("test"))
-    transaction.addProperty(1, "arr1", Values.of(100))
-    transaction.addProperty(1, "arr2", Values.of(155.33))
-    transaction.addProperty(1, "arr3", Values.of(true))
-    transaction.addProperty(1, "arr4", Values.of(Array(1, 2, 3)))
-    Assert.assertEquals(0, esNodeStore.getRecorderSize)
-    transaction.commit()
-    transaction.close()
-
-    Assert.assertEquals(1, esNodeStore.getRecorderSize)
-
-    val nodeIds = esNodeStore.filterNodes(QueryBuilders.termQuery("name", "test"))
-    assert(nodeIds.size == 1)
-    nodeIds.foreach(id => assert(id == 1))
-
-    val nodesWithProps = esNodeStore.filterNodesWithProperties(QueryBuilders.termQuery("name", "test"))
-
-    val node: NodeWithProperties = nodesWithProps.toList(0)
-    Assert.assertEquals(1, node.id)
-    val nodeLabels = node.labels.toArray
-    Assert.assertEquals(2, nodeLabels.size)
-    Assert.assertEquals(true, nodeLabels.contains("Man") && nodeLabels.contains("Person"))
-    assert(node.props.get("name").get.equals("test"))
-    assert(node.props.get("arr1").get.equals(100))
-    assert(node.props.get("arr2").get.equals(155.33))
-    assert(node.props.get("arr3").get.equals(true))
-    assert(node.props.get("arr4").get.equals(Array(1, 2, 3)))
-  }
 }

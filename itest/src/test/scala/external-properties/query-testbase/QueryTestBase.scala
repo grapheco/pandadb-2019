@@ -12,7 +12,7 @@ import org.neo4j.io.fs.FileUtils
 
 trait QueryTestBase {
   var db: GraphDatabaseService = null
-  var nodeStore = "InMemoryPropertyNodeStore"
+  val nodeStore = "InMemoryPropertyNodeStore"
 
   @Before
   def initdb(): Unit = {
@@ -36,7 +36,6 @@ trait QueryTestBase {
         val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
         solrNodeStore.clearAll()
         ExternalPropertiesContext.bindCustomPropertyNodeStore(solrNodeStore)
-      case _ =>
     }
   }
 

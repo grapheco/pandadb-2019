@@ -16,20 +16,12 @@ trait ExternalPropertyStoreFactory {
 }
 
 trait CustomPropertyNodeReader {
-  @deprecated
-  def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties];
+  def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties];
 
-  def filterNodes(expr: NFPredicate): Iterable[Long];
-
-  @deprecated
   def getNodesByLabel(label: String): Iterable[NodeWithProperties];
 
-  @deprecated
-  def getNodeWithPropertiesBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties];
+  def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties];
 
-  def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[Long];
-
-  @deprecated
   def getNodeById(id: Long): Option[NodeWithProperties];
 }
 

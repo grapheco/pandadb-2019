@@ -44,7 +44,7 @@ class neo4jANDsolrPerformanceTest {
 
   def solrIteratorTime(exp: NFPredicate): Unit ={
     val time1 = System.currentTimeMillis()
-    val ssize = solrNodeStore.filterNodesWithProperties(exp).size
+    val ssize = solrNodeStore.filterNodes(exp).size
     val time2 = System.currentTimeMillis()
     println(s"solr Iterator time :${time2-time1},result size:$ssize")
   }

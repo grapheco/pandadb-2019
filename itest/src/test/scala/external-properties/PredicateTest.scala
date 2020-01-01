@@ -76,68 +76,68 @@ class PredicateTest {
     Assert.assertEquals(3, nodeList1.size)
     Assert.assertEquals(2, nodeList2.size)
 
-    var res1 = solrNodeStore.filterNodesWithProperties(NFGreaterThan("age", Values.of(39)))
+    var res1 = solrNodeStore.filterNodes(NFGreaterThan("age", Values.of(39)))
     Assert.assertEquals(1, res1.size)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFGreaterThanOrEqual("age", Values.of(39)))
+    res1 = solrNodeStore.filterNodes(NFGreaterThanOrEqual("age", Values.of(39)))
     Assert.assertEquals(2, res1.size)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFLessThan("age", Values.of(18)))
+    res1 = solrNodeStore.filterNodes(NFLessThan("age", Values.of(18)))
     Assert.assertEquals(2, res1.size)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFLessThanOrEqual("age", Values.of(18)))
+    res1 = solrNodeStore.filterNodes(NFLessThanOrEqual("age", Values.of(18)))
     Assert.assertEquals(3, res1.size)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFEquals("age", Values.of(18)))
+    res1 = solrNodeStore.filterNodes(NFEquals("age", Values.of(18)))
     Assert.assertEquals("Airzihao", res1.head.mutable().props.get("name").get.asObject())
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFContainsWith("name", "joe"))
+    res1 = solrNodeStore.filterNodes(NFContainsWith("name", "joe"))
     Assert.assertEquals(1, res1.size)
     Assert.assertEquals("bluejoe", res1.head.mutable().props.get("name").get.asObject())
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFEndsWith("name", "son"))
+    res1 = solrNodeStore.filterNodes(NFEndsWith("name", "son"))
     Assert.assertEquals(1, res1.size)
     Assert.assertEquals(39.toLong, res1.head.mutable().props.get("age").get.asObject())
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFStartsWith("name", "pan"))
+    res1 = solrNodeStore.filterNodes(NFStartsWith("name", "pan"))
     Assert.assertEquals(1, res1.size)
     Assert.assertEquals("database", res1.head.labels.head)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFStartsWith("name", "pan"))
+    res1 = solrNodeStore.filterNodes(NFStartsWith("name", "pan"))
     Assert.assertEquals(1, res1.size)
     Assert.assertEquals("database", res1.head.labels.head)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFFalse())
+    res1 = solrNodeStore.filterNodes(NFFalse())
     Assert.assertEquals(0, res1.size)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFTrue())
+    res1 = solrNodeStore.filterNodes(NFTrue())
     Assert.assertEquals(5, res1.size)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFHasProperty("nation"))
+    res1 = solrNodeStore.filterNodes(NFHasProperty("nation"))
     Assert.assertEquals(1, res1.size)
     Assert.assertEquals("pandaDB", res1.head.props.get("name").get.asObject())
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFIsNull("nation"))
+    res1 = solrNodeStore.filterNodes(NFIsNull("nation"))
     Assert.assertEquals(4, res1.size)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFNotNull("nation"))
+    res1 = solrNodeStore.filterNodes(NFNotNull("nation"))
     Assert.assertEquals(1, res1.size)
     Assert.assertEquals("China", res1.head.props.get("nation").get.asObject())
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFNotEquals("age", Values.of(18)))
+    res1 = solrNodeStore.filterNodes(NFNotEquals("age", Values.of(18)))
     Assert.assertEquals(4, res1.size)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFRegexp("name", ".?lue.*"))
+    res1 = solrNodeStore.filterNodes(NFRegexp("name", ".?lue.*"))
     Assert.assertEquals(40, res1.head.mutable().props.get("age").get.asObject().toString.toLong)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFAnd(NFIsNull("nation"), NFLessThanOrEqual("age", Values.of(18))))
+    res1 = solrNodeStore.filterNodes(NFAnd(NFIsNull("nation"), NFLessThanOrEqual("age", Values.of(18))))
     Assert.assertEquals(2, res1.size)
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFNot(NFIsNull("nation")))
+    res1 = solrNodeStore.filterNodes(NFNot(NFIsNull("nation")))
     Assert.assertEquals(1, res1.size)
     Assert.assertEquals("China", res1.head.props.get("nation").get.asObject())
 
-    res1 = solrNodeStore.filterNodesWithProperties(NFOr(NFNotNull("nation"), NFGreaterThanOrEqual("age", Values.of(40))))
+    res1 = solrNodeStore.filterNodes(NFOr(NFNotNull("nation"), NFGreaterThanOrEqual("age", Values.of(40))))
     Assert.assertEquals(2, res1.size)
 
     solrNodeStore.clearAll()
