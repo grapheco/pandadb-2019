@@ -19,10 +19,21 @@
  */
 package org.neo4j.kernel.impl.newapi;
 
-import cn.pandadb.externalprops.ExternalPropertiesContext;
-import cn.pandadb.util.GlobalContext;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static org.neo4j.internal.kernel.api.exceptions.schema.ConstraintValidationException.Phase.VALIDATION;
+import static org.neo4j.internal.kernel.api.exceptions.schema.SchemaKernelException.OperationContext.CONSTRAINT_CREATION;
+import static org.neo4j.internal.kernel.api.schema.SchemaDescriptor.schemaTokenLockingIds;
+import static org.neo4j.kernel.api.StatementConstants.NO_SUCH_LABEL;
+import static org.neo4j.kernel.api.StatementConstants.NO_SUCH_NODE;
+import static org.neo4j.kernel.api.StatementConstants.NO_SUCH_PROPERTY_KEY;
+import static org.neo4j.kernel.impl.locking.ResourceTypes.INDEX_ENTRY;
+import static org.neo4j.kernel.impl.locking.ResourceTypes.indexEntryResourceId;
+import static org.neo4j.kernel.impl.newapi.IndexTxStateUpdater.LabelChangeType.ADDED_LABEL;
+import static org.neo4j.kernel.impl.newapi.IndexTxStateUpdater.LabelChangeType.REMOVED_LABEL;
+import static org.neo4j.storageengine.api.EntityType.NODE;
+import static org.neo4j.storageengine.api.schema.IndexDescriptor.Type.UNIQUE;
+import static org.neo4j.values.storable.Values.NO_VALUE;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,6 +41,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.internal.kernel.api.CursorFactory;
 import org.neo4j.internal.kernel.api.ExplicitIndexRead;
@@ -46,6 +59,8 @@ import org.neo4j.internal.kernel.api.Token;
 import org.neo4j.internal.kernel.api.Write;
 import org.neo4j.internal.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
+import org.neo4j.internal.kernel.api.exceptions.LabelNotFoundKernelException;
+import org.neo4j.internal.kernel.api.exceptions.PropertyKeyIdNotFoundKernelException;
 import org.neo4j.internal.kernel.api.exceptions.TransactionFailureException;
 import org.neo4j.internal.kernel.api.exceptions.explicitindex.AutoIndexingKernelException;
 import org.neo4j.internal.kernel.api.exceptions.explicitindex.ExplicitIndexNotFoundKernelException;
@@ -94,32 +109,17 @@ import org.neo4j.storageengine.api.schema.IndexDescriptor;
 import org.neo4j.storageengine.api.schema.IndexDescriptorFactory;
 import org.neo4j.values.storable.Value;
 import org.neo4j.values.storable.Values;
-
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static org.neo4j.internal.kernel.api.exceptions.schema.ConstraintValidationException.Phase.VALIDATION;
-import static org.neo4j.internal.kernel.api.exceptions.schema.SchemaKernelException.OperationContext.CONSTRAINT_CREATION;
-import static org.neo4j.internal.kernel.api.schema.SchemaDescriptor.schemaTokenLockingIds;
-import static org.neo4j.kernel.api.StatementConstants.NO_SUCH_LABEL;
-import static org.neo4j.kernel.api.StatementConstants.NO_SUCH_NODE;
-import static org.neo4j.kernel.api.StatementConstants.NO_SUCH_PROPERTY_KEY;
-import static org.neo4j.kernel.impl.locking.ResourceTypes.INDEX_ENTRY;
-import static org.neo4j.kernel.impl.locking.ResourceTypes.indexEntryResourceId;
-import static org.neo4j.kernel.impl.newapi.IndexTxStateUpdater.LabelChangeType.ADDED_LABEL;
-import static org.neo4j.kernel.impl.newapi.IndexTxStateUpdater.LabelChangeType.REMOVED_LABEL;
-import static org.neo4j.storageengine.api.EntityType.NODE;
-import static org.neo4j.storageengine.api.schema.IndexDescriptor.Type.UNIQUE;
-import static org.neo4j.values.storable.Values.NO_VALUE;
-
-// NOTE: pandadb
-import org.neo4j.internal.kernel.api.exceptions.LabelNotFoundKernelException;
-import org.neo4j.internal.kernel.api.exceptions.PropertyKeyIdNotFoundKernelException;
-import cn.pandadb.externalprops.CustomPropertyNodeStore;
-import cn.pandadb.externalprops.PropertyWriteTransaction;
-import cn.pandadb.externalprops.NodeWithProperties;
 import org.neo4j.values.virtual.NodeValue;
+
+import cn.pandadb.externalprops.CustomPropertyNodeStore;
+import cn.pandadb.externalprops.ExternalPropertiesContext;
+import cn.pandadb.externalprops.NodeWithProperties;
+import cn.pandadb.externalprops.PropertyWriteTransaction;
+import cn.pandadb.util.GlobalContext;
 import scala.Option;
 import scala.collection.mutable.Undoable;
+
+// NOTE: pandadb
 // END-NOTE
 
 /**
@@ -808,12 +808,12 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
             // NOTE: pandadb
             this.customPropWriteTx.nodeSetProperty(node, propertyKey, value);
-            //if(!this.customPropWriteTx.isPreventNeo4jPropStore())
-            //{
-            //    ktx.txState().nodeDoAddProperty( node, propertyKey, value );
-            // }
+            if(!this.customPropWriteTx.isPreventNeo4jPropStore())
+            {
+                ktx.txState().nodeDoAddProperty( node, propertyKey, value );
+            }
+             //ktx.txState().nodeDoAddProperty( node, propertyKey, value );
             // END-NOTE
-            ktx.txState().nodeDoAddProperty( node, propertyKey, value );
 
             if ( hasRelatedSchema )
             {
@@ -831,12 +831,12 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
                 // NOTE: pandadb
                 this.customPropWriteTx.nodeSetProperty(node, propertyKey, value);
-                // if(!this.customPropWriteTx.isPreventNeo4jPropStore())
-                // {
-                //    ktx.txState().nodeDoAddProperty( node, propertyKey, value );
-                // }
+                if(!this.customPropWriteTx.isPreventNeo4jPropStore())
+                {
+                    ktx.txState().nodeDoAddProperty( node, propertyKey, value );
+                }
+                //ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
                 // END-NOTE
-                ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
 
                 if ( hasRelatedSchema )
                 {
