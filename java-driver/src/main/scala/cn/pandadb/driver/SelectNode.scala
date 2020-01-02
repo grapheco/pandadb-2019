@@ -3,6 +3,8 @@ package cn.pandadb.driver
 import cn.pandadb.network.{ClusterClient, NodeAddress}
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase}
 
+import scala.collection.mutable
+
 /**
  * @Author: codeBabyLin
  * @Description:
@@ -15,6 +17,9 @@ trait Strategy{
 case class RANDOM_PICK() extends Strategy{
 
 }
+case class ROBIN_ROUND() extends Strategy{
+
+}
 case class WORK_TIME_PICK() extends Strategy{
 
 }
@@ -25,6 +30,7 @@ object SelectNode {
 
   val RONDOM_POLICY = 0
   val _POLICY = 1
+  val robinArray = mutable.Map[NodeAddress, Long]()
 
   private def getWriteNode(clusterOperator: ClusterClient): NodeAddress = {
     clusterOperator.getWriteMasterNode()
@@ -38,6 +44,16 @@ object SelectNode {
     nodeLists(index)
 
   }
+
+  private def policyRobinRound(clusterOperator: ClusterClient): NodeAddress = {
+    if (robinArray.size == 0) {
+      clusterOperator.getAllNodes().foreach(node => robinArray += node -> 0)
+    }
+    val node = robinArray.toList.sortBy(u => u._2).head._1
+    robinArray(node) += 1
+    node
+  }
+
   private def policyDefault(): NodeAddress = {
     val hos = "10.0.86.179"
     val por = 7687
@@ -47,7 +63,9 @@ object SelectNode {
     strategy match {
       case RANDOM_PICK() => policyRandom(clusterOperator)
       case DEFAULT_PICK() => policyDefault
-      case _ => policyDefault;
+      case ROBIN_ROUND() => policyRobinRound(clusterOperator)
+      case _ => policyDefault
+
     }
   }
   private def getNode(isWriteStatement: Boolean, clusterOperator: ClusterClient, strategy: Strategy): NodeAddress = {
@@ -55,7 +73,7 @@ object SelectNode {
   }
 
   def getDriver(isWriteStatement: Boolean, clusterOperator: ClusterClient): Driver = {
-    getDriver(isWriteStatement, clusterOperator, new RANDOM_PICK)
+    getDriver(isWriteStatement, clusterOperator, new ROBIN_ROUND)
   }
   def getDriver(isWriteStatement: Boolean, clusterOperator: ClusterClient, strategy: Strategy): Driver = {
     //val node = getNode(isWriteStatement, clusterOperator, new DEFAULT_PICK)
