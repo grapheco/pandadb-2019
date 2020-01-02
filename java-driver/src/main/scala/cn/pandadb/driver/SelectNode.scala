@@ -26,12 +26,18 @@ case class WORK_TIME_PICK() extends Strategy{
 case class DEFAULT_PICK() extends Strategy{
 
 }
+
+case class EASY_ROUND() extends Strategy{
+
+}
+
 object SelectNode {
 
   val RONDOM_POLICY = 0
   val _POLICY = 1
   val robinArray = mutable.Map[NodeAddress, Long]()
   private var policy: Strategy = null
+  private var index = 0
 
   private def getWriteNode(clusterOperator: ClusterClient): NodeAddress = {
     clusterOperator.getWriteMasterNode()
@@ -50,9 +56,34 @@ object SelectNode {
     if (robinArray.size == 0) {
       clusterOperator.getAllNodes().foreach(node => robinArray += node -> 0)
     }
+    val list = robinArray.toList
+    val sorted = list.sortBy(node => node._2)
+    val head = sorted.head
     val node = robinArray.toList.sortBy(u => u._2).head._1
     robinArray(node) += 1
     node
+  }
+
+  private def easyRound(clusterOperator: ClusterClient): NodeAddress = {
+    val nodeLists = clusterOperator.getAllNodes().toList
+    if (this.index>=nodeLists.length) {
+      this.index = 0
+    }
+    val node = nodeLists(this.index)
+    this.index += 1
+    node
+
+  }
+
+  def testRobinRound(): NodeAddress = {
+
+    val list = robinArray.toList
+    val sorted = list.sortBy(node => node._2)
+    val head = sorted.head._1
+    //val node = robinArray.toList.sortBy(u => u._2).head._1
+    robinArray(head) += 1
+    head
+
   }
 
   private def policyDefault(): NodeAddress = {
@@ -65,6 +96,7 @@ object SelectNode {
       case RANDOM_PICK() => policyRandom(clusterOperator)
       case DEFAULT_PICK() => policyDefault
       case ROBIN_ROUND() => policyRobinRound(clusterOperator)
+      case EASY_ROUND() => easyRound(clusterOperator)
       case _ => policyDefault
 
     }
@@ -80,6 +112,7 @@ object SelectNode {
       case RANDOM_PICK() => "RANDOM_PICK"
       case DEFAULT_PICK() => "DEFAULT_PICK"
       case ROBIN_ROUND() => "ROBIN_ROUND"
+      case EASY_ROUND() => "EASY_ROUND"
       case _ => "policyDefault-RANDOM_PICK"
     }
   }
