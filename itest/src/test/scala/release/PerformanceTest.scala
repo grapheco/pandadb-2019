@@ -4,6 +4,7 @@ import java.io.{File, FileInputStream, PrintWriter}
 import java.util.Properties
 import java.util.concurrent.TimeoutException
 
+import cn.pandadb.driver.{EASY_ROUND, RANDOM_PICK, ROBIN_ROUND, SelectNode}
 import com.google.gson.GsonBuilder
 import org.junit.{Assert, Test}
 import org.neo4j.driver.{AuthTokens, Driver, GraphDatabase, StatementResult}
@@ -191,7 +192,8 @@ class PandaDBPerformanceTest extends PerformanceTest {
   val recordFile = getRecordFile(props.getProperty("PandaDBResultFile"))
   val recorder = new PrintWriter(recordFile)
   val cmdIter = getStatementsIter(props.getProperty("statementsFile"))
-
+//  SelectNode.setPolicy(ne)
+  SelectNode.setPolicy(new EASY_ROUND)
   val pandaDriver = GraphDatabase.driver(s"panda://${props.getProperty("zkServerAddr")}/db",
     AuthTokens.basic("", ""))
 
@@ -205,42 +207,47 @@ class MergePerformanceTest extends PandaDBPerformanceTest {
 
   @Test
   def test0(): Unit = {
-    val list = List(1)
+    val list = List(2)
     list.foreach(i => circularTest(i))
   }
 
   def circularTest(time: Int): Unit = {
-//    val pandaResult = pandaTest(time)
+    val pandaResult = pandaTest(time)
+    Thread.sleep(5000)
     val neo4jResult = neo4jTest(time)
-//    neo4jResult.foreach( r => {
-//      val n = r._2
-//      println(r._1)
-//      if(pandaResult.contains(r._1)) {
-//        val p = pandaResult.get(r._1).get
-//        Assert.assertEquals(n.hasNext, p.hasNext)
-//        while (n.hasNext) {
-//          Assert.assertEquals(n.next(), p.next())
-//        }
-//        Assert.assertEquals(n.hasNext, p.hasNext)
-//      }
-//    })
+//    Await.result(pandaResult, Duration.Inf)
+//    Await.result(neo4jResult, Duration.Inf)
+    neo4jResult.foreach( r => {
+      val n = r._2
+      println(r._1)
+      if(pandaResult.contains(r._1)) {
+        val p = pandaResult.get(r._1).get
+        Assert.assertEquals(n.hasNext, p.hasNext)
+        while (n.hasNext) {
+          Assert.assertEquals(n.next(), p.next())
+        }
+        Assert.assertEquals(n.hasNext, p.hasNext)
+      }
+    })
   }
 
   def pandaTest(time: Int): Map[String, StatementResult] = {
-    val pRecordFile = getRecordFile(s"panda${time}.txt")
+    val pRecordFile = getRecordFile(s"hugepanda${time}.txt")
     val pRecorder = new PrintWriter(pRecordFile)
     val pCmdIter = getStatementsIter(props.getProperty("statementsFile"))
+    SelectNode.setPolicy(new EASY_ROUND)
     val pandaDriver = GraphDatabase.driver(s"panda://${props.getProperty("zkServerAddr")}/db",
       AuthTokens.basic("", ""))
-    fullTest(pRecordFile, pRecorder, pCmdIter, Array(s"panda://${props.getProperty("zkServerAddr")}/db", "", ""))
+//    fullTest(pRecordFile, pRecorder, pCmdIter, Array(s"panda://${props.getProperty("zkServerAddr")}/db", "", ""))
+    fullTest(pRecordFile, pRecorder, pCmdIter, pandaDriver)
   }
 
   def neo4jTest(time: Int): Map[String, StatementResult] = {
-    val nRecordFile = getRecordFile(s"neo4j${time}.txt")
+    val nRecordFile = getRecordFile(s"hugeneo4j${time}.txt")
     val nRecorder = new PrintWriter(nRecordFile)
     val nCmdIter = getStatementsIter(props.getProperty("statementsFile"))
-    val neo4jDriver = GraphDatabase.driver(props.getProperty("boltURI"),
-      AuthTokens.basic("neo4j", "bigdata"))
+//    val neo4jDriver = GraphDatabase.driver(props.getProperty("boltURI"),
+//      AuthTokens.basic("neo4j", "bigdata"))
     fullTest(nRecordFile, nRecorder, nCmdIter, Array(props.getProperty("boltURI"), "neo4j", "bigdata"))
   }
 }
