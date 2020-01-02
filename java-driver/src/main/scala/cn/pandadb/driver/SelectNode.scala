@@ -31,6 +31,7 @@ object SelectNode {
   val RONDOM_POLICY = 0
   val _POLICY = 1
   val robinArray = mutable.Map[NodeAddress, Long]()
+  private var policy: Strategy = null
 
   private def getWriteNode(clusterOperator: ClusterClient): NodeAddress = {
     clusterOperator.getWriteMasterNode()
@@ -71,9 +72,20 @@ object SelectNode {
   private def getNode(isWriteStatement: Boolean, clusterOperator: ClusterClient, strategy: Strategy): NodeAddress = {
     if (isWriteStatement) getWriteNode(clusterOperator) else getReadNode(clusterOperator, strategy)
   }
-
+  def setPolicy(strategy: Strategy): Unit = {
+    this.policy = strategy
+  }
+  def getPolicy(): String = {
+    this.policy match {
+      case RANDOM_PICK() => "RANDOM_PICK"
+      case DEFAULT_PICK() => "DEFAULT_PICK"
+      case ROBIN_ROUND() => "ROBIN_ROUND"
+      case _ => "policyDefault-RANDOM_PICK"
+    }
+  }
   def getDriver(isWriteStatement: Boolean, clusterOperator: ClusterClient): Driver = {
-    getDriver(isWriteStatement, clusterOperator, new ROBIN_ROUND)
+    if (this.policy ==null) this.policy = new RANDOM_PICK
+    getDriver(isWriteStatement, clusterOperator, this.policy)
   }
   def getDriver(isWriteStatement: Boolean, clusterOperator: ClusterClient, strategy: Strategy): Driver = {
     //val node = getNode(isWriteStatement, clusterOperator, new DEFAULT_PICK)
