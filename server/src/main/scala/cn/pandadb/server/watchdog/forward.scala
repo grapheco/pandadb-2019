@@ -9,7 +9,8 @@ import org.neo4j.bolt.runtime.{BoltResult, StatementMetadata, StatementProcessor
 import org.neo4j.bolt.v1.runtime.bookmarking.Bookmark
 import org.neo4j.cypher.result.QueryResult
 import org.neo4j.driver._
-import org.neo4j.driver.internal.value.{FloatValue, IntegerValue, NodeValue}
+import org.neo4j.driver.internal.util.Clock
+import org.neo4j.driver.internal.value._
 import org.neo4j.function.{ThrowingBiConsumer, ThrowingConsumer}
 import org.neo4j.graphdb.{Direction, GraphDatabaseService, Label, Node, Relationship, RelationshipType}
 import org.neo4j.kernel.impl.util.ValueUtils
@@ -21,13 +22,17 @@ import scala.collection.{JavaConversions, mutable}
 /**
   * Created by bluejoe on 2019/11/4.
   */
-class ForwardedStatementProcessor(source: StatementProcessor, spi: TransactionStateMachineSPI) extends StatementProcessor {
-  val session = {
+object ClientPool {
+  lazy val session = {
     val pandaString = s"panda://${MainServerContext.zkServerAddressStr}/db"
     val driver = GraphDatabase.driver(pandaString, AuthTokens.basic("", ""));
     driver.session();
   }
+}
 
+class ForwardedStatementProcessor(source: StatementProcessor, spi: TransactionStateMachineSPI) extends StatementProcessor {
+  val session = ClientPool.session
+  val clock = Clock.SYSTEM;
   var _currentTransaction: Transaction = null;
   var _currentStatementResult: StatementResult = null;
 
@@ -50,6 +55,7 @@ class ForwardedStatementProcessor(source: StatementProcessor, spi: TransactionSt
       }
     }
     params.foreach(myConsumer)
+
     val mapTrans = JavaConversions.mapAsJavaMap(paramMap)
     //extract metadata from _currentStatementResult.
     _currentTransaction = session.beginTransaction();
@@ -67,12 +73,15 @@ class ForwardedStatementProcessor(source: StatementProcessor, spi: TransactionSt
     override def fieldNames(): Array[String] = JavaConversions.collectionAsScalaIterable(result.keys()).toArray
 
     override def accept(visitor: Visitor): Unit = {
-      //visitor.addMetadata();
+      val start = clock.millis();
+
       val it = result.stream().iterator();
       while (it.hasNext) {
         val record = it.next();
         visitor.visit(new MyRecord(record));
       }
+
+      visitor.addMetadata("result_consumed_after", org.neo4j.values.storable.Values.longValue(clock.millis() - start));
     }
 
     override def close(): Unit = _currentTransaction.close()
@@ -84,10 +93,17 @@ class ForwardedStatementProcessor(source: StatementProcessor, spi: TransactionSt
         value: Value =>
           value match {
             //TODO: check different types of XxxValue, unpack and use ValueUtils to transform
-            case nodeValue: NodeValue => ValueUtils.asAnyValue(new MyDriverNodeToDbNode(nodeValue))
-            case intValue: IntegerValue => ValueUtils.asAnyValue(intValue.asInt())
-            case floatValue: FloatValue => ValueUtils.asAnyValue(floatValue.asFloat())
-            case _ => ValueUtils.asAnyValue(value.asObject())
+            case v: NodeValue => ValueUtils.asAnyValue(new MyDriverNodeToDbNode(v))
+            case v: org.neo4j.driver.internal.value.MapValue => ValueUtils.asAnyValue(v.asMap())
+            case v: ListValue => ValueUtils.asAnyValue(v.asList())
+            case v: IntegerValue => ValueUtils.asAnyValue(v.asLong())
+            case v: FloatValue => ValueUtils.asAnyValue(v.asDouble())
+            case v: BooleanValue => ValueUtils.asAnyValue(v.asBoolean())
+            case v: DateValue => ValueUtils.asAnyValue(v.asLocalDate())
+            case v: DateTimeValue => ValueUtils.asAnyValue(v.asLocalDateTime())
+            case v: StringValue => ValueUtils.asAnyValue(v.asString())
+            case _ =>
+              ValueUtils.asAnyValue(value.asObject())
           }
       }.toArray
     }
@@ -120,23 +136,23 @@ class ForwardedStatementProcessor(source: StatementProcessor, spi: TransactionSt
 
     override def delete(): Unit = {}
 
-    override def getRelationships: lang.Iterable[Relationship] = null
+    override def getRelationships: lang.Iterable[Relationship] = JavaConversions.asJavaIterable(None)
 
     override def hasRelationship: Boolean = false
 
-    override def getRelationships(types: RelationshipType*): lang.Iterable[Relationship] = null
+    override def getRelationships(types: RelationshipType*): lang.Iterable[Relationship] = JavaConversions.asJavaIterable(None)
 
-    override def getRelationships(direction: Direction, types: RelationshipType*): lang.Iterable[Relationship] = null
+    override def getRelationships(direction: Direction, types: RelationshipType*): lang.Iterable[Relationship] = JavaConversions.asJavaIterable(None)
 
     override def hasRelationship(types: RelationshipType*): Boolean = false
 
     override def hasRelationship(direction: Direction, types: RelationshipType*): Boolean = false
 
-    override def getRelationships(dir: Direction): lang.Iterable[Relationship] = null
+    override def getRelationships(dir: Direction): lang.Iterable[Relationship] = JavaConversions.asJavaIterable(None)
 
     override def hasRelationship(dir: Direction): Boolean = false
 
-    override def getRelationships(`type`: RelationshipType, dir: Direction): lang.Iterable[Relationship] = null
+    override def getRelationships(`type`: RelationshipType, dir: Direction): lang.Iterable[Relationship] = JavaConversions.asJavaIterable(None)
 
     override def hasRelationship(`type`: RelationshipType, dir: Direction): Boolean = false
 
@@ -144,7 +160,7 @@ class ForwardedStatementProcessor(source: StatementProcessor, spi: TransactionSt
 
     override def createRelationshipTo(otherNode: Node, `type`: RelationshipType): Relationship = null
 
-    override def getRelationshipTypes: lang.Iterable[RelationshipType] = null
+    override def getRelationshipTypes: lang.Iterable[RelationshipType] = JavaConversions.asJavaIterable(None)
 
     override def getDegree: Int = 0
 
@@ -168,19 +184,19 @@ class ForwardedStatementProcessor(source: StatementProcessor, spi: TransactionSt
 
     override def getGraphDatabase: GraphDatabaseService = null
 
-    override def hasProperty(key: String): Boolean = false
+    override def hasProperty(key: String): Boolean = driverNode.get(key) != null
 
-    override def getProperty(key: String): AnyRef = null
+    override def getProperty(key: String): AnyRef = driverNode.get(key).asObject()
 
-    override def getProperty(key: String, defaultValue: Any): AnyRef = null
+    override def getProperty(key: String, defaultValue: Any): AnyRef = driverNode.get(key, defaultValue)
 
     override def setProperty(key: String, value: Any): Unit = {}
 
     override def removeProperty(key: String): AnyRef = null
 
-    override def getPropertyKeys: lang.Iterable[String] = null
+    override def getPropertyKeys: lang.Iterable[String] = JavaConversions.asJavaIterable(None)
 
-    override def getProperties(keys: String*): util.Map[String, AnyRef] = null
+    override def getProperties(keys: String*): util.Map[String, AnyRef] = JavaConversions.mapAsJavaMap(Map())
 
     override def getAllProperties: util.Map[String, AnyRef] = driverNode.asEntity().asMap()
   }
