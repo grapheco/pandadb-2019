@@ -31,7 +31,11 @@ class ContextMap {
 }
 
 object GlobalContext extends ContextMap {
-  def setLeaderNode(f: Boolean): Unit = super.put("isLeaderNode", f);
+  def setLeaderNode(f: Boolean): Unit = super.put("isLeaderNode", f)
+
+  def setWatchDog(f: Boolean): Unit = super.put("isWatchDog", f)
+
+  def isWatchDog(): Boolean = super.getOption[Boolean]("isWatchDog").getOrElse(false)
 
   def isLeaderNode(): Boolean = super.getOption[Boolean]("isLeaderNode").getOrElse(false)
 }
