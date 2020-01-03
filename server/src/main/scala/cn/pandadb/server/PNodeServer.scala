@@ -86,16 +86,19 @@ class PNodeServer(dbDir: File, props: Map[String, String])
       JavaConversions.mapAsJavaMap(props + ("dbms.connector.bolt.listen_address" -> np.getAsString)));
 
     modules.start(pmc);
-    serverKernel.start({
-      //scalastyle:off
-      println(PNodeServer.logo);
+    //FIXME: watch dog is not a PNode
+    if (!GlobalContext.isWatchDog()) {
+      serverKernel.start({
+        //scalastyle:off
+        println(PNodeServer.logo);
 
-      if (_isUpToDate() == false) {
-        _updataLocalData()
-      }
-      _joinInLeaderSelection()
-      new ZKServiceRegistry(MainServerContext.zkServerAddressStr).registerAsOrdinaryNode(np)
-    });
+        if (_isUpToDate() == false) {
+          _updataLocalData()
+        }
+        _joinInLeaderSelection()
+        new ZKServiceRegistry(MainServerContext.zkServerAddressStr).registerAsOrdinaryNode(np)
+      })
+    }
   }
 
   def shutdown(): Unit = {
