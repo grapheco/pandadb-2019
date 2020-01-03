@@ -20,6 +20,8 @@
 package org.neo4j.bolt.v1.runtime;
 
 import cn.pandadb.server.internode.PNodeStatementProcessor;
+import cn.pandadb.server.watchdog.ForwardedStatementProcessor;
+import cn.pandadb.util.GlobalContext;
 import org.neo4j.bolt.runtime.BoltConnectionFatality;
 import org.neo4j.bolt.runtime.BoltStateMachineSPI;
 import org.neo4j.bolt.runtime.StateMachineContext;
@@ -40,7 +42,13 @@ public class BoltAuthenticationHelper {
             context.authenticatedAsUser(username, userAgent);
             StatementProcessor statementProcessor = new TransactionStateMachine(boltSpi.transactionSpi(), authResult, context.clock());
             //NOTE: pandadb
-            statementProcessor = new PNodeStatementProcessor(statementProcessor, boltSpi.transactionSpi());
+            //is watch dog
+            if(GlobalContext.isWatchDog()) {
+                statementProcessor = new ForwardedStatementProcessor(statementProcessor, boltSpi.transactionSpi());
+            }
+            else {
+                statementProcessor = new PNodeStatementProcessor(statementProcessor, boltSpi.transactionSpi());
+            }
             //NOTE
             context.connectionState().setStatementProcessor(statementProcessor);
             if (authResult.credentialsExpired()) {
