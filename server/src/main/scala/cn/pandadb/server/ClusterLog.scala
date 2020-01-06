@@ -1,6 +1,6 @@
 package cn.pandadb.server
 
-import java.io.{File, FileReader, FileWriter}
+import java.io._
 
 import com.google.gson.Gson
 
@@ -24,6 +24,7 @@ trait DataLogWriter {
 
 trait DataLogReader {
   def consume[T](consumer: (DataLogDetail) => T, sinceVersion: Int = -1): Iterable[T];
+  def getLastVersion(): Int;
 }
 
 class DataLog(arrayBuffer: ArrayBuffer[DataLogDetail]) {
@@ -31,14 +32,23 @@ class DataLog(arrayBuffer: ArrayBuffer[DataLogDetail]) {
 }
 
 class JsonDataLogRW(logFile: File) extends DataLogWriter with DataLogReader {
-  val gson = new Gson()
 
+  val _gson = new Gson()
+
+  val _bufferReader = new BufferedReader(new InputStreamReader(new FileInputStream(logFile)))
+
+  // should not has the dataLog.
   var dataLog: ArrayBuffer[DataLogDetail] = {
     if (logFile.length() == 0) {
       new ArrayBuffer[DataLogDetail]()
     } else {
-      val array = gson.fromJson(new FileReader(logFile), new DataLog(new ArrayBuffer[DataLogDetail]()).getClass)
-      new ArrayBuffer[DataLogDetail]() ++= array.dataLog
+      val _dalaLog = new ArrayBuffer[DataLogDetail]()
+      var line = _bufferReader.readLine()
+      while(line!=null) {
+        _dalaLog.append(_gson.fromJson(line, DataLogDetail.getClass))
+        line = _bufferReader.readLine()
+      }
+      _dalaLog
     }
   }
 
@@ -49,12 +59,20 @@ class JsonDataLogRW(logFile: File) extends DataLogWriter with DataLogReader {
 
   override def write(row: DataLogDetail): Unit = {
     dataLog.append(row)
-    val fileWriter = new FileWriter(logFile)
-    val logStr = gson.toJson(new DataLog(dataLog))
-    fileWriter.write(logStr)
-    fileWriter.flush();
-    fileWriter.close();
+    val _fileAppender = new FileWriter(logFile, true)
+    _fileAppender.append(s"${_gson.toJson(row)}\n");
+    _fileAppender.flush()
+    _fileAppender.close()
   }
+
+//  override def write(row: DataLogDetail): Unit = {
+//    dataLog.append(row)
+//    val fileWriter = new FileWriter(logFile)
+//    val logStr = gson.toJson(new DataLog(dataLog))
+//    fileWriter.write(logStr)
+//    fileWriter.flush();
+//    fileWriter.close();
+//  }
 
   override def getLastVersion(): Int = {
     if (dataLog.length == 0) {
