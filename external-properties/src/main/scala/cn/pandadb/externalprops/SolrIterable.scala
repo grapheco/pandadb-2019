@@ -44,6 +44,8 @@ class SolrQueryResultsIterator(_solrClient: CloudSolrClient, solrQuery: SolrQuer
 
   val mySolrQuery = solrQuery.getCopy();
 
+  var currentData : Iterable[NodeWithProperties] = _
+
   readNextPage();
 
   def doc2Node(doc : SolrDocument): NodeWithProperties = {
@@ -72,6 +74,10 @@ class SolrQueryResultsIterator(_solrClient: CloudSolrClient, solrQuery: SolrQuer
 
       val rows = docs.map {doc2Node};
 
+      currentData = null
+
+      currentData = rows
+
       rowIteratorWithinCurrentPage = rows.iterator();
 
       true;
@@ -99,6 +105,10 @@ class SolrQueryResultsIterator(_solrClient: CloudSolrClient, solrQuery: SolrQuer
     }
     rowIteratorWithinCurrentPage.next()
 
+  }
+
+  def getCurrentData(): Iterable[NodeWithProperties] = {
+    this.currentData
   }
 
 }
