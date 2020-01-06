@@ -110,7 +110,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
 
   def getRecorderSize: Int = {
     val query = "*:*"
-    _solrClient.query(new SolrQuery().setQuery(query)).getResults().size()
+    _solrClient.query(new SolrQuery().setQuery(query)).getResults().getNumFound.toInt
   }
 
   def addNodes(docsToAdded: Iterable[NodeWithProperties]): Unit = {
