@@ -228,14 +228,8 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     }
     val query = new SolrQuery()
     query.setQuery(q.get)
-    query.setRows(SolrUtil.max_rows)
-    val res = _solrClient.query(query).getResults
-    res.foreach(
-      x => {
-        nodeArray += SolrUtil.solrDoc2nodeWithProperties(x.asInstanceOf[SolrDocument])
-      }
-    )
-    nodeArray
+    val res = new SolrQueryResults(_solrClient, query)
+    res.getAllResults()
   }
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
