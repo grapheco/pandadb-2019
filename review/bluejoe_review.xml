@@ -9,6 +9,7 @@
       <user displayName="Airzihao" login="Airzihao" roles="reviewer"/>
       <user displayName="bluejoe" login="bluejoe" roles="admin,reviewer,author"/>
       <user displayName="excelwang" login="excelwang" roles="reviewer"/>
+      <user displayName="codeBaby" login="codeBaby" roles="reviewer"/>
     </users>
   </referential>
   <filescope pathPattern="file[*]:*//*"/>
