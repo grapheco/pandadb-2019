@@ -63,7 +63,7 @@ object SolrUtil {
         Values.doubleArray(value.map(_.asInstanceOf[Double]).toArray)
       case s8: java.lang.Float =>
         Values.floatArray(value.map(_.asInstanceOf[Float]).toArray)
-      case s9: _ => null
+      case _ => null
     }
   }
 
