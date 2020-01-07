@@ -105,7 +105,7 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
 
   }
 
-  def getNodeBylabelAndfilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
+  def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
     //val propName = SolrUtil.labelName
     //filterNodes(NFAnd(NFContainsWith(propName, label), expr))
     getNodesByLabel(label).toSet & filterNodes(expr).toSet
