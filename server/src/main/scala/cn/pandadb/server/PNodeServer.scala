@@ -7,7 +7,7 @@ import java.util.{Optional, Properties}
 import cn.pandadb.blob.BlobStorageModule
 import cn.pandadb.cypherplus.CypherPlusModule
 import cn.pandadb.externalprops.ExternalPropertiesModule
-import cn.pandadb.network.{ZKPathConfig, ZookeeperBasedClusterClient}
+import cn.pandadb.network.{NodeAddress, ZKPathConfig, ZookeeperBasedClusterClient}
 import cn.pandadb.server.internode.InterNodeRequestHandler
 import cn.pandadb.server.neo4j.Neo4jRequestHandler
 import cn.pandadb.server.rpc.{NettyRpcServer, PNodeRpcClient}
@@ -150,7 +150,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
   // todo: Iterable[]
   private def _getRemoteLogs(): Array[DataLogDetail] = {
     val lastFreshNodeIP = clusterClient.getFreshNodeIp()
-    val rpcClient = PNodeRpcClient.connect(lastFreshNodeIP)
+    val rpcClient = PNodeRpcClient.connect(NodeAddress.fromString(lastFreshNodeIP))
     rpcClient.getRemoteLogs(dataLogRW.getLastVersion())
   }
 }
