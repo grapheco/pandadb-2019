@@ -8,12 +8,15 @@ case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends P
 
   protected def internalCreateResults(state: QueryState): Iterator[ExecutionContext] = {
     val baseContext = state.newExecutionContext(executionContextFactory)
-    var nodes: Iterator[NodeValue] = null
+    var nodesOption: Option[Iterator[NodeValue]] = None
     if (nodeStore.isDefined && predicate.isDefined && fatherPipe != null) {
-      nodes = fetchNodes(state, baseContext)
+      nodesOption = fetchNodes(state, baseContext)
     }
-    if (nodes==null) {
-      nodes = state.query.nodeOps.all
+    val nodes: Iterator[NodeValue] = nodesOption match {
+      case Some(x) =>
+        x
+      case None =>
+        state.query.nodeOps.all
     }
     nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
   }
