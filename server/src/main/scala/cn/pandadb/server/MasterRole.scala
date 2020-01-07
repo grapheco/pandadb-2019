@@ -140,21 +140,3 @@ class MasterRole(zkClusterClient: ZookeeperBasedClusterClient, localAddress: Nod
       .forPath(ZKPathConfig.freshNodePath + s"/" + curFreshNodeRpc)
   }
 }
-
-// In future, use this class to do multi threads write operation.
-case class DriverWriteThread(driver: Driver, cypher: String) extends Thread {
-
-  override def run(): Unit = {
-    val session = driver.session()
-    val tx = session.beginTransaction()
-    try {
-      tx.run(cypher)
-      tx.success()
-      tx.close()
-      session.close()
-    } catch {
-      case e: Exception =>
-        throw new Exception("Write cluster operation failed.")
-    }
-  }
-}
