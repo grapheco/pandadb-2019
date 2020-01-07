@@ -28,7 +28,7 @@ object MainServerContext extends ContextMap {
     super.put[MasterRole](role);
   }
 
-  def bindDataLogRedaerWriter(logReader: DataLogReader, logWriter: DataLogWriter): Unit = {
+  def bindDataLogReaderWriter(logReader: DataLogReader, logWriter: DataLogWriter): Unit = {
     super.put[DataLogReader](logReader)
     super.put[DataLogWriter](logWriter)
   }
