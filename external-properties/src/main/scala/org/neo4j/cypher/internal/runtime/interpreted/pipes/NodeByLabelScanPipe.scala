@@ -31,12 +31,15 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
     label.getOptId(state.query) match {
       case Some(labelId) =>
         val baseContext = state.newExecutionContext(executionContextFactory)
-        var nodes: Iterator[NodeValue] = null
+        var nodesOption: Option[Iterator[NodeValue]] = None
         if (nodeStore.isDefined && fatherPipe != null) {
-          nodes = fetchNodes(state, baseContext)
+          nodesOption = fetchNodes(state, baseContext)
         }
-        if (nodes == null) {
-          nodes = state.query.getNodesByLabel(labelId.id)
+        val nodes: Iterator[NodeValue] = nodesOption match {
+          case Some(x) =>
+            x
+          case None =>
+            state.query.getNodesByLabel(labelId.id)
         }
         nodes.map(n => executionContextFactory.copyWith(baseContext, ident, n))
       case None =>
