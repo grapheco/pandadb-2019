@@ -82,6 +82,7 @@ class ForwardedStatementProcessor(source: StatementProcessor, spi: TransactionSt
       }
 
       visitor.addMetadata("result_consumed_after", org.neo4j.values.storable.Values.longValue(clock.millis() - start));
+      //query_type?
     }
 
     override def close(): Unit = _currentTransaction.close()
