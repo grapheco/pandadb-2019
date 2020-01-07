@@ -13,14 +13,86 @@
   </referential>
   <filescope pathPattern="file[*]:*//*"/>
   <issues>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="case s: java.lang.String =&gt; ..." vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" lineStart="55" lineEnd="55" hash="1651335798" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:15:12 +0800" lastUpdatedOn="2020-01-07 11:15:12 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="max_row-&gt;maxRows" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" lineStart="22" lineEnd="22" hash="1790974251" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:15:41 +0800" lastUpdatedOn="2020-01-07 11:15:41 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="use conf instead of constant" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367253670" lineStart="86" lineEnd="86" hash="432126371" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:20:53 +0800" lastUpdatedOn="2020-01-07 11:20:53 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="never used?" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367336505" lineStart="199" lineEnd="199" hash="-766450570" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:22:16 +0800" lastUpdatedOn="2020-01-07 11:22:16 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="Andfilter-&gt;AndFilter" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367354694" lineStart="231" lineEnd="231" hash="1256862274" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:22:34 +0800" lastUpdatedOn="2020-01-07 11:22:34 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="value.replaceAll(&quot;[\[|\]]&quot;,&quot;&quot;) ?" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367540573" lineStart="24" lineEnd="24" hash="1960328686" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:25:40 +0800" lastUpdatedOn="2020-01-07 11:25:40 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="not used?" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367574067" lineStart="24" lineEnd="24" hash="1960328686" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:26:14 +0800" lastUpdatedOn="2020-01-07 11:26:14 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="unused class?" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="14" lineEnd="14" hash="-554672489" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:05:55 +0800" lastUpdatedOn="2020-01-07 11:05:55 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="use scala.Iterable" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="18" lineEnd="18" hash="-1895940304" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:06:59 +0800" lastUpdatedOn="2020-01-07 11:06:59 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="remove this unsafe method" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="22" lineEnd="22" hash="-2019580792" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:08:35 +0800" lastUpdatedOn="2020-01-07 11:08:35 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="remove blank lines" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="55" lineEnd="55" hash="0" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:10:38 +0800" lastUpdatedOn="2020-01-07 11:10:38 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="private?" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="50" lineEnd="50" hash="-1798364634" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:11:52 +0800" lastUpdatedOn="2020-01-07 11:11:52 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/org/neo4j/cypher/internal/runtime/interpreted/pipes/PredicatePushDownPipe.scala" summary="returns Iterable[]" vcsRev="59480af0d1dd323122daeaa68a216c131472793b" lineStart="75" lineEnd="75" hash="138593889" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:31:05 +0800" lastUpdatedOn="2020-01-07 11:31:05 +0800"/>
+    </issue>
+    <issue filePath="external-properties/src/main/scala/org/neo4j/cypher/internal/runtime/interpreted/pipes/PredicatePushDownPipe.scala" summary="do not return null, return None" vcsRev="59480af0d1dd323122daeaa68a216c131472793b" lineStart="93" lineEnd="93" hash="-2111841913" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:31:26 +0800" lastUpdatedOn="2020-01-07 11:31:26 +0800"/>
+    </issue>
     <issue filePath="network-commons/src/main/scala/cn/pandadb/network/net.scala" summary="getAsStr() --&gt; getAsString" vcsRev="342ce04b6d9af02a8b7c923f971af6a7f7752fed" localRev="1576837237706" lineStart="11" lineEnd="11" hash="-1197482572" status="closed" assignees="Airzihao">
       <history createdBy="bluejoe" lastUpdatedBy="Airzihao" createdOn="2019-12-20 18:20:37 +0800" lastUpdatedOn="2019-12-20 20:23:33 +0800"/>
       <notes>
         <note createdBy="Airzihao" createdOn="2019-12-20 20:23:02 +0800">Solved.</note>
       </notes>
     </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/MasterRole.scala" summary="not used?!" vcsRev="6c866b463af115d9afcc73286bf37833e08cd3d2" lineStart="144" lineEnd="144" hash="500154046" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:04:32 +0800" lastUpdatedOn="2020-01-07 11:04:32 +0800"/>
+    </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="JsonDataLogRW.open(...) returns this object" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="65" lineEnd="65" hash="536156521" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:51:12 +0800" lastUpdatedOn="2020-01-07 10:51:12 +0800"/>
+    </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="Arr--&gt;Array" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="133" lineEnd="133" hash="-1419282103" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:53:43 +0800" lastUpdatedOn="2020-01-07 10:53:43 +0800"/>
+    </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="use Iteratable[] instead of Array[DataLogDetail]" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="149" lineEnd="149" hash="891907031" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:54:36 +0800" lastUpdatedOn="2020-01-07 10:54:36 +0800"/>
+    </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="updata-&gt;update" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="131" lineEnd="131" hash="1463200172" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:56:22 +0800" lastUpdatedOn="2020-01-07 10:56:22 +0800"/>
+    </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="s&quot;bolt://${np.getAsString}&quot;" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="135" lineEnd="135" hash="-1945521793" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:56:51 +0800" lastUpdatedOn="2020-01-07 10:56:51 +0800"/>
+    </issue>
     <issue filePath="server/src/main/scala/cn/pandadb/server/ServiceRegistry.scala" summary="use NodeAddress as parameter" vcsRev="342ce04b6d9af02a8b7c923f971af6a7f7752fed" lineStart="61" lineEnd="61" hash="-238245066" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2019-12-20 18:40:27 +0800" lastUpdatedOn="2019-12-20 18:40:27 +0800"/>
+    </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/ServiceRegistry.scala" summary="registry() is only used by ZKServiceRegistry? if so, the ServiceRegistry trait looks unused" vcsRev="6d17d181a76886c222ff576f05ff0e969ebb8d0a" lineStart="9" lineEnd="9" hash="2127449910" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:01:24 +0800" lastUpdatedOn="2020-01-07 11:01:24 +0800"/>
+    </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/module.scala" summary="zkAddrStr--&gt;zkAddressString" vcsRev="2e293f7028a34589166938269fba9681b1fa797b" localRev="1578366228076" lineStart="35" lineEnd="35" hash="1683588432" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:03:48 +0800" lastUpdatedOn="2020-01-07 11:03:48 +0800"/>
+    </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/rpc/NettyRpcClient.scala" summary="move rpcEnv inside PNodeRpcClient class body" vcsRev="de75c5dd53613ae4bf2b3c3cfbce9b6ec245a642" lineStart="23" lineEnd="23" hash="-52249983" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:46:43 +0800" lastUpdatedOn="2020-01-07 10:46:43 +0800"/>
+    </issue>
+    <issue filePath="server/src/main/scala/cn/pandadb/server/rpc/NettyRpcClient.scala" summary="no retrying" vcsRev="de75c5dd53613ae4bf2b3c3cfbce9b6ec245a642" lineStart="25" lineEnd="26" hash="-1420938367" status="to_resolve">
+      <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:50:04 +0800" lastUpdatedOn="2020-01-07 10:50:04 +0800"/>
     </issue>
     <issue summary="rename PPDPipe to a long name" vcsRev="8754c90154d4c1d9379bdcb4fb23d74f38b69b4c" lineStart="-1" lineEnd="-1" hash="1496523782" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2019-12-20 17:14:12 +0800" lastUpdatedOn="2019-12-20 17:14:12 +0800"/>
