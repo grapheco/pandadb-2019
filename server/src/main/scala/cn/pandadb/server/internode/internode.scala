@@ -10,7 +10,7 @@ import cn.pandadb.server.{DataLogDetail, MainServerContext}
 case class InterNodeRequestHandler() extends RequestHandler {
   override val logic: PartialFunction[InternalRpcRequest, InternalRpcResponse] = {
     case GetLogDetailsRequest(sinceVersion: Int) =>
-      GetLogDetailsResponse(MainServerContext.dataLogReader.consume(logItem => logItem, sinceVersion).toArray)
+      GetLogDetailsResponse(MainServerContext.dataLogReader.consume(logItem => logItem, sinceVersion))
   }
 }
 
@@ -18,6 +18,6 @@ case class GetLogDetailsRequest(sinceVersion: Int) extends InternalRpcRequest {
 
 }
 
-case class GetLogDetailsResponse(logs: Array[DataLogDetail]) extends InternalRpcResponse {
+case class GetLogDetailsResponse(logs: Iterable[DataLogDetail]) extends InternalRpcResponse {
 
 }

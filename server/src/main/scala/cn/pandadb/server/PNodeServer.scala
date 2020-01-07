@@ -148,7 +148,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
   }
 
   // todo: Iterable[]
-  private def _getRemoteLogs(): Array[DataLogDetail] = {
+  private def _getRemoteLogs(): Iterable[DataLogDetail] = {
     val lastFreshNodeIP = clusterClient.getFreshNodeIp()
     val rpcClient = PNodeRpcClient.connect(NodeAddress.fromString(lastFreshNodeIP))
     rpcClient.getRemoteLogs(dataLogRW.getLastVersion())
