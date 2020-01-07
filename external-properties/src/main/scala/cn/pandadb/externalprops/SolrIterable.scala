@@ -12,11 +12,7 @@ import scala.collection.JavaConversions.seqAsJavaList
 import scala.collection.immutable.Map
 import scala.collection.mutable.ArrayBuffer
 
-class SolrIterable {
-
-}
-
-class SolrQueryResults(_solrClient: CloudSolrClient, solrQuery: SolrQuery, pageSize: Int = 20) extends java.lang.Iterable[NodeWithProperties] {
+class SolrQueryResults(_solrClient: CloudSolrClient, solrQuery: SolrQuery, pageSize: Int = 20) {
 
   def iterator(): SolrQueryResultsIterator = new SolrQueryResultsIterator(_solrClient, solrQuery, pageSize)
 
@@ -34,13 +30,13 @@ class SolrQueryResults(_solrClient: CloudSolrClient, solrQuery: SolrQuery, pageS
 }
 
 class SolrQueryResultsIterator(_solrClient: CloudSolrClient, solrQuery: SolrQuery, pageSize: Int = 20)
-  extends java.util.Iterator[NodeWithProperties] {
+  extends Iterator[NodeWithProperties] {
 
   var startOfCurrentPage = 0;
   var rowIteratorWithinCurrentPage: java.util.Iterator[NodeWithProperties] = null;
   var totalCountOfRows = -1L;
   val mySolrQuery = solrQuery.getCopy();
-  var currentData : Iterable[NodeWithProperties] = _
+  private var currentData : Iterable[NodeWithProperties] = _
   readNextPage();
 
   def doc2Node(doc : SolrDocument): NodeWithProperties = {
