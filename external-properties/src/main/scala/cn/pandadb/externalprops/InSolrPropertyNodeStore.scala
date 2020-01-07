@@ -22,14 +22,6 @@ object SolrUtil {
   val dateType = "time"
   val maxRows = 50000000
 
-  def removeBrackets(value: String): String = {
-    var tempStr = value
-    var retStr: String = null
-    if (value.contains("[")) tempStr = value.replace("[", "")
-    if (tempStr.contains("]")) retStr = tempStr.replace("]", "")
-    retStr
-  }
-
   def solrDoc2nodeWithProperties(doc: SolrDocument): NodeWithProperties = {
     val props = mutable.Map[String, Value]()
     val id = doc.get(idName)
@@ -51,27 +43,27 @@ object SolrUtil {
   }
 
   def getValueFromArray(value: ArrayBuffer[AnyRef]): Value = {
-    val typeName = value.head.getClass.getTypeName
-    typeName match {
-      case "java.lang.String" =>
+    val typeObj = value.head
+    typeObj match {
+      case s1: java.lang.String =>
         val strArr = value.map(_.toString).toArray
         val result = Values.stringArray(strArr: _*)
         result
-      case "java.lang.Boolean" =>
+      case s2: java.lang.Boolean =>
         Values.booleanArray(value.map(_.asInstanceOf[Boolean]).toArray)
-      case "java.lang.Long" =>
+      case s3: java.lang.Long =>
         Values.longArray(value.map(_.asInstanceOf[Long]).toArray)
-      case "java.lang.Byte" =>
+      case s4: java.lang.Byte =>
         Values.byteArray(value.map(_.asInstanceOf[Byte]).toArray)
-      case "java.lang.Short" =>
+      case s5: java.lang.Short =>
         Values.shortArray(value.map(_.asInstanceOf[Short]).toArray)
-      case "java.lang.Integer" =>
+      case s6: java.lang.Integer =>
         Values.intArray(value.map(_.asInstanceOf[Int]).toArray)
-      case "java.lang.Double" =>
+      case s7: java.lang.Double =>
         Values.doubleArray(value.map(_.asInstanceOf[Double]).toArray)
-      case "java.lang.Float" =>
+      case s8: java.lang.Float =>
         Values.floatArray(value.map(_.asInstanceOf[Float]).toArray)
-      case _ => null
+      case s9: _ => null
     }
   }
 
@@ -197,7 +189,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
   }
 
   override def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
-    val nodeArray = ArrayBuffer[NodeWithProperties]()
+
     var q: Option[String] = None;
     expr match {
       case expr: NFAnd =>
@@ -229,7 +221,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     filterNodes(NFContainsWith(propName, label))
   }
 
-  def getNodeBylabelAndfilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
+  def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
     val propName = SolrUtil.labelName
     filterNodes(NFAnd(NFContainsWith(propName, label), expr))
   }
