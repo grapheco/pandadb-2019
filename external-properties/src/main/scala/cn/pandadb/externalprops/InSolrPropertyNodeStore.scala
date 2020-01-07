@@ -20,7 +20,7 @@ object SolrUtil {
   val tik = "id,labels,_version_"
   val arrayName = "Array"
   val dateType = "time"
-  val max_rows = 50000000
+  val maxRows = 50000000
 
   def removeBrackets(value: String): String = {
     var tempStr = value
