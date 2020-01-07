@@ -40,7 +40,7 @@ case class PNodeRpcClient(val remoteAddress: NodeAddress) extends Logging {
     rpcEnv.stop(endPointRef)
   }
 
-  def getRemoteLogs(sinceVersion: Int): Array[DataLogDetail] = {
+  def getRemoteLogs(sinceVersion: Int): Iterable[DataLogDetail] = {
     val response: GetLogDetailsResponse = Await.result(endPointRef.ask[GetLogDetailsResponse](GetLogDetailsRequest(sinceVersion)), Duration.Inf)
     response.logs
   }
