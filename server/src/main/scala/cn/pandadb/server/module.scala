@@ -33,7 +33,7 @@ object MainServerContext extends ContextMap {
     super.put[DataLogWriter](logWriter)
   }
 
-  def bindZKServerAddressStr(zkAddrStr: String): Unit = put("zookeeper.address", zkAddrStr)
+  def bindZKServerAddressStr(zkAddressString: String): Unit = put("zookeeper.address", zkAddressString)
 
   def dataLogWriter: DataLogWriter = super.get[DataLogWriter]
 

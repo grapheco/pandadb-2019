@@ -93,7 +93,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
         println(PNodeServer.logo);
 
         if (_isUpToDate() == false) {
-          _updataLocalData()
+          _updateLocalData()
         }
         _joinInLeaderSelection()
         new ZKServiceRegistry(MainServerContext.zkServerAddressStr).registerAsOrdinaryNode(np)
@@ -129,13 +129,13 @@ class PNodeServer(dbDir: File, props: Map[String, String])
   }
 
   //FIXME: updata->update
-  private def _updataLocalData(): Unit = {
+  private def _updateLocalData(): Unit = {
     // if can't get now, wait here.
-    val cypherArr = _getRemoteLogs()
+    val cypherArray = _getRemoteLogs()
 
-    val localDriver = GraphDatabase.driver(s"bolt://" + np.getAsString)
+    val localDriver = GraphDatabase.driver(s"bolt://${np.getAsString}")
     val session = localDriver.session()
-    cypherArr.foreach(logItem => {
+    cypherArray.foreach(logItem => {
       val tx = session.beginTransaction()
       try {
         val localPreVersion = dataLogRW.getLastVersion()
@@ -147,6 +147,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
     })
   }
 
+  // todo: Iterable[]
   private def _getRemoteLogs(): Array[DataLogDetail] = {
     val lastFreshNodeIP = clusterClient.getFreshNodeIp()
     val rpcClient = PNodeRpcClient.connect(lastFreshNodeIP)

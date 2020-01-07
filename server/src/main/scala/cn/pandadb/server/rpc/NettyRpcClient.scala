@@ -12,12 +12,13 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 
 object PNodeRpcClient {
+
   val rpcEnv: RpcEnv = {
     val rpcConf = new RpcConf()
     val config = RpcEnvClientConfig(rpcConf, "PNodeRpc-client")
     NettyRpcEnvFactory.create(config)
   }
-
+  
   // if can't connect, wait for it
   def connect(remoteAddress: NodeAddress): PNodeRpcClient = {
     try {
@@ -36,6 +37,7 @@ object PNodeRpcClient {
 }
 
 case class PNodeRpcClient(rpcEnv: RpcEnv, val remoteAddress: NodeAddress) extends Logging {
+
   val endPointRef = {
     val rpcConf = new RpcConf()
     val config = RpcEnvClientConfig(rpcConf, "PNodeRpc-client")
