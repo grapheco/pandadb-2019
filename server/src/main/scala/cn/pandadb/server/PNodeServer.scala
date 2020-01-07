@@ -72,7 +72,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
     new JsonDataLogRW(logFile)
   }
 
-  MainServerContext.bindDataLogRedaerWriter(dataLogRW, dataLogRW)
+  MainServerContext.bindDataLogReaderWriter(dataLogRW, dataLogRW)
   val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(MainServerContext.zkServerAddressStr)
 
   def start(): Unit = {

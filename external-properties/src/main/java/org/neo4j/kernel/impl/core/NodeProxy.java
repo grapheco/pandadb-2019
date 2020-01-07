@@ -393,8 +393,8 @@ public class NodeProxy implements Node, RelationshipFactory<Relationship>
         // NOTE: pandadb
         try
         {
-            Operations.CustomPropertyWriteTransactionFacade tmpTx = ((Operations)transaction.dataWrite()
-            ).customPropWriteTx();
+            Operations.CustomPropertyWriteTransactionFacade tmpTx =
+                    ((Operations)transaction.dataWrite()).customPropWriteTx();
             if (tmpTx.isPreventNeo4jPropStore()) {
                 for ( int i = 0; i < itemsToReturn; i++ )
                 {

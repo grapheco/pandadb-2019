@@ -77,14 +77,6 @@ object SolrUtil {
 
 }
 
-class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
-  override def create(conf: Configuration): CustomPropertyNodeStore =
-    new InSolrPropertyNodeStore(
-      conf.getRequiredValueAsString("external.properties.store.solr.zk"),
-      conf.getRequiredValueAsString("external.properties.store.solr.collection")
-    )
-}
-
 /**
   * Created by bluejoe on 2019/10/7.
   */
