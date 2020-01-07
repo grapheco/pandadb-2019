@@ -19,13 +19,13 @@
     <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="max_row-&gt;maxRows" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" lineStart="22" lineEnd="22" hash="1790974251" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:15:41 +0800" lastUpdatedOn="2020-01-07 11:15:41 +0800"/>
     </issue>
-    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="use conf instead of constant" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367253670" lineStart="86" lineEnd="86" hash="432126371" status="to_resolve">
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="use conf instead of constant" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367253670" lineStart="85" lineEnd="85" hash="432126371" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:20:53 +0800" lastUpdatedOn="2020-01-07 11:20:53 +0800"/>
     </issue>
-    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="never used?" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367336505" lineStart="199" lineEnd="199" hash="-766450570" status="to_resolve">
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="never used?" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367336505" lineStart="198" lineEnd="198" hash="-766450570" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:22:16 +0800" lastUpdatedOn="2020-01-07 11:22:16 +0800"/>
     </issue>
-    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="Andfilter-&gt;AndFilter" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367354694" lineStart="231" lineEnd="231" hash="1256862274" status="to_resolve">
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="Andfilter-&gt;AndFilter" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367354694" lineStart="230" lineEnd="230" hash="1256862274" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:22:34 +0800" lastUpdatedOn="2020-01-07 11:22:34 +0800"/>
     </issue>
     <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/InSolrPropertyNodeStore.scala" summary="value.replaceAll(&quot;[\[|\]]&quot;,&quot;&quot;) ?" vcsRev="195ef1c54da674be27de038d5ab94344ab5da059" localRev="1578367540573" lineStart="24" lineEnd="24" hash="1960328686" status="to_resolve">
@@ -37,16 +37,16 @@
     <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="unused class?" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="14" lineEnd="14" hash="-554672489" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:05:55 +0800" lastUpdatedOn="2020-01-07 11:05:55 +0800"/>
     </issue>
-    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="use scala.Iterable" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="18" lineEnd="18" hash="-1895940304" status="to_resolve">
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="use scala.Iterable" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="9" lineEnd="9" hash="-1895940304" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:06:59 +0800" lastUpdatedOn="2020-01-07 11:06:59 +0800"/>
     </issue>
-    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="remove this unsafe method" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="22" lineEnd="22" hash="-2019580792" status="to_resolve">
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="remove this unsafe method" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="12" lineEnd="12" hash="-2019580792" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:08:35 +0800" lastUpdatedOn="2020-01-07 11:08:35 +0800"/>
     </issue>
-    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="remove blank lines" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="55" lineEnd="55" hash="0" status="to_resolve">
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="remove blank lines" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="45" lineEnd="45" hash="0" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:10:38 +0800" lastUpdatedOn="2020-01-07 11:10:38 +0800"/>
     </issue>
-    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="private?" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="50" lineEnd="50" hash="-1798364634" status="to_resolve">
+    <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="private?" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="40" lineEnd="40" hash="-1798364634" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:11:52 +0800" lastUpdatedOn="2020-01-07 11:11:52 +0800"/>
     </issue>
     <issue filePath="external-properties/src/main/scala/org/neo4j/cypher/internal/runtime/interpreted/pipes/PredicatePushDownPipe.scala" summary="returns Iterable[]" vcsRev="59480af0d1dd323122daeaa68a216c131472793b" lineStart="75" lineEnd="75" hash="138593889" status="to_resolve">
@@ -91,10 +91,10 @@
     <issue filePath="server/src/main/scala/cn/pandadb/server/module.scala" summary="zkAddrStr--&gt;zkAddressString" vcsRev="2e293f7028a34589166938269fba9681b1fa797b" localRev="1578366228076" lineStart="35" lineEnd="35" hash="1683588432" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:03:48 +0800" lastUpdatedOn="2020-01-07 11:03:48 +0800"/>
     </issue>
-    <issue filePath="server/src/main/scala/cn/pandadb/server/rpc/NettyRpcClient.scala" summary="move rpcEnv inside PNodeRpcClient class body" vcsRev="de75c5dd53613ae4bf2b3c3cfbce9b6ec245a642" lineStart="24" lineEnd="24" hash="-52249983" status="to_resolve">
+    <issue filePath="server/src/main/scala/cn/pandadb/server/rpc/NettyRpcClient.scala" summary="move rpcEnv inside PNodeRpcClient class body" vcsRev="de75c5dd53613ae4bf2b3c3cfbce9b6ec245a642" lineStart="18" lineEnd="18" hash="-52249983" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:46:43 +0800" lastUpdatedOn="2020-01-07 10:46:43 +0800"/>
     </issue>
-    <issue filePath="server/src/main/scala/cn/pandadb/server/rpc/NettyRpcClient.scala" summary="no retrying" vcsRev="de75c5dd53613ae4bf2b3c3cfbce9b6ec245a642" lineStart="26" lineEnd="26" hash="-1420938367" status="to_resolve">
+    <issue filePath="server/src/main/scala/cn/pandadb/server/rpc/NettyRpcClient.scala" summary="no retrying" vcsRev="de75c5dd53613ae4bf2b3c3cfbce9b6ec245a642" lineStart="20" lineEnd="20" hash="-1420938367" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="Airzihao" createdOn="2020-01-07 10:50:04 +0800" lastUpdatedOn="2020-01-07 13:21:53 +0800"/>
       <desc>if cannot create a new Client, will reinvoke itself</desc>
     </issue>

@@ -14,16 +14,16 @@ object ClusterLogTest {
   val testdataPath: String = "./src/test/testdata/";
   val logFilePath: String = "./src/test/testdata/datalog.json"
   val logFile = new File(logFilePath)
-  @BeforeClass
-  def prepareLogFile(): Unit = {
-    if (logFile.exists()) {
-      logFile.delete()
-      logFile.createNewFile()
-    } else {
-      new File(testdataPath).mkdirs()
-      logFile.createNewFile()
-    }
-  }
+//  @BeforeClass
+//  def prepareLogFile(): Unit = {
+//    if (logFile.exists()) {
+//      logFile.delete()
+//      logFile.createNewFile()
+//    } else {
+//      new File(testdataPath).mkdirs()
+//      logFile.createNewFile()
+//    }
+//  }
 }
 
 class ClusterLogTest {
