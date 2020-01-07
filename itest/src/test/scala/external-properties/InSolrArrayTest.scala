@@ -6,8 +6,8 @@ import java.io.{File, FileInputStream}
 import java.util.Properties
 
 import cn.pandadb.externalprops._
-import cn.pandadb.server.{PNodeServer}
-
+import cn.pandadb.server.PNodeServer
+import cn.pandadb.util.GlobalContext
 import org.junit.{After, Assert, Before, Test}
 import org.neo4j.driver.{AuthTokens, GraphDatabase, Transaction, TransactionWork}
 import org.neo4j.graphdb.GraphDatabaseService
@@ -44,6 +44,7 @@ trait QueryTestBase {
         val solrNodeStore = new InSolrPropertyNodeStore(zkString, collectionName)
         solrNodeStore.clearAll()
         ExternalPropertiesContext.bindCustomPropertyNodeStore(solrNodeStore)
+        GlobalContext.setLeaderNode(true)
     }
   }
 
