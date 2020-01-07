@@ -22,7 +22,7 @@ class SolrQueryResults(_solrClient: CloudSolrClient, solrQuery: SolrQuery, pageS
 
   def getAllResults(): Iterable[NodeWithProperties] = {
     val nodeArray = ArrayBuffer[NodeWithProperties]()
-    solrQuery.setRows(SolrUtil.max_rows)
+    solrQuery.setRows(SolrUtil.maxRows)
     val res = _solrClient.query(solrQuery).getResults
     res.foreach(
       x => {
@@ -37,15 +37,10 @@ class SolrQueryResultsIterator(_solrClient: CloudSolrClient, solrQuery: SolrQuer
   extends java.util.Iterator[NodeWithProperties] {
 
   var startOfCurrentPage = 0;
-
   var rowIteratorWithinCurrentPage: java.util.Iterator[NodeWithProperties] = null;
-
   var totalCountOfRows = -1L;
-
   val mySolrQuery = solrQuery.getCopy();
-
   var currentData : Iterable[NodeWithProperties] = _
-
   readNextPage();
 
   def doc2Node(doc : SolrDocument): NodeWithProperties = {
@@ -55,41 +50,23 @@ class SolrQueryResultsIterator(_solrClient: CloudSolrClient, solrQuery: SolrQuer
   def readNextPage(): Boolean = {
 
     if (totalCountOfRows < 0 || startOfCurrentPage < totalCountOfRows) {
-
       mySolrQuery.set("start", startOfCurrentPage);
-
       mySolrQuery.set("rows", pageSize);
-
       startOfCurrentPage += pageSize;
-
       //logger.debug(s"executing solr query: $mySolrQuery");
-
       val rsp = _solrClient.query(mySolrQuery);
-
       val docs = rsp.getResults();
-
       totalCountOfRows = docs.getNumFound();
-
       //logger.debug(s"numFound: $totalCountOfRows");
-
       val rows = docs.map {doc2Node};
-
       currentData = null
-
       currentData = rows
-
       rowIteratorWithinCurrentPage = rows.iterator();
-
       true;
-
     }
-
     else {
-
       false;
-
     }
-
   }
 
   def hasNext(): Boolean = {
