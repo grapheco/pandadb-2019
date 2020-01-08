@@ -14,16 +14,18 @@ trait QueryCase {
   var db: GraphDatabaseService = null
 
   def buildDB(store: CustomPropertyNodeStore): Unit = {
-    val dbFile: File = new File("./output/testdb")
-    FileUtils.deleteRecursively(dbFile);
-    dbFile.mkdirs();
-    db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
-    ExternalPropertiesContext.bindCustomPropertyNodeStore( store)
-    GlobalContext.setLeaderNode(true)
-    db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
-    db.execute("CREATE (n:Person {age: 40, name: 'alex', address: 'CNIC, CAS, Beijing, China'})")
-    db.execute("CREATE INDEX ON :Person(address)")
-    db.execute("match (f:Person), (s:Person) where f.age=40 AND s.age=10 CREATE (f)-[hood:Father]->(s)")
+    if (db == null) {
+      ExternalPropertiesContext.bindCustomPropertyNodeStore(store)
+      GlobalContext.setLeaderNode(true)
+      val dbFile: File = new File("./output/testdb")
+      FileUtils.deleteRecursively(dbFile);
+      dbFile.mkdirs();
+      db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
+      db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
+      db.execute("CREATE (n:Person {age: 40, name: 'alex', address: 'CNIC, CAS, Beijing, China'})")
+      db.execute("CREATE INDEX ON :Person(address)")
+      db.execute("match (f:Person), (s:Person) where f.age=40 AND s.age=10 CREATE (f)-[hood:Father]->(s)")
+    }
   }
 
   @After
@@ -88,6 +90,11 @@ trait QueryCase {
   @Test
   def tripleOr(): Unit = {
     testQuery("match (n) where n.name ENDS WITH 'a' OR n.address ENDS WITH 'Chinad' OR n.age = 10 return id(n)", "id(n)")
+  }
+
+  @Test
+  def not(): Unit = {
+    testQuery("match (n:Person) where NOT (n.name ENDS WITH 'a') return id(n)", "id(n)")
   }
 
   @Test
