@@ -212,7 +212,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     }
     val query = new SolrQuery()
     query.setQuery(q.get)
-    val res = new SolrQueryResults(_solrClient, query)
+    val res = new SolrQueryResults(_solrClient, query, 10000)
     res.iterator2().toIterable
   }
 
