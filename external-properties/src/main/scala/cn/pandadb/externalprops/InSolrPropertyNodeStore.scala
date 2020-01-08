@@ -213,7 +213,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     val query = new SolrQuery()
     query.setQuery(q.get)
     val res = new SolrQueryResults(_solrClient, query)
-    res.getAllResults()
+    res.iterator2().toIterable
   }
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {

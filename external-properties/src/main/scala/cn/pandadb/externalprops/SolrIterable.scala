@@ -4,6 +4,8 @@ import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.CloudSolrClient
 import org.apache.solr.common.SolrDocument
 import org.apache.log4j.Logger
+import org.apache.solr.client.solrj.SolrQuery.ORDER
+import org.apache.solr.common.params.CursorMarkParams
 
 import scala.collection.JavaConversions.asScalaBuffer
 import scala.collection.JavaConversions.bufferAsJavaList
@@ -27,6 +29,63 @@ class SolrQueryResults(_solrClient: CloudSolrClient, solrQuery: SolrQuery, pageS
     )
     nodeArray
   }
+
+  def iterator2(): SolrQueryResultsCursorIterator = new SolrQueryResultsCursorIterator(_solrClient, solrQuery, pageSize)
+}
+
+class SolrQueryResultsCursorIterator(_solrClient: CloudSolrClient, solrQuery: SolrQuery, pageSize: Int = 20)
+  extends Iterator[NodeWithProperties] {
+
+  var startOfCurrentPage = 0;
+  var rowIteratorWithinCurrentPage: java.util.Iterator[NodeWithProperties] = null;
+  var isFinished = false;
+  val mySolrQuery = solrQuery.getCopy();
+  var cursorMark = CursorMarkParams.CURSOR_MARK_START
+  var nextCursorMark: String = null
+  private var currentData : Iterable[NodeWithProperties] = _
+  mySolrQuery.setRows(pageSize)
+  mySolrQuery.setSort(SolrUtil.idName, ORDER.asc)
+  readNextPage();
+
+  def doc2Node(doc : SolrDocument): NodeWithProperties = {
+    SolrUtil.solrDoc2nodeWithProperties(doc)
+  }
+
+  def readNextPage(): Boolean = {
+
+    mySolrQuery.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark)
+    val rsp = _solrClient.query(mySolrQuery)
+    nextCursorMark = rsp.getNextCursorMark
+    val docs = rsp.getResults()
+    val rows = docs.map {doc2Node}
+    currentData = null
+    currentData = rows
+    rowIteratorWithinCurrentPage = rows.iterator()
+    if (cursorMark.equals(nextCursorMark)) {
+      isFinished = true
+      false
+    }
+    else {
+      cursorMark = nextCursorMark
+      true
+    }
+
+  }
+
+  def hasNext(): Boolean = {
+    rowIteratorWithinCurrentPage.hasNext() || readNextPage()
+  }
+
+  def next(): NodeWithProperties = {
+
+    rowIteratorWithinCurrentPage.next()
+
+  }
+
+  def getCurrentData(): Iterable[NodeWithProperties] = {
+    this.currentData
+  }
+
 }
 
 class SolrQueryResultsIterator(_solrClient: CloudSolrClient, solrQuery: SolrQuery, pageSize: Int = 20)
@@ -36,6 +95,7 @@ class SolrQueryResultsIterator(_solrClient: CloudSolrClient, solrQuery: SolrQuer
   var rowIteratorWithinCurrentPage: java.util.Iterator[NodeWithProperties] = null;
   var totalCountOfRows = -1L;
   val mySolrQuery = solrQuery.getCopy();
+  var done = true
   private var currentData : Iterable[NodeWithProperties] = _
   readNextPage();
 
