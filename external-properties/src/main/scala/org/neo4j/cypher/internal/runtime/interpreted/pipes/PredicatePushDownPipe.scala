@@ -65,13 +65,13 @@ trait PredicatePushDownPipe extends Pipe{
                                    expression: NonEmptyList[Predicate],
                                    state: QueryState,
                                    baseContext: ExecutionContext): NFPredicate = {
-    val left = convertPredicate(expression.head, state, baseContext)
-    val right = if (expression.tailOption.isDefined) convertComboPredicatesLoop(f, expression.tailOption.get, state, baseContext) else null
-    if (right == null) {
-      left
+    val lhs = convertPredicate(expression.head, state, baseContext)
+    val rhs = if (expression.tailOption.isDefined) convertComboPredicatesLoop(f, expression.tailOption.get, state, baseContext) else null
+    if (rhs == null) {
+      lhs
     }
     else {
-      f(left, right)
+      f(lhs, rhs)
     }
   }
 
