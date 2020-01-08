@@ -33,7 +33,7 @@ class ClusterLogTest {
 
   @Test
   def test1(): Unit = {
-    val jsonDataLogRW = new JsonDataLogRW(logFile)
+    val jsonDataLogRW = JsonDataLogRW.open(logFile)
     Assert.assertEquals(0, logFile.length())
     jsonDataLogRW.write(DataLogDetail(1, "Match(n1), return n1;"))
     jsonDataLogRW.write(DataLogDetail(2, "Match(n2), return n2;"))
@@ -44,15 +44,14 @@ class ClusterLogTest {
 
   @Test
   def test2(): Unit = {
-    val jsonDataLogRW = new JsonDataLogRW(logFile)
+    val jsonDataLogRW = JsonDataLogRW.open(logFile)
     val commandList = jsonDataLogRW.consume(logItem => logItem.command, 1)
     Assert.assertEquals(expectedLogArray1.head, commandList.toList.head)
   }
 
   @Test
   def test3(): Unit = {
-    val jsonDataLogRW = new JsonDataLogRW(logFile)
-    val jsonDataLog = new JsonDataLogRW(logFile)
+    val jsonDataLog = JsonDataLogRW.open(logFile)
     jsonDataLog.write(DataLogDetail(3, "Match(n3), return n3;"))
     val commandList = jsonDataLog.consume(logItem => logItem.command, 1)
     val commandArr = commandList.toArray

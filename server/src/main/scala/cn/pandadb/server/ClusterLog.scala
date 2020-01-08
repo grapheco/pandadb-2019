@@ -27,6 +27,16 @@ trait DataLogReader {
   def getLastVersion(): Int;
 }
 
+object JsonDataLogRW {
+  def open(file: File): JsonDataLogRW = {
+    if (!file.exists) {
+      file.getParentFile.mkdirs()
+      file.createNewFile()
+    }
+    new JsonDataLogRW(file)
+  }
+}
+
 class JsonDataLogRW(logFile: File) extends DataLogWriter with DataLogReader {
 
   val logFIleIter: Iterator[String] = Source.fromFile(logFile).getLines()

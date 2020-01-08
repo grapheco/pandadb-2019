@@ -8,8 +8,8 @@
     <users>
       <user displayName="Airzihao" login="Airzihao" roles="reviewer"/>
       <user displayName="bluejoe" login="bluejoe" roles="admin,reviewer,author"/>
-      <user displayName="excelwang" login="excelwang" roles="reviewer"/>
       <user displayName="codeBaby" login="codeBaby" roles="reviewer"/>
+      <user displayName="excelwang" login="excelwang" roles="reviewer"/>
     </users>
   </referential>
   <filescope pathPattern="file[*]:*//*"/>
@@ -66,20 +66,20 @@
       <history createdBy="bluejoe" lastUpdatedBy="Airzihao" createdOn="2020-01-07 11:04:32 +0800" lastUpdatedOn="2020-01-07 13:19:18 +0800"/>
       <desc>deleted.</desc>
     </issue>
-    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="JsonDataLogRW.open(...) returns this object" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="65" lineEnd="65" hash="536156521" status="to_resolve">
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="JsonDataLogRW.open(...) returns this object" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="64" lineEnd="64" hash="536156521" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="Airzihao" createdOn="2020-01-07 10:51:12 +0800" lastUpdatedOn="2020-01-07 13:27:05 +0800"/>
       <desc>I&apos;m reconstruct this class.</desc>
     </issue>
-    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="Arr--&gt;Array" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="133" lineEnd="133" hash="-1419282103" status="resolved">
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="Arr--&gt;Array" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="126" lineEnd="126" hash="-1419282103" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:53:43 +0800" lastUpdatedOn="2020-01-07 10:53:43 +0800"/>
     </issue>
-    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="use Iteratable[] instead of Array[DataLogDetail]" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="150" lineEnd="150" hash="891907031" status="to_resolve">
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="use Iteratable[] instead of Array[DataLogDetail]" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="143" lineEnd="143" hash="891907031" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:54:36 +0800" lastUpdatedOn="2020-01-07 10:54:36 +0800"/>
     </issue>
-    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="updata-&gt;update" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="131" lineEnd="131" hash="1463200172" status="resolved">
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="updata-&gt;update" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="124" lineEnd="124" hash="1463200172" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:56:22 +0800" lastUpdatedOn="2020-01-07 10:56:22 +0800"/>
     </issue>
-    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="s&quot;bolt://${np.getAsString}&quot;" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="135" lineEnd="135" hash="-1945521793" status="resolved">
+    <issue filePath="server/src/main/scala/cn/pandadb/server/PNodeServer.scala" summary="s&quot;bolt://${np.getAsString}&quot;" vcsRev="4890af8bd0375836ba31942927aafec73c3300bc" lineStart="128" lineEnd="128" hash="-1945521793" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:56:51 +0800" lastUpdatedOn="2020-01-07 10:56:51 +0800"/>
     </issue>
     <issue filePath="server/src/main/scala/cn/pandadb/server/ServiceRegistry.scala" summary="use NodeAddress as parameter" vcsRev="342ce04b6d9af02a8b7c923f971af6a7f7752fed" lineStart="61" lineEnd="61" hash="-238245066" status="resolved">
@@ -92,7 +92,7 @@
     <issue filePath="server/src/main/scala/cn/pandadb/server/module.scala" summary="zkAddrStr--&gt;zkAddressString" vcsRev="2e293f7028a34589166938269fba9681b1fa797b" localRev="1578366228076" lineStart="35" lineEnd="35" hash="1683588432" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:03:48 +0800" lastUpdatedOn="2020-01-07 11:03:48 +0800"/>
     </issue>
-    <issue filePath="server/src/main/scala/cn/pandadb/server/rpc/NettyRpcClient.scala" summary="move rpcEnv inside PNodeRpcClient class body" vcsRev="de75c5dd53613ae4bf2b3c3cfbce9b6ec245a642" lineStart="18" lineEnd="18" hash="-52249983" status="to_resolve">
+    <issue filePath="server/src/main/scala/cn/pandadb/server/rpc/NettyRpcClient.scala" summary="move rpcEnv inside PNodeRpcClient class body" vcsRev="de75c5dd53613ae4bf2b3c3cfbce9b6ec245a642" lineStart="18" lineEnd="18" hash="-52249983" status="resolved">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 10:46:43 +0800" lastUpdatedOn="2020-01-07 10:46:43 +0800"/>
     </issue>
     <issue filePath="server/src/main/scala/cn/pandadb/server/rpc/NettyRpcClient.scala" summary="no retrying" vcsRev="de75c5dd53613ae4bf2b3c3cfbce9b6ec245a642" lineStart="20" lineEnd="20" hash="-1420938367" status="to_resolve">
