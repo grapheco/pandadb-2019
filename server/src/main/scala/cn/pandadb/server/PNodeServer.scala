@@ -63,14 +63,7 @@ class PNodeServer(dbDir: File, props: Map[String, String])
   serverKernel.accept(Neo4jRequestHandler());
   serverKernel.accept(InterNodeRequestHandler());
 
-  val dataLogRW: JsonDataLogRW = {
-    val logFile = new File(dbDir, "dataVersionLog.json")
-    if (!logFile.exists) {
-      logFile.getParentFile.mkdirs()
-      logFile.createNewFile()
-    }
-    new JsonDataLogRW(logFile)
-  }
+  val dataLogRW = JsonDataLogRW.open(new File(dbDir, "dataVersionLog.json"))
 
   MainServerContext.bindDataLogReaderWriter(dataLogRW, dataLogRW)
   val clusterClient: ZookeeperBasedClusterClient = new ZookeeperBasedClusterClient(MainServerContext.zkServerAddressStr)
