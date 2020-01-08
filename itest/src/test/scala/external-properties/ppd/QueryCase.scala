@@ -113,11 +113,6 @@ trait QueryCase {
   }
 
   @Test
-  def join(): Unit = {
-    testQuery("Match p=()--() return count(p)", "count(p)")
-  }
-
-  @Test
   def indexStringEndsWith(): Unit = {
     testQuery("match (n:Person) USING INDEX n:Person(address) where n.address ENDS WITH 'China' return id(n)", "id(n)")
   }
