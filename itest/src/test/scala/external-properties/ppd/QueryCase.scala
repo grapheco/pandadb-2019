@@ -14,16 +14,18 @@ trait QueryCase {
   var db: GraphDatabaseService = null
 
   def buildDB(store: CustomPropertyNodeStore): Unit = {
-    val dbFile: File = new File("./output/testdb")
-    FileUtils.deleteRecursively(dbFile);
-    dbFile.mkdirs();
-    db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
-    ExternalPropertiesContext.bindCustomPropertyNodeStore( store)
-    GlobalContext.setLeaderNode(true)
-    db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
-    db.execute("CREATE (n:Person {age: 40, name: 'alex', address: 'CNIC, CAS, Beijing, China'})")
-    db.execute("CREATE INDEX ON :Person(address)")
-    db.execute("match (f:Person), (s:Person) where f.age=40 AND s.age=10 CREATE (f)-[hood:Father]->(s)")
+    if (db == null) {
+      ExternalPropertiesContext.bindCustomPropertyNodeStore(store)
+      GlobalContext.setLeaderNode(true)
+      val dbFile: File = new File("./output/testdb")
+      FileUtils.deleteRecursively(dbFile);
+      dbFile.mkdirs();
+      db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
+      db.execute("CREATE (n:Person {age: 10, name: 'bob', address: 'CNIC, CAS, Beijing, China'})")
+      db.execute("CREATE (n:Person {age: 40, name: 'alex', address: 'CNIC, CAS, Beijing, China'})")
+      db.execute("CREATE INDEX ON :Person(address)")
+      db.execute("match (f:Person), (s:Person) where f.age=40 AND s.age=10 CREATE (f)-[hood:Father]->(s)")
+    }
   }
 
   @After
@@ -91,6 +93,11 @@ trait QueryCase {
   }
 
   @Test
+  def not(): Unit = {
+    testQuery("match (n:Person) where NOT (n.name ENDS WITH 'a') return id(n)", "id(n)")
+  }
+
+  @Test
   def label(): Unit = {
     testQuery("match (n:Person) return id(n)", "id(n)")
   }
@@ -103,11 +110,6 @@ trait QueryCase {
   @Test
   def relationStringEndsWith(): Unit = {
     testQuery("match (f:Person {age: 40})-[:Father]->(s:Person) where f.name ENDS WITH 'x' and s.name ENDS WITH 'b' return id(f)", "id(f)")
-  }
-
-  @Test
-  def join(): Unit = {
-    testQuery("Match p=()--() return count(p)", "count(p)")
   }
 
   @Test
