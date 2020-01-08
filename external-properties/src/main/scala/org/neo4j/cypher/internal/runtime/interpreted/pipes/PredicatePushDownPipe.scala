@@ -50,26 +50,29 @@ trait PredicatePushDownPipe extends Pipe{
 //      case ToIntegerFunction(a: Property, b: ParameterExpression) =>
 //        NFToIntegerFunction(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
       case x: Ands =>
-        convertPredicateLoop(NFAnd, x.predicates, state, baseContext)
+        convertComboPredicatesLoop(NFAnd, x.predicates, state, baseContext)
       case x: Ors =>
-        convertPredicateLoop(NFOr, x.predicates, state, baseContext)
+        convertComboPredicatesLoop(NFOr, x.predicates, state, baseContext)
+      case Not(p) =>
+        val innerP: NFPredicate = convertPredicate(p, state, baseContext)
+        if (innerP == null) null else NFNot(innerP)
       case _ =>
         null
     }
     expr
   }
 
-  private def convertPredicateLoop(f: (NFPredicate, NFPredicate) => NFPredicate,
+  private def convertComboPredicatesLoop(f: (NFPredicate, NFPredicate) => NFPredicate,
                                    expression: NonEmptyList[Predicate],
                                    state: QueryState,
                                    baseContext: ExecutionContext): NFPredicate = {
-    val left = convertPredicate(expression.head, state, baseContext)
-    val right = if (expression.tailOption.isDefined) convertPredicateLoop(f, expression.tailOption.get, state, baseContext) else null
-    if (right == null) {
-      left
+    val lhs = convertPredicate(expression.head, state, baseContext)
+    val rhs = if (expression.tailOption.isDefined) convertComboPredicatesLoop(f, expression.tailOption.get, state, baseContext) else null
+    if (rhs == null) {
+      lhs
     }
     else {
-      f(left, right)
+      f(lhs, rhs)
     }
   }
 
