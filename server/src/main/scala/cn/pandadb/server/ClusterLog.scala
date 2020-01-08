@@ -4,7 +4,7 @@ import java.io._
 
 import com.google.gson.Gson
 
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.io.Source
 
 /**
   * @Author: Airzihao
@@ -27,58 +27,53 @@ trait DataLogReader {
   def getLastVersion(): Int;
 }
 
-class DataLog(arrayBuffer: ArrayBuffer[DataLogDetail]) {
-  val dataLog: Array[DataLogDetail] = arrayBuffer.toArray
+object JsonDataLogRW {
+  def open(file: File): JsonDataLogRW = {
+    if (!file.exists) {
+      file.getParentFile.mkdirs()
+      file.createNewFile()
+    }
+    new JsonDataLogRW(file)
+  }
 }
 
 class JsonDataLogRW(logFile: File) extends DataLogWriter with DataLogReader {
 
+  val logFIleIter: Iterator[String] = Source.fromFile(logFile).getLines()
+
   val _gson = new Gson()
 
-  val _bufferReader = new BufferedReader(new InputStreamReader(new FileInputStream(logFile)))
-
-  // should not has the dataLog.
-  var dataLog: ArrayBuffer[DataLogDetail] = {
+  private var lastVersion: Int = {
     if (logFile.length() == 0) {
-      new ArrayBuffer[DataLogDetail]()
+      -1
     } else {
-      val _dalaLog = new ArrayBuffer[DataLogDetail]()
-      var line = _bufferReader.readLine()
-      while(line!=null) {
-        _dalaLog.append(_gson.fromJson(line, DataLogDetail.getClass))
-        line = _bufferReader.readLine()
-      }
-      _dalaLog
+      var _tempVersion = -1
+      val _iter = Source.fromFile(logFile).getLines()
+      _iter.foreach(line => {
+        val _lineSerialNum = _gson.fromJson(line, new DataLogDetail(0, "").getClass).versionNum
+        if(_lineSerialNum > _tempVersion) {
+          _tempVersion = _lineSerialNum
+        }
+      })
+      _tempVersion
     }
   }
 
   override def consume[T](consumer: DataLogDetail => T, sinceVersion: Int): Iterable[T] = {
-    dataLog.toStream.filter(_.versionNum > sinceVersion)
+    logFIleIter.toIterable.map(line => _gson.fromJson(line, new DataLogDetail(0, "").getClass))
+      .filter(dataLogDetail => dataLogDetail.versionNum > sinceVersion)
       .map(consumer(_))
   }
 
   override def write(row: DataLogDetail): Unit = {
-    dataLog.append(row)
+    lastVersion += 1
     val _fileAppender = new FileWriter(logFile, true)
     _fileAppender.append(s"${_gson.toJson(row)}\n");
     _fileAppender.flush()
     _fileAppender.close()
   }
 
-//  override def write(row: DataLogDetail): Unit = {
-//    dataLog.append(row)
-//    val fileWriter = new FileWriter(logFile)
-//    val logStr = gson.toJson(new DataLog(dataLog))
-//    fileWriter.write(logStr)
-//    fileWriter.flush();
-//    fileWriter.close();
-//  }
-
   override def getLastVersion(): Int = {
-    if (dataLog.length == 0) {
-      -1
-    } else {
-      dataLog.last.versionNum
-    }
+    lastVersion
   }
 }

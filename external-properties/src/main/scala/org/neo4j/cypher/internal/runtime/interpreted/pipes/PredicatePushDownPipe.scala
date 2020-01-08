@@ -73,30 +73,29 @@ trait PredicatePushDownPipe extends Pipe{
     }
   }
 
-  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Iterator[NodeValue] = {
-    if (predicate.isDefined) {
-      val expr: NFPredicate = convertPredicate(predicate.get, state, baseContext)
-      //      println(predicate,  expr)
-      if (expr != null) {
-        fatherPipe.get.bypass()
-        if (labelName != null) {
-          nodeStore.get.getNodeBylabelAndfilter(labelName, expr).map(_.toNeo4jNodeValue()).iterator
+  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Option[Iterable[NodeValue]] = {
+    predicate match {
+      case Some(p) =>
+        val expr: NFPredicate = convertPredicate(p, state, baseContext)
+        if (expr != null) {
+          fatherPipe.get.bypass()
+          if (labelName != null) {
+            Some(nodeStore.get.getNodeBylabelAndFilter(labelName, expr).map(_.toNeo4jNodeValue()))
+          }
+          else {
+            Some(nodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()))
+          }
         }
         else {
-          nodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()).iterator
+          if (labelName != null) {
+            Some(nodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()))
+          }
+          else {
+            None
+          }
         }
-      }
-      else {
-        if (labelName != null) {
-          nodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()).iterator
-        }
-        else {
-          null
-        }
-      }
-    }
-    else {
-      null
+      case None =>
+        None
     }
   }
 }

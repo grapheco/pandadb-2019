@@ -13,16 +13,10 @@ import scala.concurrent.Await
 
 object PNodeRpcClient {
 
-  val rpcEnv: RpcEnv = {
-    val rpcConf = new RpcConf()
-    val config = RpcEnvClientConfig(rpcConf, "PNodeRpc-client")
-    NettyRpcEnvFactory.create(config)
-  }
-  
   // if can't connect, wait for it
   def connect(remoteAddress: NodeAddress): PNodeRpcClient = {
     try {
-      new PNodeRpcClient(rpcEnv, remoteAddress)
+      new PNodeRpcClient(remoteAddress)
     }
     catch {
       case e: Exception =>
@@ -30,27 +24,23 @@ object PNodeRpcClient {
         connect(remoteAddress)
     }
   }
-
-  def connect(remoteAddress: String): PNodeRpcClient = {
-    connect(NodeAddress.fromString(remoteAddress))
-  }
 }
 
-case class PNodeRpcClient(rpcEnv: RpcEnv, val remoteAddress: NodeAddress) extends Logging {
+case class PNodeRpcClient(val remoteAddress: NodeAddress) extends Logging {
 
-  val endPointRef = {
+  val rpcEnv: RpcEnv = {
     val rpcConf = new RpcConf()
     val config = RpcEnvClientConfig(rpcConf, "PNodeRpc-client")
-    val rpcEnv: RpcEnv = NettyRpcEnvFactory.create(config)
-
-    rpcEnv.setupEndpointRef(RpcAddress(remoteAddress.host, remoteAddress.port), "PNodeRpc-service")
+    NettyRpcEnvFactory.create(config)
   }
+
+  val endPointRef = rpcEnv.setupEndpointRef(RpcAddress(remoteAddress.host, remoteAddress.port), "PNodeRpc-service")
 
   def close(): Unit = {
     rpcEnv.stop(endPointRef)
   }
 
-  def getRemoteLogs(sinceVersion: Int): Array[DataLogDetail] = {
+  def getRemoteLogs(sinceVersion: Int): Iterable[DataLogDetail] = {
     val response: GetLogDetailsResponse = Await.result(endPointRef.ask[GetLogDetailsResponse](GetLogDetailsRequest(sinceVersion)), Duration.Inf)
     response.logs
   }
