@@ -73,22 +73,22 @@ trait PredicatePushDownPipe extends Pipe{
     }
   }
 
-  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Option[Iterator[NodeValue]] = {
+  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Option[Iterable[NodeValue]] = {
     predicate match {
       case Some(p) =>
         val expr: NFPredicate = convertPredicate(p, state, baseContext)
         if (expr != null) {
           fatherPipe.get.bypass()
           if (labelName != null) {
-            Some(nodeStore.get.getNodeBylabelAndFilter(labelName, expr).map(_.toNeo4jNodeValue()).iterator)
+            Some(nodeStore.get.getNodeBylabelAndFilter(labelName, expr).map(_.toNeo4jNodeValue()))
           }
           else {
-            Some(nodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()).iterator)
+            Some(nodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()))
           }
         }
         else {
           if (labelName != null) {
-            Some(nodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()).iterator)
+            Some(nodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()))
           }
           else {
             None
