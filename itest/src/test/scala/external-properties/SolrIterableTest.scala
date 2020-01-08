@@ -74,12 +74,12 @@ class SolrIterableTest {
       Assert.assertEquals(0, solrNodeStore.getRecorderSize)
       Assert.assertEquals(15, prepareData(solrNodeStore))
       val query = new SolrQuery("*:*")
-      val res = new SolrQueryResults(solrNodeStore._solrClient, query, 5)
-      val it = res.iterator()
-      it.getCurrentData().foreach(u => println(u))
-      while (it.readNextPage()) {
+      val res = new SolrQueryResults(solrNodeStore._solrClient, query, 10)
+      val it = res.iterator2().toIterable
+      it.foreach(u => println(u))
+   /*   while (it.readNextPage()) {
         it.getCurrentData().foreach(u => println(u))
-      }
+      }*/
      // res.getAllResults().foreach(u => println(u))
 
     }
