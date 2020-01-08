@@ -50,10 +50,10 @@
     <issue filePath="external-properties/src/main/scala/cn/pandadb/externalprops/SolrIterable.scala" summary="private?" vcsRev="f71cca8641dc23e840f2b6b4691559c7d2e5b1a0" lineStart="40" lineEnd="40" hash="-1798364634" status="to_resolve">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:11:52 +0800" lastUpdatedOn="2020-01-07 11:11:52 +0800"/>
     </issue>
-    <issue filePath="external-properties/src/main/scala/org/neo4j/cypher/internal/runtime/interpreted/pipes/PredicatePushDownPipe.scala" summary="returns Iterable[]" vcsRev="59480af0d1dd323122daeaa68a216c131472793b" lineStart="75" lineEnd="75" hash="138593889" status="to_resolve">
+    <issue filePath="external-properties/src/main/scala/org/neo4j/cypher/internal/runtime/interpreted/pipes/PredicatePushDownPipe.scala" summary="returns Iterable[]" vcsRev="59480af0d1dd323122daeaa68a216c131472793b" lineStart="75" lineEnd="75" hash="138593889" status="closed" assignees="excelwang">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:31:05 +0800" lastUpdatedOn="2020-01-07 11:31:05 +0800"/>
     </issue>
-    <issue filePath="external-properties/src/main/scala/org/neo4j/cypher/internal/runtime/interpreted/pipes/PredicatePushDownPipe.scala" summary="do not return null, return None" vcsRev="59480af0d1dd323122daeaa68a216c131472793b" lineStart="93" lineEnd="93" hash="-2111841913" status="to_resolve">
+    <issue filePath="external-properties/src/main/scala/org/neo4j/cypher/internal/runtime/interpreted/pipes/PredicatePushDownPipe.scala" summary="do not return null, return None" vcsRev="59480af0d1dd323122daeaa68a216c131472793b" lineStart="93" lineEnd="93" hash="-2111841913" status="closed" assignees="excelwang">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2020-01-07 11:31:26 +0800" lastUpdatedOn="2020-01-07 11:31:26 +0800"/>
     </issue>
     <issue filePath="network-commons/src/main/scala/cn/pandadb/network/net.scala" summary="getAsStr() --&gt; getAsString" vcsRev="342ce04b6d9af02a8b7c923f971af6a7f7752fed" localRev="1576837237706" lineStart="11" lineEnd="11" hash="-1197482572" status="closed" assignees="Airzihao">
@@ -99,7 +99,7 @@
       <history createdBy="bluejoe" lastUpdatedBy="Airzihao" createdOn="2020-01-07 10:50:04 +0800" lastUpdatedOn="2020-01-07 13:21:53 +0800"/>
       <desc>if cannot create a new Client, will reinvoke itself</desc>
     </issue>
-    <issue summary="rename PPDPipe to a long name" vcsRev="8754c90154d4c1d9379bdcb4fb23d74f38b69b4c" lineStart="-1" lineEnd="-1" hash="1496523782" status="resolved">
+    <issue summary="rename PPDPipe to a long name" vcsRev="8754c90154d4c1d9379bdcb4fb23d74f38b69b4c" lineStart="-1" lineEnd="-1" hash="1496523782" status="closed"  assignees="excelwang">
       <history createdBy="bluejoe" lastUpdatedBy="bluejoe" createdOn="2019-12-20 17:14:12 +0800" lastUpdatedOn="2019-12-20 17:14:12 +0800"/>
     </issue>
   </issues>
