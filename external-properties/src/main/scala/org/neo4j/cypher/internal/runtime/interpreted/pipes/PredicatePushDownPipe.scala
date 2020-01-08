@@ -54,7 +54,8 @@ trait PredicatePushDownPipe extends Pipe{
       case x: Ors =>
         convertComboPredicatesLoop(NFOr, x.predicates, state, baseContext)
       case Not(p) =>
-        NFNot(convertPredicate(p, state, baseContext))
+        val innerP: NFPredicate = convertPredicate(p, state, baseContext)
+        if (innerP == null) null else NFNot(innerP)
       case _ =>
         null
     }
