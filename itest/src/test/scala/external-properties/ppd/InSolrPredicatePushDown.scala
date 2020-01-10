@@ -4,7 +4,7 @@ import java.io.{File, FileInputStream}
 import java.util.Properties
 
 import org.junit.Before
-import cn.pandadb.externalprops.{ExternalPropertiesContext, CustomPropertyNodeStore, InSolrPropertyNodeStore}
+import cn.pandadb.externalprops.{ExternalPropertiesContext, InSolrPropertyNodeStore}
 
 class InSolrPredicatePushDown extends QueryCase {
 
