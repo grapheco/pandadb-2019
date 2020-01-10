@@ -2,9 +2,9 @@ package ppd
 
 import java.io.File
 
-import cn.pandadb.externalprops.{ExternalPropertiesContext, CustomPropertyNodeStore, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
+import cn.pandadb.externalprops.{CustomPropertyNodeStore, ExternalPropertiesContext, InMemoryPropertyNodeStore, InMemoryPropertyNodeStoreFactory}
 import cn.pandadb.util.GlobalContext
-import org.junit.{After, Before, Test}
+import org.junit.{After, Test}
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.io.fs.FileUtils
