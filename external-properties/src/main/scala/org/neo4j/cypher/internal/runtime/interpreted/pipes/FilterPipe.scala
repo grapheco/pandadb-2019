@@ -35,10 +35,7 @@ case class FilterPipe(source: Pipe, predicate: Expression)
 
   predicate.registerOwningPipe(this)
 
-  protected def internalCreateResults(input: Iterator[ExecutionContext], state: QueryState): Iterator[ExecutionContext] =
-    if ( _optBypass ) {
-      input
-    } else {
-      input.filter(ctx => predicate(ctx, state) eq Values.TRUE)
-    }
+  protected def internalCreateResults(input: Iterator[ExecutionContext], state: QueryState): Iterator[ExecutionContext] = {
+    if (_optBypass) input else input.filter (ctx => predicate (ctx, state) eq Values.TRUE)
+  }
 }
