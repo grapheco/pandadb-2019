@@ -22,7 +22,7 @@ class RelationCase {
   val uri = "bolt://10.0.82.220:7687"
   val driver = GraphDatabase.driver(uri, AuthTokens.basic("neo4j", "bigdata"))
   val session = driver.session()
-  val query = "match (n:person)-[:write_paper]->(p:paper) where p.country = 'United States' AND n.citations>800 return count(n)"
+  val query = "match (n:person)-[:write_paper]->(p:paper) where p.country = 'United States' AND n.citations>10 return count(n)"
 
   def run(): Unit = {
     val startTime = System.currentTimeMillis()
