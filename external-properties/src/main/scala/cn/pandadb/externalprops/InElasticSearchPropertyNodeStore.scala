@@ -7,14 +7,12 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
 import org.neo4j.values.storable._
-import cn.pandadb.util.ConfigUtils._
-import cn.pandadb.util.{Configuration, PandaModuleContext}
-import com.alibaba.fastjson.{JSONArray, JSONObject}
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.sun.jdi.IntegerValue
+import cn.pandadb.util.PandaModuleContext
+import com.alibaba.fastjson.JSONObject
 import org.apache.http.HttpHost
 import org.elasticsearch.client.{RequestOptions, RestClient, RestHighLevelClient}
 import org.elasticsearch.action.admin.indices.create.{CreateIndexRequest, CreateIndexResponse}
+import org.elasticsearch.action.admin.indices.get.GetIndexRequest
 import org.elasticsearch.action.index.{IndexRequest, IndexResponse}
 import org.elasticsearch.common.xcontent.{XContentBuilder, XContentFactory, XContentType}
 import org.elasticsearch.action.get.{GetRequest, GetResponse}
@@ -101,16 +99,28 @@ object EsUtil {
     NodeWithProperties(id.toString.toLong, props.toMap, labels)
   }
 
-  def createClient(host: String, port: Int, schema: String = "http"): RestHighLevelClient = {
+  def createClient(host: String, port: Int, indexName: String, typeName: String,
+                   schema: String = "http") : RestHighLevelClient = {
     val httpHost = new HttpHost(host, port, schema)
     val builder = RestClient.builder(httpHost)
     val client = new RestHighLevelClient(builder)
+    if (!indexExists(client, indexName)) {
+      val res = createIndex(client, indexName, typeName)
+      if (!res) throw new Exception("InElasticSearchPropertyNodeStore: create index failed!")
+    }
     client
   }
 
-  def createIndex(client: RestHighLevelClient, indexName: String): Boolean = {
+  private def indexExists(client: RestHighLevelClient, indexName: String): Boolean = {
+    val request = new GetIndexRequest()
+    request.indices(indexName)
+    client.indices.exists(request, RequestOptions.DEFAULT)
+  }
+
+  private def createIndex(client: RestHighLevelClient, indexName: String, typeName: String): Boolean = {
     val indexRequest: CreateIndexRequest = new CreateIndexRequest(indexName)
-    val indexResponse: CreateIndexResponse = client.indices().create(indexRequest)
+    indexRequest.mapping(typeName, "{\"_all\":{\"type\":\"text\"}}", XContentType.JSON)
+    val indexResponse: CreateIndexResponse = client.indices().create(indexRequest, RequestOptions.DEFAULT)
     indexResponse.isAcknowledged
   }
 
@@ -195,9 +205,10 @@ object EsUtil {
 }
 
 
-class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: String, typeName: String) extends CustomPropertyNodeStore {
+class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: String, typeName: String,
+                                       schema: String = "http") extends CustomPropertyNodeStore {
   //initialize solr connection
-  val esClient = EsUtil.createClient(host, port)
+  val esClient = EsUtil.createClient(host, port, indexName, typeName, schema)
 
   def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
     docsToBeDeleted.foreach(node => EsUtil.deleteData(esClient, indexName, typeName, node.toString))
@@ -254,16 +265,21 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
       case expr: NFEndsWith =>
         val paramValue = expr.text
         val paramKey = expr.propName
-        QueryBuilders.regexpQuery(paramKey, ".*" + paramValue)
+        QueryBuilders.regexpQuery(paramKey + ".keyword", ".*" + paramValue)
       case expr: NFHasProperty =>
         val paramKey = expr.propName
         QueryBuilders.existsQuery(paramKey)
       case expr: NFContainsWith =>
         val paramValue = expr.text
         val paramKey = expr.propName
-        QueryBuilders.regexpQuery(paramKey, ".*" + paramValue + ".*")
+        if (paramKey.equals(EsUtil.labelName)) {
+          QueryBuilders.commonTermsQuery(paramKey, paramValue)
+        }
+        else {
+          QueryBuilders.regexpQuery(paramKey + ".keyword", ".*" + paramValue + ".*")
+        }
       case expr: NFRegexp =>
-        val paramValue = expr.text.replace(".", "")
+        val paramValue = expr.text
         val paramKey = expr.propName
         QueryBuilders.regexpQuery(paramKey, paramValue)
       case expr: NFAnd =>
@@ -283,7 +299,7 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
   override def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
     val q = predicate2EsQuery(expr)
     val res = EsUtil.search(esClient, indexName, typeName, q).getHits
-    res.getHits.map(h => EsUtil.sourceMapToNodeWithProperties(h.getSourceAsMap.toMap))
+    res.map(h => EsUtil.sourceMapToNodeWithProperties(h.getSourceAsMap.toMap))
   }
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
