@@ -3,7 +3,7 @@ package cn.pandadb.externalprops
 import java.util
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
+import scala.collection.{AbstractIterator, mutable}
 import scala.collection.mutable.ArrayBuffer
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
 import org.neo4j.values.storable._
@@ -20,13 +20,13 @@ import org.elasticsearch.action.update.{UpdateRequest, UpdateResponse}
 import org.elasticsearch.action.delete.{DeleteRequest, DeleteResponse}
 import org.elasticsearch.common.Strings
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext
-import org.elasticsearch.action.search.{SearchRequest, SearchResponse}
+import org.elasticsearch.action.search.{ClearScrollRequest, SearchRequest, SearchResponse, SearchScrollRequest}
 import org.elasticsearch.index.query.{QueryBuilder, QueryBuilders}
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.index.reindex.{BulkByScrollResponse, DeleteByQueryRequest}
 import org.elasticsearch.action.support.WriteRequest
-import org.elasticsearch.script.ScriptType
-import org.elasticsearch.script.mustache.{SearchTemplateRequest, SearchTemplateResponse}
+import org.elasticsearch.common.unit.{TimeValue => EsTimeValue}
+import org.elasticsearch.search.{Scroll, SearchHit}
 
 
 object EsUtil {
@@ -35,6 +35,8 @@ object EsUtil {
   val tik = "id,labels,_version_"
   val arrayName = "Array"
   val dateType = "time"
+  val scrollSize = 100
+  val scroll = new Scroll(EsTimeValue.timeValueMinutes(10))
 
   def getValueFromArray(value: Array[AnyRef]): Value = {
     val typeObj = value.head
@@ -179,34 +181,60 @@ object EsUtil {
     response.getDeleted
   }
 
-  def searchTemplate(client: RestHighLevelClient, indexName: String, typeName: String,
-            queryScriptTempl: String, scriptParams: Map[String, Object]): SearchTemplateResponse = {
-    val searchRequest = new SearchRequest()
-    searchRequest.indices(indexName)
-    searchRequest.types(typeName)
-    val request = new SearchTemplateRequest
-    request.setRequest(searchRequest)
-    request.setScriptType(ScriptType.INLINE)
-    request.setScript(queryScriptTempl)
-    request.setScriptParams(Map[String, Object]())
-    val response = client.searchTemplate(request, RequestOptions.DEFAULT)
-    response
+  def search(client: RestHighLevelClient, indexName: String, typeName: String,
+             queryBuilder: QueryBuilder): Iterable[NodeWithProperties] = {
+    (new SearchResultsIterator(client, indexName, typeName, queryBuilder)).toIterable
   }
 
-  def search(client: RestHighLevelClient, indexName: String, typeName: String, queryBuilder: QueryBuilder): SearchResponse = {
-    val searchRequest = new SearchRequest();
+  class SearchResultsIterator(client: RestHighLevelClient, indexName: String, typeName: String,
+                              queryBuilder: QueryBuilder) extends AbstractIterator[NodeWithProperties] {
+    private val searchRequest = new SearchRequest()
     searchRequest.indices(indexName)
     searchRequest.types(typeName)
-    val searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.query(queryBuilder);
-    searchRequest.source(searchSourceBuilder);
-    client.search(searchRequest, RequestOptions.DEFAULT)
+    private val searchSourceBuilder = new SearchSourceBuilder()
+    searchSourceBuilder.query(queryBuilder)
+    searchSourceBuilder.size(scrollSize)
+    searchRequest.source(searchSourceBuilder)
+    searchRequest.scroll(scroll)
+    private var searchResponse = client.search(searchRequest, RequestOptions.DEFAULT)
+    private var scrollId = searchResponse.getScrollId
+    private var searchHits = searchResponse.getHits.getHits
+    private var lastHitsSize = searchHits.size
+    private var hitsIterator = searchHits.toIterator
+
+    private def doScroll(): Boolean = {
+      if (lastHitsSize > 0) {
+        val scrollRequest = new SearchScrollRequest(scrollId)
+        scrollRequest.scroll(scroll)
+        searchResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT)
+        scrollId = searchResponse.getScrollId
+        searchHits = searchResponse.getHits.getHits
+        lastHitsSize = searchHits.size
+        hitsIterator = searchHits.toIterator
+        lastHitsSize > 0
+      }
+      else {
+        val clearScrollRequest = new ClearScrollRequest
+        clearScrollRequest.addScrollId(scrollId)
+        val clearScrollResponse = client.clearScroll(clearScrollRequest, RequestOptions.DEFAULT)
+        clearScrollResponse.isSucceeded
+        false
+      }
+    }
+
+    override def hasNext: Boolean = hitsIterator.hasNext || doScroll()
+
+    override def next(): NodeWithProperties = {
+      val h = hitsIterator.next()
+      EsUtil.sourceMapToNodeWithProperties(h.getSourceAsMap.toMap)
+    }
   }
+
 }
 
 
 class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: String, typeName: String,
-                                       schema: String = "http") extends CustomPropertyNodeStore {
+ schema: String = "http", scrollSize: Int = 100, scrollContainTimeMinutes: Int = 10) extends CustomPropertyNodeStore {
   //initialize solr connection
   val esClient = EsUtil.createClient(host, port, indexName, typeName, schema)
 
@@ -298,8 +326,7 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
 
   override def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
     val q = predicate2EsQuery(expr)
-    val res = EsUtil.search(esClient, indexName, typeName, q).getHits
-    res.map(h => EsUtil.sourceMapToNodeWithProperties(h.getSourceAsMap.toMap))
+    EsUtil.search(esClient, indexName, typeName, q)
   }
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
