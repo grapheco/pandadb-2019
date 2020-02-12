@@ -35,8 +35,6 @@ object EsUtil {
   val tik = "id,labels,_version_"
   val arrayName = "Array"
   val dateType = "time"
-  val scrollSize = 100
-  val scroll = new Scroll(EsTimeValue.timeValueMinutes(10))
 
   def getValueFromArray(value: Array[AnyRef]): Value = {
     val typeObj = value.head
@@ -182,16 +180,17 @@ object EsUtil {
   }
 
   def search(client: RestHighLevelClient, indexName: String, typeName: String,
-             queryBuilder: QueryBuilder): Iterable[NodeWithProperties] = {
-    (new SearchResultsIterator(client, indexName, typeName, queryBuilder)).toIterable
+             queryBuilder: QueryBuilder, scrollSize: Int, scrollContainTimeMinutes: Int): Iterable[NodeWithProperties] = {
+    (new SearchResultsIterator(client, indexName, typeName, queryBuilder, scrollSize, scrollContainTimeMinutes)).toIterable
   }
 
-  class SearchResultsIterator(client: RestHighLevelClient, indexName: String, typeName: String,
-                              queryBuilder: QueryBuilder) extends AbstractIterator[NodeWithProperties] {
+  class SearchResultsIterator(client: RestHighLevelClient, indexName: String, typeName: String, queryBuilder: QueryBuilder,
+                              scrollSize: Int, scrollContainTimeMinutes: Int) extends AbstractIterator[NodeWithProperties] {
     private val searchRequest = new SearchRequest()
     searchRequest.indices(indexName)
     searchRequest.types(typeName)
     private val searchSourceBuilder = new SearchSourceBuilder()
+    private val scroll = new Scroll(EsTimeValue.timeValueMinutes(scrollContainTimeMinutes))
     searchSourceBuilder.query(queryBuilder)
     searchSourceBuilder.size(scrollSize)
     searchRequest.source(searchSourceBuilder)
@@ -326,7 +325,7 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
 
   override def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
     val q = predicate2EsQuery(expr)
-    EsUtil.search(esClient, indexName, typeName, q)
+    EsUtil.search(esClient, indexName, typeName, q, scrollSize, scrollContainTimeMinutes)
   }
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
