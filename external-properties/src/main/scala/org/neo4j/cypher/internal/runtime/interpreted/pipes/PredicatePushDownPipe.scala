@@ -3,6 +3,7 @@ package org.neo4j.cypher.internal.runtime.interpreted.pipes
 import cn.pandadb.externalprops.CustomPropertyNodeStore
 import org.neo4j.cypher.internal.runtime.interpreted.commands.expressions.{Expression, ParameterExpression, Property, SubstringFunction, ToIntegerFunction}
 import org.neo4j.cypher.internal.runtime.interpreted.commands.predicates._
+import org.neo4j.cypher.internal.runtime.interpreted.commands.values.KeyToken
 import org.neo4j.cypher.internal.runtime.interpreted.{NFPredicate, _}
 import org.neo4j.cypher.internal.v3_5.util.{Fby, Last, NonEmptyList}
 import org.neo4j.values.storable.StringValue
@@ -49,6 +50,8 @@ trait PredicatePushDownPipe extends Pipe{
 //        NFSubstringFunction(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
 //      case ToIntegerFunction(a: Property, b: ParameterExpression) =>
 //        NFToIntegerFunction(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
+      case PropertyExists(variable: Expression, propertyKey: KeyToken) =>
+        NFHasProperty(propertyKey.name)
       case x: Ands =>
         convertComboPredicatesLoop(NFAnd, x.predicates, state, baseContext)
       case x: Ors =>
