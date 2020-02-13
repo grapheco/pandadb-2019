@@ -12,7 +12,7 @@ case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends P
     if (nodeStore.isDefined && predicate.isDefined && fatherPipe != null) {
       nodes = fetchNodes(state, baseContext)
     }
-    val nodesIterator: Iterator[NodeValue] = nodes match {
+    val nodesIterator = nodes match {
       case Some(x) =>
         x.iterator
       case None =>
