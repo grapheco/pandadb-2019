@@ -134,4 +134,9 @@ trait QueryCase {
     testQuery("match (n:Person) WHERE NOT EXISTS (n.age) return count(n)", "count(n)")
   }
 
+  @Test
+  def in(): Unit = {
+    testQuery("match (n:Person) WHERE n.age IN [40, 10] return count(n)", "count(n)")
+  }
+
 }
