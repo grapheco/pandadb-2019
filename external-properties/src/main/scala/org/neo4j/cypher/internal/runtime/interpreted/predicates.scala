@@ -64,3 +64,6 @@ case class NFOr(a: NFPredicate, b: NFPredicate) extends NFPredicate {
 
 case class NFNot(a: NFPredicate) extends NFPredicate {
 }
+
+case class NFConstantCachedIn(a: NFPredicate) extends NFPredicate {
+}
