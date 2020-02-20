@@ -46,10 +46,6 @@ trait PredicatePushDownPipe extends Pipe{
         NFEndsWith(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
       case RegularExpression(a: Property, b: ParameterExpression) =>
         NFRegexp(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
-//      case SubstringFunction(a: Property, b: ParameterExpression) =>
-//        NFSubstringFunction(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
-//      case ToIntegerFunction(a: Property, b: ParameterExpression) =>
-//        NFToIntegerFunction(a.propertyKey.name, b.apply(baseContext, state).asInstanceOf[StringValue].stringValue())
       case PropertyExists(variable: Expression, propertyKey: KeyToken) =>
         NFHasProperty(propertyKey.name)
       case x: Ands =>
@@ -83,7 +79,7 @@ trait PredicatePushDownPipe extends Pipe{
     predicate match {
       case Some(p) =>
         val expr: NFPredicate = convertPredicate(p, state, baseContext)
-        if (expr != null) {
+        if (expr != null && (expr.isInstanceOf[NFAnd] || expr.isInstanceOf[NFOr])) {// only enable ppd when NFAnd, NFor
           fatherPipe.get.bypass()
           if (labelName != null) {
             Some(nodeStore.get.getNodeBylabelAndFilter(labelName, expr).map(_.toNeo4jNodeValue()))
