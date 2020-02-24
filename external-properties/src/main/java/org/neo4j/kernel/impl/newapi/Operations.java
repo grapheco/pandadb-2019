@@ -808,12 +808,12 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
             // NOTE: pandadb
             this.customPropWriteTx.nodeSetProperty(node, propertyKey, value);
-            if(!this.customPropWriteTx.isPreventNeo4jPropStore())
-            {
-                ktx.txState().nodeDoAddProperty( node, propertyKey, value );
-            }
-             //ktx.txState().nodeDoAddProperty( node, propertyKey, value );
+            //if(!this.customPropWriteTx.isPreventNeo4jPropStore())
+            //{
+            //    ktx.txState().nodeDoAddProperty( node, propertyKey, value );
+            // }
             // END-NOTE
+            ktx.txState().nodeDoAddProperty( node, propertyKey, value );
 
             if ( hasRelatedSchema )
             {
@@ -831,12 +831,12 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
 
                 // NOTE: pandadb
                 this.customPropWriteTx.nodeSetProperty(node, propertyKey, value);
-                if(!this.customPropWriteTx.isPreventNeo4jPropStore())
-                {
-                    ktx.txState().nodeDoAddProperty( node, propertyKey, value );
-                }
-                //ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
+                // if(!this.customPropWriteTx.isPreventNeo4jPropStore())
+                // {
+                //    ktx.txState().nodeDoAddProperty( node, propertyKey, value );
+                // }
                 // END-NOTE
+                ktx.txState().nodeDoChangeProperty( node, propertyKey, value );
 
                 if ( hasRelatedSchema )
                 {
