@@ -15,7 +15,7 @@ trait QueryCase {
 
   def buildDB(store: CustomPropertyNodeStore): Unit = {
     if (db == null) {
-      ExternalPropertiesContext.bindCustomPropertyNodeStore(store)
+//      ExternalPropertiesContext.bindCustomPropertyNodeStore(store)
       GlobalContext.setLeaderNode(true)
       val dbFile: File = new File("./output/testdb")
       FileUtils.deleteRecursively(dbFile);
@@ -26,6 +26,9 @@ trait QueryCase {
       db.execute("CREATE (n:Person {age: 40, name: 'alex', address: 'CNIC, CAS, Beijing, China'})")
       db.execute("CREATE (n:Person {age: 40, name: 'alex2', address: 'CNIC, CAS, Beijing, China'})")
       db.execute("CREATE INDEX ON :Person(address)")
+      db.execute("CREATE INDEX ON :Person(name)")
+      db.execute("CREATE INDEX ON :Person(age)")
+      db.execute("CREATE INDEX ON :Person(name, age)")
       db.execute("match (f:Person), (s:Person) where f.age=40 AND s.age=10 CREATE (f)-[hood:Father]->(s)")
     }
   }
@@ -61,12 +64,12 @@ trait QueryCase {
 
   @Test
   def stringEqual(): Unit = {
-    testQuery("match (n) where n.name = 'bob' return id(n)", "id(n)")
+    testQuery("match (n) where n.name = 'bob' return count(n)", "count(n)")
   }
 
   @Test
   def stringEndsWith(): Unit = {
-    testQuery("match (n) where n.name ENDS WITH 'b' return id(n)", "id(n)")
+    testQuery("match (n) where n.name ENDS WITH 'b' return count(n)", "count(n)")
   }
 
   @Test
@@ -76,12 +79,12 @@ trait QueryCase {
 
   @Test
   def stringEndsWithAnd(): Unit = {
-    testQuery("match (n) where n.name ENDS WITH 'b' AND n.address ENDS WITH 'China' AND n.age = 10 return id(n)", "id(n)")
+    testQuery("match (n) where n.name ENDS WITH 'b' AND n.address ENDS WITH 'China' AND n.age = 10 return count(n)", "count(n)")
   }
 
   @Test
   def tripleAnd(): Unit = {
-    testQuery("match (n) where n.name ENDS WITH 'b' and n.address ENDS WITH 'China' and n.age = 10 return id(n)", "id(n)")
+    testQuery("match (n) where n.name ENDS WITH 'b' and n.address ENDS WITH 'China' and n.age = 10 return count(n)", "count(n)")
   }
 
   @Test
@@ -116,7 +119,12 @@ trait QueryCase {
 
   @Test
   def indexStringEndsWith(): Unit = {
-    testQuery("match (n:Person) USING INDEX n:Person(address) where n.address ENDS WITH 'China' return id(n)", "id(n)")
+    testQuery("match (n:Person) USING INDEX n:Person(address, age) where n.address ENDS WITH 'China' and n.age = 10 return id(n)", "id(n)")
+  }
+
+  @Test
+  def compositeIndexStringEndsWith(): Unit = {
+    testQuery("match (n:Person) where n.name = 'bob' and n.age = 10 return count(n)", "count(n)")
   }
 
   @Test
