@@ -61,13 +61,17 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     }
   }
 
-  def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
+  override def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
     expr match {
-      case NFAnd(a, b) => filterNodes(a).toSet & filterNodes(b).toSet
+      case NFAnd(a, b) => filterNodesWithProperties(a).toSet & filterNodesWithProperties(b).toSet
       case NFNot(a) => nodes.values.toSet -- firstFilterNodes(a)
-      case NFOr(a, b) => filterNodes(a).toSet | filterNodes(b).toSet
+      case NFOr(a, b) => filterNodesWithProperties(a).toSet | filterNodesWithProperties(b).toSet
       case _ => firstFilterNodes(expr)
     }
+  }
+
+  override def filterNodes(expr: NFPredicate): Iterable[Long] = {
+    filterNodesWithProperties(expr).map(n => n.id)
   }
 
   def deleteNodes(docsToBeDeleted: Iterable[Long]): Unit = {
@@ -105,10 +109,14 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
 
   }
 
-  def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
+  def getNodeWithPropertiesBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
     //val propName = SolrUtil.labelName
     //filterNodes(NFAnd(NFContainsWith(propName, label), expr))
-    getNodesByLabel(label).toSet & filterNodes(expr).toSet
+    getNodesByLabel(label).toSet & filterNodesWithProperties(expr).toSet
+  }
+
+  override def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[Long] = {
+    getNodeWithPropertiesBylabelAndFilter(label, expr).map(n => n.id)
   }
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {

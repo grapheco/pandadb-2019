@@ -188,7 +188,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     q.get
   }
 
-  override def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
+  override def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
 
     var q: Option[String] = None;
     expr match {
@@ -216,19 +216,27 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     res.iterator2().toIterable
   }
 
-  override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
-    val propName = SolrUtil.labelName
-    filterNodes(NFContainsWith(propName, label))
+  override def filterNodes(expr: NFPredicate): Iterable[Long] = {
+    filterNodesWithProperties(expr).map(n => n.id)
   }
 
-  def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
+  override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val propName = SolrUtil.labelName
-    filterNodes(NFAnd(NFContainsWith(propName, label), expr))
+    filterNodesWithProperties(NFContainsWith(propName, label))
+  }
+
+  def getNodeWithPropertiesBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
+    val propName = SolrUtil.labelName
+    filterNodesWithProperties(NFAnd(NFContainsWith(propName, label), expr))
+  }
+
+  override def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[Long] = {
+    getNodeWithPropertiesBylabelAndFilter(label, expr).map(n => n.id)
   }
 
   override def getNodeById(id: Long): Option[NodeWithProperties] = {
     val propName = SolrUtil.idName
-    filterNodes(NFEquals(propName, Values.of(id))).headOption
+    filterNodesWithProperties(NFEquals(propName, Values.of(id))).headOption
   }
 
   override def close(ctx: PandaModuleContext): Unit = {
