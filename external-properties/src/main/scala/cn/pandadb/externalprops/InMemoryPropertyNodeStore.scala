@@ -61,7 +61,7 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
     }
   }
 
-  override def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
+  def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
     expr match {
       case NFAnd(a, b) => filterNodesWithProperties(a).toSet & filterNodesWithProperties(b).toSet
       case NFNot(a) => nodes.values.toSet -- firstFilterNodes(a)

@@ -380,7 +380,7 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
     }
   }
 
-  override def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
+  def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
     val q = predicate2EsQuery(expr)
     EsUtil.searchWithProperties(esClient, indexName, typeName, q, scrollSize, scrollContainTimeMinutes)
   }
@@ -405,7 +405,7 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
     filterNodesWithProperties(NFContainsWith(propName, label))
   }
 
-  override def getNodeWithPropertiesBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
+  def getNodeWithPropertiesBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
     val propName = EsUtil.labelName
     filterNodesWithProperties(NFAnd(NFContainsWith(propName, label), expr))
   }
