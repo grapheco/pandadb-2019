@@ -266,6 +266,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             return NO_VALUE;
         }
 
+        /*
         public NodeValue getNode(long nodeId)
         {
             if (this.isPreventNeo4jPropStore()) {
@@ -274,6 +275,7 @@ public class Operations implements Write, ExplicitIndexWrite, SchemaWrite
             }
             return null;
         }
+        */
 
         public void nodeDelete(long nodeId)
         {

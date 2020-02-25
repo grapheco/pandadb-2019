@@ -221,3 +221,53 @@ class CreateNodeQueryTest extends CreateQueryTestBase {
   }
 
 }
+
+
+class CreateNodeQueryTest2 extends QueryTestBase{
+  nodeStore = ""
+
+  @Test
+  def test1(): Unit = {
+    // create node with labels and properties
+    val query =
+      """CREATE (n1:Person { name:'test01', age:10, adult:False})
+        |CREATE (n2:Person:Man { name:'test02', age:20, adult:True})
+        |RETURN id(n1),id(n2)
+      """.stripMargin
+    val tx1 = db.beginTx()
+    val rs = db.execute(query)
+    var id1: Long = -1
+    var id2: Long = -1
+    if (rs.hasNext) {
+      val row = rs.next()
+      id1 = row.get("id(n1)").toString.toLong
+      id2 = row.get("id(n2)").toString.toLong
+    }
+    tx1.success()
+    tx1.close()
+
+    val query2 = s"match (n1:Person)  return n1.name;"
+    val tx2 = db.beginTx()
+    val rs2 = db.execute(query2)
+    while (rs2.hasNext) {
+      val n1 = rs2.next()
+      println(n1.get("n1.name") )
+    }
+    tx2.close()
+
+    val tx3 = db.beginTx()
+    val nodes = db.getAllNodes.iterator()
+    while (nodes.hasNext){
+      val n1 = nodes.next()
+      val labels = n1.getLabels.asScala
+      var labelsStr= ""
+      for (lbl <- labels) {
+        labelsStr += "," + lbl.name
+      }
+      println(labelsStr)
+    }
+    tx3.close()
+
+  }
+}
+

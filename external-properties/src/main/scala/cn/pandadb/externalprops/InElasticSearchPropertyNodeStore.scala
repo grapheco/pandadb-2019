@@ -179,9 +179,14 @@ object EsUtil {
     response.getDeleted
   }
 
-  def search(client: RestHighLevelClient, indexName: String, typeName: String,
-             queryBuilder: QueryBuilder, scrollSize: Int, scrollContainTimeMinutes: Int): Iterable[NodeWithProperties] = {
+  def searchWithProperties(client: RestHighLevelClient, indexName: String, typeName: String,
+                           queryBuilder: QueryBuilder, scrollSize: Int, scrollContainTimeMinutes: Int): Iterable[NodeWithProperties] = {
     (new SearchResultsIterator(client, indexName, typeName, queryBuilder, scrollSize, scrollContainTimeMinutes)).toIterable
+  }
+
+  def searchNodeId(client: RestHighLevelClient, indexName: String, typeName: String,
+                   queryBuilder: QueryBuilder, scrollSize: Int, scrollContainTimeMinutes: Int): Iterable[Long] = {
+    (new SearchNodeIdResultsIterator(client, indexName, typeName, queryBuilder, scrollSize, scrollContainTimeMinutes)).toIterable
   }
 
   class SearchResultsIterator(client: RestHighLevelClient, indexName: String, typeName: String, queryBuilder: QueryBuilder,
@@ -226,6 +231,58 @@ object EsUtil {
     override def next(): NodeWithProperties = {
       val h = hitsIterator.next()
       EsUtil.sourceMapToNodeWithProperties(h.getSourceAsMap.toMap)
+    }
+  }
+
+  class SearchNodeIdResultsIterator(client: RestHighLevelClient, indexName: String, typeName: String, queryBuilder: QueryBuilder,
+                                    scrollSize: Int, scrollContainTimeMinutes: Int) extends AbstractIterator[Long] {
+    private val searchRequest = new SearchRequest()
+    searchRequest.indices(indexName)
+    searchRequest.types(typeName)
+    private val searchSourceBuilder = new SearchSourceBuilder()
+    private val scroll = new Scroll(EsTimeValue.timeValueMinutes(scrollContainTimeMinutes))
+    searchSourceBuilder.query(queryBuilder)
+    val fields = Array[String](idName)
+    searchSourceBuilder.fetchSource(fields, null)
+    searchSourceBuilder.size(scrollSize)
+    searchRequest.source(searchSourceBuilder)
+    searchRequest.scroll(scroll)
+    private var searchResponse = client.search(searchRequest, RequestOptions.DEFAULT)
+    private var scrollId = searchResponse.getScrollId
+    private var searchHits = searchResponse.getHits.getHits
+    private var lastHitsSize = searchHits.size
+    private var hitsIterator = searchHits.toIterator
+
+    private def doScroll(): Boolean = {
+      if (lastHitsSize > 0) {
+        val scrollRequest = new SearchScrollRequest(scrollId)
+        scrollRequest.scroll(scroll)
+        searchResponse = client.scroll(scrollRequest, RequestOptions.DEFAULT)
+        scrollId = searchResponse.getScrollId
+        searchHits = searchResponse.getHits.getHits
+        lastHitsSize = searchHits.size
+        hitsIterator = searchHits.toIterator
+        lastHitsSize > 0
+      }
+      else {
+        val clearScrollRequest = new ClearScrollRequest
+        clearScrollRequest.addScrollId(scrollId)
+        val clearScrollResponse = client.clearScroll(clearScrollRequest, RequestOptions.DEFAULT)
+        clearScrollResponse.isSucceeded
+        false
+      }
+    }
+
+    override def hasNext: Boolean = hitsIterator.hasNext || doScroll()
+
+    override def next(): Long = {
+      val h = hitsIterator.next()
+      val doc = h.getSourceAsMap.toMap
+      var id: Long = -1
+      if (doc.contains(idName)) {
+        id = doc.get(idName).get.asInstanceOf[Int].toLong
+      }
+      id
     }
   }
 
@@ -323,24 +380,43 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
     }
   }
 
-  override def filterNodes(expr: NFPredicate): Iterable[NodeWithProperties] = {
+  override def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
     val q = predicate2EsQuery(expr)
-    EsUtil.search(esClient, indexName, typeName, q, scrollSize, scrollContainTimeMinutes)
+    EsUtil.searchWithProperties(esClient, indexName, typeName, q, scrollSize, scrollContainTimeMinutes)
+  }
+
+  override def filterNodes(expr: NFPredicate): Iterable[Long] = {
+    val q = predicate2EsQuery(expr)
+    EsUtil.searchNodeId(esClient, indexName, typeName, q, scrollSize, scrollContainTimeMinutes)
+  }
+
+  // for tests
+  def filterNodesWithProperties(query: QueryBuilder): Iterable[NodeWithProperties] = {
+    EsUtil.searchWithProperties(esClient, indexName, typeName, query, scrollSize, scrollContainTimeMinutes)
+  }
+
+  // for tests
+  def filterNodes(query: QueryBuilder): Iterable[Long] = {
+    EsUtil.searchNodeId(esClient, indexName, typeName, query, scrollSize, scrollContainTimeMinutes)
   }
 
   override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val propName = EsUtil.labelName
-    filterNodes(NFContainsWith(propName, label))
+    filterNodesWithProperties(NFContainsWith(propName, label))
   }
 
-  def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
+  override def getNodeWithPropertiesBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
     val propName = EsUtil.labelName
-    filterNodes(NFAnd(NFContainsWith(propName, label), expr))
+    filterNodesWithProperties(NFAnd(NFContainsWith(propName, label), expr))
+  }
+
+  override def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[Long] = {
+    getNodeWithPropertiesBylabelAndFilter(label, expr).map(n => n.id)
   }
 
   override def getNodeById(id: Long): Option[NodeWithProperties] = {
     val propName = EsUtil.idName
-    filterNodes(NFEquals(propName, Values.of(id))).headOption
+    filterNodesWithProperties(NFEquals(propName, Values.of(id))).headOption
   }
 
   override def close(ctx: PandaModuleContext): Unit = {

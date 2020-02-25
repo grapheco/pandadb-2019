@@ -82,10 +82,10 @@ trait PredicatePushDownPipe extends Pipe{
         if (expr != null && (expr.isInstanceOf[NFAnd] || expr.isInstanceOf[NFOr])) {// only enable ppd when NFAnd, NFor
           fatherPipe.get.bypass()
           if (labelName != null) {
-            Some(nodeStore.get.getNodeBylabelAndFilter(labelName, expr).map(_.toNeo4jNodeValue()))
+            Some(nodeStore.get.getNodeWithPropertiesBylabelAndFilter(labelName, expr).map(_.toNeo4jNodeValue()))
           }
           else {
-            Some(nodeStore.get.filterNodes(expr).map(_.toNeo4jNodeValue()))
+            Some(nodeStore.get.filterNodesWithProperties(expr).map(_.toNeo4jNodeValue()))
           }
         }
         else {
