@@ -220,9 +220,13 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     filterNodesWithProperties(expr).map(n => n.id)
   }
 
-  override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
+  def getNodesWithPropertiesByLabel(label: String): Iterable[NodeWithProperties] = {
     val propName = SolrUtil.labelName
     filterNodesWithProperties(NFContainsWith(propName, label))
+  }
+
+  override def getNodesByLabel(label: String): Iterable[Long] = {
+    getNodesWithPropertiesByLabel(label).map(n => n.id)
   }
 
   def getNodeWithPropertiesBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {

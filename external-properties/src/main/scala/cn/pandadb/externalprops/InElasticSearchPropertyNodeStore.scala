@@ -15,19 +15,18 @@ import org.elasticsearch.action.admin.indices.create.{CreateIndexRequest, Create
 import org.elasticsearch.action.admin.indices.get.GetIndexRequest
 import org.elasticsearch.action.index.{IndexRequest, IndexResponse}
 import org.elasticsearch.common.xcontent.{XContentBuilder, XContentFactory, XContentType}
-import org.elasticsearch.action.get.{GetRequest, GetResponse}
+import org.elasticsearch.action.get.GetRequest
 import org.elasticsearch.action.update.{UpdateRequest, UpdateResponse}
 import org.elasticsearch.action.delete.{DeleteRequest, DeleteResponse}
 import org.elasticsearch.common.Strings
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext
-import org.elasticsearch.action.search.{ClearScrollRequest, SearchRequest, SearchResponse, SearchScrollRequest}
+import org.elasticsearch.action.search.{ClearScrollRequest, SearchRequest, SearchScrollRequest}
 import org.elasticsearch.index.query.{QueryBuilder, QueryBuilders}
 import org.elasticsearch.search.builder.SearchSourceBuilder
 import org.elasticsearch.index.reindex.{BulkByScrollResponse, DeleteByQueryRequest}
 import org.elasticsearch.action.support.WriteRequest
 import org.elasticsearch.common.unit.{TimeValue => EsTimeValue}
 import org.elasticsearch.search.{Scroll, SearchHit}
-
 
 object EsUtil {
   val idName = "id"
@@ -249,7 +248,7 @@ object EsUtil {
     searchRequest.scroll(scroll)
     private var searchResponse = client.search(searchRequest, RequestOptions.DEFAULT)
     private var scrollId = searchResponse.getScrollId
-    private var searchHits = searchResponse.getHits.getHits
+    private var searchHits: Array[SearchHit] = searchResponse.getHits.getHits
     private var lastHitsSize = searchHits.size
     private var hitsIterator = searchHits.toIterator
 
@@ -287,7 +286,6 @@ object EsUtil {
   }
 
 }
-
 
 class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: String, typeName: String,
  schema: String = "http", scrollSize: Int = 100, scrollContainTimeMinutes: Int = 10) extends CustomPropertyNodeStore {
@@ -380,7 +378,7 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
     }
   }
 
-  def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
+  private  def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
     val q = predicate2EsQuery(expr)
     EsUtil.searchWithProperties(esClient, indexName, typeName, q, scrollSize, scrollContainTimeMinutes)
   }
@@ -388,6 +386,21 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
   override def filterNodes(expr: NFPredicate): Iterable[Long] = {
     val q = predicate2EsQuery(expr)
     EsUtil.searchNodeId(esClient, indexName, typeName, q, scrollSize, scrollContainTimeMinutes)
+  }
+
+  override def getNodesByLabel(label: String): Iterable[Long] = {
+    val propName = EsUtil.labelName
+    filterNodes(NFContainsWith(propName, label))
+  }
+
+  override def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[Long] = {
+    val propName = EsUtil.labelName
+    filterNodes(NFAnd(NFContainsWith(propName, label), expr))
+  }
+
+  override def getNodeById(id: Long): Option[NodeWithProperties] = {
+    val propName = EsUtil.idName
+    filterNodesWithProperties(NFEquals(propName, Values.of(id))).headOption
   }
 
   // for tests
@@ -400,23 +413,10 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
     EsUtil.searchNodeId(esClient, indexName, typeName, query, scrollSize, scrollContainTimeMinutes)
   }
 
-  override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
+  // for tests
+  def getNodesWithPropertiesByLabel(label: String): Iterable[NodeWithProperties] = {
     val propName = EsUtil.labelName
     filterNodesWithProperties(NFContainsWith(propName, label))
-  }
-
-  def getNodeWithPropertiesBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
-    val propName = EsUtil.labelName
-    filterNodesWithProperties(NFAnd(NFContainsWith(propName, label), expr))
-  }
-
-  override def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[Long] = {
-    getNodeWithPropertiesBylabelAndFilter(label, expr).map(n => n.id)
-  }
-
-  override def getNodeById(id: Long): Option[NodeWithProperties] = {
-    val propName = EsUtil.idName
-    filterNodesWithProperties(NFEquals(propName, Values.of(id))).headOption
   }
 
   override def close(ctx: PandaModuleContext): Unit = {
@@ -432,7 +432,6 @@ class InElasticSearchPropertyNodeStore(host: String, port: Int, indexName: Strin
       new InEsGroupedOpVisitor(false, esClient, indexName, typeName))
   }
 }
-
 
 class InEsGroupedOpVisitor(isCommit: Boolean, esClient: RestHighLevelClient, indexName: String, typeName: String)
   extends GroupedOpVisitor {
