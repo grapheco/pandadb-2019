@@ -79,7 +79,7 @@ trait PredicatePushDownPipe extends Pipe{
     predicate match {
       case Some(p) =>
         val expr: NFPredicate = convertPredicate(p, state, baseContext)
-        if (expr != null && (expr.isInstanceOf[NFAnd] || expr.isInstanceOf[NFOr])) {// only enable ppd when NFAnd, NFor
+        if (expr != null && (expr.isInstanceOf[NFAnd] || expr.isInstanceOf[NFOr] || expr.isInstanceOf[NFContainsWith])) {// only enable ppd when NFAnd, NFor
           fatherPipe.get.bypass()
           if (labelName != null) {
             Some(nodeStore.get.getNodeBylabelAndFilter(labelName, expr).map(id => VirtualValues.node(id)))
