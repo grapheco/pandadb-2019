@@ -14,6 +14,18 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
+
+class InSolrPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
+  override def create(conf: Configuration): CustomPropertyNodeStore = {
+
+    import cn.pandadb.util.ConfigUtils._
+
+    val zkAddr = conf.getRequiredValueAsString("external.properties.store.solr.zk")
+    val zkCollection = conf.getRequiredValueAsString("external.properties.store.solr.collection")
+    new InSolrPropertyNodeStore(zkAddr, zkCollection)
+  }
+}
+
 object SolrUtil {
   val idName = "id"
   val labelName = "labels"

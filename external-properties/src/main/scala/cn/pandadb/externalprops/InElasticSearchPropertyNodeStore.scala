@@ -7,7 +7,7 @@ import scala.collection.{AbstractIterator, mutable}
 import scala.collection.mutable.ArrayBuffer
 import org.neo4j.cypher.internal.runtime.interpreted.{NFLessThan, NFPredicate, _}
 import org.neo4j.values.storable._
-import cn.pandadb.util.PandaModuleContext
+import cn.pandadb.util.{Configuration, PandaModuleContext}
 import com.alibaba.fastjson.JSONObject
 import org.apache.http.HttpHost
 import org.elasticsearch.client.{RequestOptions, RestClient, RestHighLevelClient}
@@ -27,6 +27,23 @@ import org.elasticsearch.index.reindex.{BulkByScrollResponse, DeleteByQueryReque
 import org.elasticsearch.action.support.WriteRequest
 import org.elasticsearch.common.unit.{TimeValue => EsTimeValue}
 import org.elasticsearch.search.{Scroll, SearchHit}
+
+
+class InElasticSearchPropertyNodeStoreFactory extends ExternalPropertyStoreFactory {
+  override def create(conf: Configuration): CustomPropertyNodeStore = {
+
+    import cn.pandadb.util.ConfigUtils._
+
+    val host = conf.getRequiredValueAsString("external.properties.store.es.host")
+    val port = conf.getRequiredValueAsInt("external.properties.store.es.port")
+    val schema = conf.getRequiredValueAsString("external.properties.store.es.schema")
+    val scrollSize = conf.getRequiredValueAsInt("external.properties.store.es.scroll.size")
+    val scrollContainTime = conf.getRequiredValueAsInt("external.properties.store.es.scroll.time.minutes")
+    val indexName = conf.getRequiredValueAsString("external.properties.store.es.index")
+    val typeName = conf.getRequiredValueAsString("external.properties.store.es.type")
+    new InElasticSearchPropertyNodeStore(host, port, indexName, typeName, schema, scrollSize, scrollContainTime)
+  }
+}
 
 object EsUtil {
   val idName = "id"
