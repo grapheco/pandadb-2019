@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>cn.pandadb</groupId>
+        <version>0.0.2</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>cn.pandadb</groupId>
+    <artifactId>packaging-build</artifactId>
+
+    <properties>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>tools</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <attach>false</attach>
+                    <finalName>pandadb-${project.version}</finalName>
+                    <appendAssemblyId>true</appendAssemblyId>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <delimiters>
+                        <!-- Because we are filtering shell scripts, which use '@' on windows and '${}' on *nix, change the
+                             parameter substitution pattern to not clash with those. -->
+                        <delimiter>#{*}</delimiter>
+                    </delimiters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>jar-with-dependency</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>community-unix-dist</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assemblies/community-unix-dist.xml</descriptor>
+                            </descriptors>
+                            <!--<filters>-->
+                                <!--<filter>${project.basedir}/tarball.properties</filter>-->
+                            <!--</filters>-->
+                        </configuration>
+                    </execution>
+                    <!--<execution>-->
+                        <!--<id>community-windows-dist</id>-->
+                        <!--<phase>package</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>single</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<descriptors>-->
+                                <!--<descriptor>src/main/assemblies/community-windows-dist.xml</descriptor>-->
+                            <!--</descriptors>-->
+                            <!--<filters>-->
+                                <!--<filter>${project.parent.basedir}/zip.properties</filter>-->
+                            <!--</filters>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

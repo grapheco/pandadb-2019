@@ -20,6 +20,7 @@
         <module>network-commons</module>
         <module>tools</module>
         <module>itest</module>
+        <module>packaging</module>
     </modules>
 
     <properties>
@@ -223,128 +224,79 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-                <version>2.15.2</version>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.8</version>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
+                        <id>scala-compile-first</id>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>add-source</goal>
+                            <goal>compile</goal>
                         </goals>
-                        <configuration>
-                            <sources>
-                                <source>${pom.basedir}/src/main/scala</source>
-                                <source>${pom.basedir}/src/main/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>add-resource</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>add-resource</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>${pom.basedir}/src/main/resources</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>add-test-source</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${pom.basedir}/src/test/scala</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>add-test-resource</id>
-                        <phase>generate-test-resources</phase>
-                        <goals>
-                            <goal>add-test-resource</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>${pom.basedir}/src/test/resources</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>appassembler-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>assemble</goal>
-                        </goals>
-                    </execution>
-                </executions>
 
-                <configuration>
 
-                    <programs>
-                        <program>
-                            <!--指定主类，脚本名。会生成shell/bat两种类型,也可用platforms指定运行平台-->
-                            <mainClass>cn.pandadb.tool.PNodeServerStarter</mainClass>
-                            <!-- 生成的脚本文件的名称，比如start.sh,你也可以根据你的需要命名成其他名字 -->
-                            <name>pandadb-start</name>
-                        </program>
-                    </programs>
-                </configuration>
-            </plugin>
+            <!-- Jar file packaging settings -->
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <!--                        <manifest>-->
-                        <!--                            &lt;!&ndash;这里指定要运行的main类&ndash;&gt;-->
-                        <!--                            <mainClass>netty.client.TcpClient809</mainClass>-->
-                        <!--                        </manifest>-->
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
                 <executions>
+                    <!-- Augment default jar with url -->
                     <execution>
-                        <id>make-assembly</id> <!-- 此处指定继承合并 -->
-                        <phase>package</phase> <!-- 绑定到打包阶段 -->
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
+                        <id>default-jar</id>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                </manifest>
+                                <manifestEntries>
+                                    <Url>${project.organization.url}</Url>
+                                    <Automatic-Module-Name>${moduleName}</Automatic-Module-Name>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
                     </execution>
+                    <!-- Create test jar -->
+                    <!--<execution>-->
+                        <!--<id>create-test-jar</id>-->
+                        <!--<goals>-->
+                            <!--<goal>test-jar</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                    <!-- Create javadoc jar, will be empty if javadoc generation is skipped -->
+                    <!--<execution>-->
+                        <!--<id>create-javadoc-jar</id>-->
+                        <!--<phase>package</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>jar</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<classifier>javadoc</classifier>-->
+                            <!--<classesDirectory>${project.build.directory}/apidocs/</classesDirectory>-->
+                            <!--<includes>-->
+                                <!--<include>**/**</include>-->
+                            <!--</includes>-->
+                            <!--<excludes>-->
+                                <!--<exclude>javadoc.sh</exclude>-->
+                                <!--<exclude>javadoc.bat</exclude>-->
+                                <!--<exclude>options</exclude>-->
+                                <!--<exclude>packages</exclude>-->
+                                <!--<exclude>argfile</exclude>-->
+                                <!--<exclude>files</exclude>-->
+                            <!--</excludes>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
                 </executions>
             </plugin>
+
+
         </plugins>
     </build>
 </project>

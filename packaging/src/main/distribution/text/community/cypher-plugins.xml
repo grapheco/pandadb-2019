@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean class="cn.pandadb.blob.CypherPluginRegistry">
+        <!-- defines all extractors -->
+        <property name="extractors">
+            <list>
+                <bean class="cn.pandadb.blob.DomainExtractorEntry">
+                    <property name="extractor">
+                        <bean class="cn.aipm.CommonPropertyExtractor"/>
+                    </property>
+                    <property name="domain" value="*"/>
+                </bean>
+                <bean class="cn.pandadb.blob.DomainExtractorEntry">
+                    <property name="extractor">
+                        <bean class="cn.aipm.text.ChineseTokenizer"/>
+                    </property>
+                    <property name="domain" value="string"/>
+                </bean>
+                <bean class="cn.pandadb.blob.DomainExtractorEntry">
+                    <property name="extractor">
+                        <bean class="cn.aipm.text.SentimentClassifier"/>
+                    </property>
+                    <property name="domain" value="string"/>
+                </bean>
+                <bean class="cn.pandadb.blob.DomainExtractorEntry">
+                    <property name="extractor">
+                        <bean class="cn.aipm.CommonBlobPropertyExtractor"/>
+                    </property>
+                    <property name="domain" value="blob/*"/>
+                </bean>
+                <bean class="cn.pandadb.blob.DomainExtractorEntry">
+                    <property name="extractor">
+                        <bean class="cn.aipm.image.ImageMetaDataExtractor"/>
+                    </property>
+                    <property name="domain" value="blob/image"/>
+                </bean>
+                <bean class="cn.pandadb.blob.DomainExtractorEntry">
+                    <property name="extractor">
+                        <bean class="cn.aipm.image.PlateNumberExtractor"/>
+                    </property>
+                    <property name="domain" value="blob/image"/>
+                </bean>
+                <bean class="cn.pandadb.blob.DomainExtractorEntry">
+                    <property name="extractor">
+                        <bean class="cn.aipm.image.DogOrCatClassifier"/>
+                    </property>
+                    <property name="domain" value="blob/image"/>
+                </bean>
+            </list>
+        </property>
+        <!-- defines all comparators -->
+        <property name="comparators">
+            <list>
+                <bean class="cn.pandadb.blob.DomainComparatorEntry">
+                    <property name="name" value="face"/>
+                    <property name="domain" value="blob/image:blob/image"/>
+                    <property name="threshold" value="0.6"/>
+                    <property name="comparator">
+                        <bean class="cn.aipm.image.FaceSimilarityComparator"/>
+                    </property>
+                </bean>
+                <bean class="cn.pandadb.blob.DomainComparatorEntry">
+                    <property name="name" value="jaro"/>
+                    <property name="domain" value="string:string"/>
+                    <property name="threshold" value="0.7"/>
+                    <property name="comparator">
+                        <bean class="cn.aipm.text.JaroWinklerStringSimilarity"/>
+                    </property>
+                </bean>
+                <bean class="cn.pandadb.blob.DomainComparatorEntry">
+                    <property name="name" value="jaccard"/>
+                    <property name="domain" value="string:string"/>
+                    <property name="threshold" value="0.7"/>
+                    <property name="comparator">
+                        <bean class="cn.aipm.text.JaccardStringSimilarity"/>
+                    </property>
+                </bean>
+                <bean class="cn.pandadb.blob.DomainComparatorEntry">
+                    <property name="name" value="cosine"/>
+                    <property name="domain" value="string:string"/>
+                    <property name="threshold" value="0.7"/>
+                    <property name="comparator">
+                        <bean class="cn.aipm.text.CosineStringSimilarity"/>
+                    </property>
+                </bean>
+            </list>
+        </property>
+    </bean>
+</beans>
