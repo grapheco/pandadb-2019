@@ -9,18 +9,7 @@
     <packaging>pom</packaging>
     <version>0.0.2</version>
     <modules>
-        <module>java-driver</module>
-        <module>blob-commons</module>
-        <module>blob-feature</module>
-        <module>aipm-library</module>
-        <module>external-properties</module>
-        <module>server</module>
-        <module>commons</module>
         <module>neo4j-hacking</module>
-        <module>network-commons</module>
-        <module>tools</module>
-        <module>itest</module>
-        <module>packaging</module>
     </modules>
 
     <properties>
@@ -35,6 +24,14 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.grapheco</groupId>
+            <artifactId>hippo-rpc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
@@ -54,6 +51,10 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
 
@@ -125,26 +126,6 @@
                 <artifactId>kraps-rpc_2.11</artifactId>
                 <version>1.0.0</version>
             </dependency>
-            <!--<dependency>-->
-                <!--<groupId>cn.pandadb</groupId>-->
-                <!--<artifactId>fat-rpc</artifactId>-->
-                <!--<version>1.0.0</version>-->
-                <!--<exclusions>-->
-                    <!--<exclusion>-->
-                        <!--<groupId>com.sun.jersey</groupId>-->
-                        <!--<artifactId>jersey-core</artifactId>-->
-                    <!--</exclusion>-->
-                    <!--<exclusion>-->
-                        <!--<groupId>com.sun.jersey</groupId>-->
-                        <!--<artifactId>jersey-servlet</artifactId>-->
-                    <!--</exclusion>-->
-                    <!--<exclusion>-->
-                        <!--<groupId>com.sun.jersey</groupId>-->
-                        <!--<artifactId>jersey-server</artifactId>-->
-                    <!--</exclusion>-->
-                <!--</exclusions>-->
-            <!--</dependency>-->
-
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
@@ -156,20 +137,26 @@
                 <version>4.12</version>
             </dependency>
             <dependency>
+                <groupId>org.grapheco</groupId>
+                <artifactId>hippo-rpc</artifactId>
+                <version>0.1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
                 <groupId>org.neo4j</groupId>
                 <artifactId>neo4j</artifactId>
                 <version>3.5.6</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-all</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
-            <dependency>
-                <groupId>org.neo4j.app</groupId>
-                <artifactId>neo4j-server</artifactId>
-                <version>3.5.6</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.solr</groupId>
-                <artifactId>solr-solrj</artifactId>
-                <version>6.0.0</version>
-            </dependency>
+            <!--<dependency>-->
+                <!--<groupId>org.neo4j.app</groupId>-->
+                <!--<artifactId>neo4j-server</artifactId>-->
+                <!--<version>3.5.6</version>-->
+            <!--</dependency>-->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-log4j12</artifactId>
@@ -186,16 +173,11 @@
                 <version>3.0.0</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>org.apache.httpcomponents</groupId>
-                <artifactId>httpmime</artifactId>
-                <version>4.5.7</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.curator</groupId>
-                <artifactId>curator-recipes</artifactId>
-                <version>2.10.0</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.apache.curator</groupId>-->
+<!--                <artifactId>curator-recipes</artifactId>-->
+<!--                <version>2.10.0</version>-->
+<!--            </dependency>-->
         </dependencies>
     </dependencyManagement>
     <build>

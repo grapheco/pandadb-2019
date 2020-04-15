@@ -16,17 +16,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>cn.pandadb</groupId>
-            <artifactId>commons</artifactId>
-            <version>${pandadb.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
 
