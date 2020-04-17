@@ -10,6 +10,7 @@
     <version>0.0.2</version>
     <modules>
         <module>neo4j-hacking</module>
+        <module>id-management</module>
     </modules>
 
     <properties>
@@ -139,7 +140,7 @@
             <dependency>
                 <groupId>org.grapheco</groupId>
                 <artifactId>hippo-rpc</artifactId>
-                <version>0.1.0-SNAPSHOT</version>
+                <version>0.1.2</version>
             </dependency>
             <dependency>
                 <groupId>org.neo4j</groupId>
@@ -157,27 +158,34 @@
                 <!--<artifactId>neo4j-server</artifactId>-->
                 <!--<version>3.5.6</version>-->
             <!--</dependency>-->
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>1.7.25</version>
-            </dependency>
+
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>1.7.25</version>
             </dependency>
             <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>1.7.25</version>
+            </dependency>
+            <dependency>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+                <version>1.2.17</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.scalatest</groupId>
                 <artifactId>scalatest_${scala.compat.version}</artifactId>
                 <version>3.0.0</version>
                 <scope>test</scope>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>org.apache.curator</groupId>-->
-<!--                <artifactId>curator-recipes</artifactId>-->
-<!--                <version>2.10.0</version>-->
-<!--            </dependency>-->
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>3.3.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
