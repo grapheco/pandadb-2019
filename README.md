@@ -1,4 +1,4 @@
-# PandaDB-2019
+# PandaDB
 
 Panda eats both refined food and roughage.
 
