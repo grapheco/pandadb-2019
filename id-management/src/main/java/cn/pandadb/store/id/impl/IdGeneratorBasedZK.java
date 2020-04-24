@@ -49,7 +49,7 @@ public class IdGeneratorBasedZK implements IdGenerator {
   public long nextId() throws Exception {
     AtomicValue<Long> tmp = highId.add(1L);
     if (tmp.succeeded()) {
-      return tmp.postValue();
+      return tmp.postValue() - 1;
     }
     else {
       throw new Exception("Failed to Get nextId()");

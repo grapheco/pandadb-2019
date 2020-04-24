@@ -10,12 +10,13 @@ import cn.pandadb.store.id.impl.IdGeneratorBasedZK;
 public class IdGeneratorTests {
 
   String zkAddress = "127.0.0.1:2181";
-  String counterPath = "/pandadb-test/id3";
+  String counterPath = "/pandadb-test/id5";
 
   @Test
   public void testNextIdForOneThread() throws Exception {
     IdGeneratorBasedZK idGenerator = new IdGeneratorBasedZK(zkAddress, counterPath);
     long highId = idGenerator.getHighestPossibleIdInUse();
+    System.out.println(highId);
     for (int i=0; i<5; i++) {
       assertEquals ((++highId), idGenerator.nextId());
     }
