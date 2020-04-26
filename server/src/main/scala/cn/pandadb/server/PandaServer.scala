@@ -11,7 +11,7 @@ class PandaServer(config: Config)  {
   val life = new LifecycleSupport
   val logger = config.getLogger(this.getClass)
   life.add(new CostoreServer(config) )
-//  life.add(new Neo4jServer(config) )
+  life.add(new Neo4jServer(config) )
 
   def start(): Unit = {
     logger.info("==== PandaDB Server Start... ====")
