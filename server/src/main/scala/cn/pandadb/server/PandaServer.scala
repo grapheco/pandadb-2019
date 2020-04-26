@@ -1,25 +1,27 @@
 package cn.pandadb.server
 
-import cn.pandadb.server.Config
-import cn.pandadb.server.driver.{Server => DriverServer}
-import cn.pandadb.server.util.Logging
+import cn.pandadb.configuration.Config
+import cn.pandadb.lifecycle.LifecycleSupport
+import cn.pandadb.costore.CostoreServer
+import cn.pandadb.neo4j.Neo4jServer
 
-class PandaServer(config: Config) extends Logging{
 
-  val modules = new PandaModules
-  val driverServer: DriverServer = new DriverServer
+class PandaServer(config: Config)  {
 
-  modules.add(driverServer)
+  val life = new LifecycleSupport
+  val logger = config.getLogger(this.getClass)
+  life.add(new CostoreServer(config) )
+//  life.add(new Neo4jServer(config) )
 
   def start(): Unit = {
     logger.info("==== PandaDB Server Start... ====")
 //    driverServer.start(config)
-    modules.start(config)
+    life.start()
   }
 
   def stop(): Unit = {
     logger.info("==== PandaDB Server Stop... ====")
 //    driverServer.stop()
-    modules.stop(config)
+    life.stop()
   }
 }

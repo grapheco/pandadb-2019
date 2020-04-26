@@ -9,9 +9,12 @@
     <packaging>pom</packaging>
     <version>0.0.2</version>
     <modules>
-        <module>neo4j-hacking</module>
+        <module>neo4j-database</module>
         <module>id-management</module>
         <module>server</module>
+        <module>common</module>
+        <module>costore</module>
+        <module>aipm</module>
     </modules>
 
     <properties>
@@ -247,7 +250,7 @@
                                 </manifest>
                                 <manifestEntries>
                                     <Url>${project.organization.url}</Url>
-                                    <Automatic-Module-Name>${moduleName}</Automatic-Module-Name>
+<!--                                    <Automatic-Module-Name>${moduleName}</Automatic-Module-Name>-->
                                 </manifestEntries>
                             </archive>
                         </configuration>

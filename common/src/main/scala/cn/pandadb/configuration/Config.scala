@@ -1,7 +1,7 @@
-package cn.pandadb.server
+package cn.pandadb.configuration
 
 import java.io.File
-
+import org.slf4j.{Logger, LoggerFactory}
 
 class Config {
   private var zkAddress: Option[String] = None
@@ -20,5 +20,9 @@ class Config {
 
   def getListenHost(): String = {listenHost}
   def getRpcPort: Int = {rpcPort.get}
+
+  def getLogger(clazz: Class[_]): Logger = {
+    LoggerFactory.getLogger(clazz)
+  }
 
 }

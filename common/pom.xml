@@ -9,15 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>id-management</artifactId>
-    <groupId>cn.pandadb</groupId>
-    <version>0.0.2</version>
+    <artifactId>common</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-        </dependency>
-    </dependencies>
 
 </project>
