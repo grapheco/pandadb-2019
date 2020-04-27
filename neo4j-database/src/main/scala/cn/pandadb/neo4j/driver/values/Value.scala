@@ -1,11 +1,7 @@
 package cn.pandadb.neo4j.driver.values
 
-import java.time.temporal.{Temporal, TemporalAmount, TemporalUnit}
 import java.time.{LocalDate, LocalDateTime, LocalTime, OffsetTime, ZonedDateTime}
-import java.util
-
-import scala.collection.JavaConverters._
-import scala.collection.mutable.{ArrayBuffer, Buffer, ListBuffer}
+import scala.collection.mutable.{ArrayBuffer, Buffer}
 
 trait Value extends Serializable {
 

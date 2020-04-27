@@ -8,7 +8,7 @@ trait Result extends Iterator[Record] {
 class InternalRecords extends Serializable {
   val records = new ArrayBuffer[Record]()
 
-  def append(record: Record) = records.append(record)
+  def append(record: Record): Unit = records.append(record)
 
   def getRecords(): Iterable[Record] = records
 

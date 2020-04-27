@@ -3,7 +3,7 @@ package cn.pandadb.neo4j.util
 import java.time.{LocalDate, LocalDateTime, LocalTime, OffsetTime, ZonedDateTime}
 import java.time.temporal.Temporal
 
-import cn.pandadb.neo4j.driver.values.{Duration, Label, Node, NodeValue, Point, Point2D, Relationship, RelationshipType, RelationshipValue, Value}
+import cn.pandadb.neo4j.driver.values.{Label, Node, Relationship, RelationshipType, Value}
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
