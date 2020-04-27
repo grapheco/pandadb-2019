@@ -1,25 +1,17 @@
-package cn.pandadb.neo4j
-
-import java.io.File
-
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
+package cn.pandadb.cluster
 
 import cn.pandadb.configuration.Config
 import cn.pandadb.server.modules.LifecycleServerModule
-import cn.pandadb.neo4j.rpc.DBRpcServer
 
-
-class Neo4jServer(config: Config) extends LifecycleServerModule {
+class ClusterService(config: Config) extends LifecycleServerModule {
   val logger = config.getLogger(this.getClass)
-
   override def init(): Unit = {
     logger.info(this.getClass + ": init")
   }
 
   override def start(): Unit = {
     logger.info(this.getClass + ": start")
-    val rpcServer = new DBRpcServer("127.0.0.1", 52340, logger)
+    doNodeRegister()
   }
 
   override def stop(): Unit = {
@@ -30,6 +22,8 @@ class Neo4jServer(config: Config) extends LifecycleServerModule {
     logger.info(this.getClass + ": stop")
   }
 
-  def createNode(id: Long, labels: Array[String], properties: Map[String, String]): Unit = {
+  private def doNodeRegister(): Unit = {
+    logger.info("doNodeRegister")
   }
+
 }

@@ -16,13 +16,18 @@
 
     <dependencies>
         <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
         </dependency>
         <dependency>
-            <groupId>cn.pandadb</groupId>
-            <artifactId>common</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.grapheco</groupId>
+            <artifactId>hippo-rpc</artifactId>
+            <version>0.1.2</version>
         </dependency>
     </dependencies>
 

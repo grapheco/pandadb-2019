@@ -15,6 +15,7 @@
         <module>common</module>
         <module>costore</module>
         <module>aipm</module>
+        <module>cluster-service</module>
     </modules>
 
     <properties>
