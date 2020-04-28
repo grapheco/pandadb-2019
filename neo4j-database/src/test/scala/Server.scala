@@ -2,7 +2,8 @@ import java.io.File
 import java.nio.ByteBuffer
 
 import cn.pandadb.neo4j.driver.values.{Node, Relationship}
-import cn.pandadb.neo4j.util.ValueConverter
+import cn.pandadb.neo4j.util.{ServerReplyMsg, ValueConverter}
+import com.sun.corba.se.impl.protocol.giopmsgheaders.ReplyMessage
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.{RpcCallContext, RpcEndpoint, RpcEnvServerConfig}
 import net.neoremind.kraps.rpc.netty.{HippoRpcEnv, HippoRpcEnvFactory}
@@ -110,7 +111,7 @@ class MyEndpoint(override val rpcEnv: HippoRpcEnv) extends RpcEndpoint with Hipp
       db_node.delete()
       tx.success()
       tx.close()
-      context.reply("delete node successfully!")
+      context.reply(ServerReplyMsg.SUCCESS)
     }
 
     case DeleteProperty(node, property) => {
@@ -120,39 +121,41 @@ class MyEndpoint(override val rpcEnv: HippoRpcEnv) extends RpcEndpoint with Hipp
       db_node.removeProperty(property)
       tx.success()
       tx.close()
-      context.reply("delete property successfully!")
+      context.reply(ServerReplyMsg.SUCCESS)
     }
-    case UpdateNode(node, propertiesMap, oldLabel, newLabel) => {
+    case UpdateNodeProperty(node, propertiesMap) => {
       val tx = db.beginTx()
       val id = node.id
       val db_node = db.getNodeById(id)
       for (map <- propertiesMap) {
         db_node.setProperty(map._1, map._2)
       }
-      if (oldLabel != "" && newLabel != "") {
-        db_node.removeLabel(Label.label(oldLabel))
-        db_node.addLabel(Label.label(newLabel))
-      }
-      if (oldLabel == "" && newLabel != "") {
-        db_node.addLabel(Label.label(newLabel))
-      }
-      val driverNode = ValueConverter.toDriverNode(db_node)
       tx.success()
       tx.close()
-      context.reply(driverNode)
+      context.reply(ServerReplyMsg.SUCCESS)
     }
 
-    case CreateRelationshipTo(node1, node2, relationship) => {
+    case UpdateNodeLabel(node, toDeleteLabel, newLabel) => {
+      val tx = db.beginTx()
+      val id = node.id
+      val db_node = db.getNodeById(id)
+      db_node.removeLabel(Label.label(toDeleteLabel))
+      db_node.addLabel(Label.label(newLabel))
+      tx.success()
+      tx.close()
+      context.reply(ServerReplyMsg.SUCCESS)
+    }
+
+    case CreateRelationshipTo(node1, node2, relationship, direction) => {
       val node1_id = node1.id
       val node2_id = node2.id
       val tx = db.beginTx()
       val dbNode1 = db.getNodeById(node1_id)
       val dbNode2 = db.getNodeById(node2_id)
       dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
-      val driverRelation = ValueConverter.toDriverRelationship(dbNode1.getSingleRelationship(RelationshipType.withName(relationship), Direction.BOTH))
       tx.success()
       tx.close()
-      context.reply(driverRelation)
+      context.reply(ServerReplyMsg.SUCCESS)
     }
     case GetNodeRelationships(node) => {
       val lst = ArrayBuffer[Relationship]()
@@ -177,7 +180,7 @@ class MyEndpoint(override val rpcEnv: HippoRpcEnv) extends RpcEndpoint with Hipp
       relation.delete()
       tx.success()
       tx.close()
-      context.reply("delete relationship successfully!")
+      context.reply(ServerReplyMsg.SUCCESS)
     }
     case GetAllNodes() => {
       //TODO:should use hippo stream to send big data
@@ -216,13 +219,15 @@ case class GetNodesByProperty(label: String, propertiesMap: Map[String, Object])
 
 case class CreateNode(label: String, propertiesMap: Map[String, Any])
 
+case class UpdateNodeProperty(node: Node, propertiesMap: Map[String, Any])
+
+case class UpdateNodeLabel(node: Node, toDeleteLabel: String, newLabel: String)
+
 case class DeleteNode(node: Node)
 
 case class DeleteProperty(node: Node, property: String)
 
-case class UpdateNode(node: Node, propertiesMap: Map[String, Any], oldLabel: String = "", newLabel: String = "")
-
-case class CreateRelationshipTo(node1: Node, node2: Node, relationship: String)
+case class CreateRelationshipTo(node1: Node, node2: Node, relationship: String, direction: Direction)
 
 case class GetNodeRelationships(node: Node)
 
@@ -231,6 +236,3 @@ case class DeleteRelationship(node: Node, relationship: String, direction: Direc
 case class GetAllNodes()
 
 case class GetAllRelationships()
-
-//TODO:
-case class GetNodesByLabel(label: String)
