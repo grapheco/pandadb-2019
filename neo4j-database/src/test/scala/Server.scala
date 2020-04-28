@@ -26,7 +26,7 @@ object Server {
 
 class MyEndpoint(override val rpcEnv: HippoRpcEnv) extends RpcEndpoint with HippoRpcHandler {
   val db: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(
-    new File("./output/testdb")).newGraphDatabase()
+    new File("./neo4j-database/output/testdb")).newGraphDatabase()
 
   override def onStart(): Unit = {
     println("start panda server rpc endpoint")
@@ -149,9 +149,10 @@ class MyEndpoint(override val rpcEnv: HippoRpcEnv) extends RpcEndpoint with Hipp
       val dbNode1 = db.getNodeById(node1_id)
       val dbNode2 = db.getNodeById(node2_id)
       dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
+      val driverRelation = ValueConverter.toDriverRelationship(dbNode1.getSingleRelationship(RelationshipType.withName(relationship), Direction.BOTH))
       tx.success()
       tx.close()
-      context.reply("add relationship successfully!")
+      context.reply(driverRelation)
     }
     case GetNodeRelationships(node) => {
       val lst = ArrayBuffer[Relationship]()
