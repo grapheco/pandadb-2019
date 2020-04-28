@@ -16,6 +16,7 @@
         <module>costore</module>
         <module>aipm</module>
         <module>cluster-service</module>
+        <module>database-node-service</module>
     </modules>
 
     <properties>

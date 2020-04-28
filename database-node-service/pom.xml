@@ -7,31 +7,26 @@
         <groupId>cn.pandadb</groupId>
         <version>0.0.2</version>
     </parent>
-
     <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>database-node-service</artifactId>
     <groupId>cn.pandadb</groupId>
-    <artifactId>server</artifactId>
     <version>0.0.2</version>
 
     <dependencies>
         <dependency>
             <groupId>cn.pandadb</groupId>
+            <artifactId>neo4j-database</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>id-management</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
             <artifactId>common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.pandadb</groupId>
-            <artifactId>costore</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-<!--        <dependency>-->
-<!--            <groupId>cn.pandadb</groupId>-->
-<!--            <artifactId>neo4j-database</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
-        <dependency>
-            <groupId>cn.pandadb</groupId>
-            <artifactId>database-node-service</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
