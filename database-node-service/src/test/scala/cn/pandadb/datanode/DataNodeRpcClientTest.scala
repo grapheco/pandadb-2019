@@ -16,10 +16,10 @@ class DataNodeRpcClientTest {
     val rpcConf = new RpcConf()
     val rpcConfig = RpcEnvClientConfig(rpcConf, "panda-client")
     val rpcEnv: RpcEnv = NettyRpcEnvFactory.create(rpcConfig)
-    val endPointRef: RpcEndpointRef = rpcEnv.setupEndpointRef(RpcAddress(
-      pandaConfig.getListenHost(), pandaConfig.getRpcPort()), pandaConfig.getRpcEndpointName())
+    val dataNodeEndPointRef: RpcEndpointRef = rpcEnv.setupEndpointRef(RpcAddress(
+      pandaConfig.getListenHost(), pandaConfig.getRpcPort()), pandaConfig.getDataNodeEndpointName())
 
-    val res = endPointRef.askWithRetry[String](createNode(Array("user", "data"), Map("p1" -> "v1", "p2" -> "v2")))
+    val res = dataNodeEndPointRef.askWithRetry[String](createNodeWithId(1, Array("user", "data"), Map("p1" -> "v1", "p2" -> "v2")))
     println(res)
   }
 

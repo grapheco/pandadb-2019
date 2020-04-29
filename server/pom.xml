@@ -24,11 +24,11 @@
             <artifactId>costore</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>cn.pandadb</groupId>-->
-<!--            <artifactId>neo4j-database</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>cluster-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
             <artifactId>database-node-service</artifactId>

@@ -10,7 +10,8 @@ class Config {
   private val listenHost: String = "localhost"
   private val localNeo4jDatabasePath = "output/testdb"
   private val rpcServerName = "data-node-server"
-  private val rpcEndpointName = "data-node-endpoint"
+  private val dataNodeRpcEndpointName = "data-node-endpoint"
+  private val leaderNodeRpcEndpointName = "leader-node-endpoint"
 
   def withFile(configFile: Option[File]): Config = { this }
 
@@ -26,7 +27,8 @@ class Config {
 
   def getLocalNeo4jDatabasePath(): String = {localNeo4jDatabasePath}
   def getRpcServerName(): String = {rpcServerName}
-  def getRpcEndpointName(): String = {rpcEndpointName}
+  def getDataNodeEndpointName(): String = {dataNodeRpcEndpointName}
+  def getLeaderNodeEndpointName(): String = {leaderNodeRpcEndpointName}
 
   def getLogger(clazz: Class[_]): Logger = {
     LoggerFactory.getLogger(clazz)

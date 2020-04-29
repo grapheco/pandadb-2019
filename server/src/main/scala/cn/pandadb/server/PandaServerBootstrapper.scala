@@ -4,7 +4,6 @@ import java.io.File
 import cn.pandadb.configuration.Config
 
 class PandaServerBootstrapper extends Bootstrapper {
-  private var shutdownHook = null
   private var pandaServer: PandaServer = null
   def start(configFile: Option[File] = None, configOverrides: Map[String, String] = null): Unit = {
     addShutdownHook()

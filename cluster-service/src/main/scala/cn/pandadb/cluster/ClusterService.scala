@@ -23,7 +23,7 @@ class ClusterService(config: Config) extends LifecycleServerModule {
   }
 
   private def doNodeRegister(): Unit = {
-    logger.info("doNodeRegister")
+    logger.info(this.getClass + "doNodeRegister")
   }
 
 }
