@@ -21,7 +21,7 @@
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
-            <artifactId>costore</artifactId>
+            <artifactId>costore-service</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
