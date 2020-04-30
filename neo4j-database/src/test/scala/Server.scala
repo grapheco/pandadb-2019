@@ -3,16 +3,16 @@ import java.nio.ByteBuffer
 
 import cn.pandadb.neo4j.driver.values.{Node, Relationship}
 import cn.pandadb.neo4j.util.{ServerReplyMsg, ValueConverter}
-import com.sun.corba.se.impl.protocol.giopmsgheaders.ReplyMessage
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.{RpcCallContext, RpcEndpoint, RpcEnvServerConfig}
 import net.neoremind.kraps.rpc.netty.{HippoRpcEnv, HippoRpcEnvFactory}
-import org.grapheco.hippo.{HippoRpcHandler, ReceiveContext}
+import org.grapheco.hippo.{ChunkedStream, HippoRpcHandler, ReceiveContext}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.{Direction, GraphDatabaseService, Label, RelationshipType}
 
 import scala.collection.JavaConversions
 import scala.collection.mutable.ArrayBuffer
+
 
 object Server {
   def main(args: Array[String]): Unit = {
@@ -146,7 +146,7 @@ class MyEndpoint(override val rpcEnv: HippoRpcEnv) extends RpcEndpoint with Hipp
       context.reply(ServerReplyMsg.SUCCESS)
     }
 
-    case CreateRelationshipTo(node1, node2, relationship, direction) => {
+    case CreateRelationshipTo(node1, node2, relationship) => {
       val node1_id = node1.id
       val node2_id = node2.id
       val tx = db.beginTx()
@@ -207,27 +207,39 @@ class MyEndpoint(override val rpcEnv: HippoRpcEnv) extends RpcEndpoint with Hipp
       context.reply(lst)
     }
   }
+
+  override def openChunkedStream(): PartialFunction[Any, ChunkedStream] = {
+    case GetChunkedNodeStream(chunkSize) => {
+      val tx = db.beginTx()
+      val nodesIter = db.getAllNodes().iterator().stream().iterator()
+      val iterable = JavaConversions.asScalaIterator(nodesIter).toIterable
+      val chunkStream = ChunkedStream.grouped(chunkSize, iterable.map(x => ValueConverter.toDriverNode(x)))
+      tx.success()
+      tx.close()
+      chunkStream
+    }
+  }
 }
 
 case class SayHelloRequest(msg: String)
 
 case class SayHelloResponse(value: Any)
 
-case class GetNodeById(id: Long)
+case class GetNodeById(id: Long) //
 
-case class GetNodesByProperty(label: String, propertiesMap: Map[String, Object])
+case class GetNodesByProperty(label: String, propertiesMap: Map[String, Object]) //
 
-case class CreateNode(label: String, propertiesMap: Map[String, Any])
+case class CreateNode(label: String, propertiesMap: Map[String, Any]) //
 
-case class UpdateNodeProperty(node: Node, propertiesMap: Map[String, Any])
+case class UpdateNodeProperty(node: Node, propertiesMap: Map[String, Any]) //
 
-case class UpdateNodeLabel(node: Node, toDeleteLabel: String, newLabel: String)
+case class UpdateNodeLabel(node: Node, toDeleteLabel: String, newLabel: String) //
 
-case class DeleteNode(node: Node)
+case class DeleteNode(node: Node) //
 
 case class DeleteProperty(node: Node, property: String)
 
-case class CreateRelationshipTo(node1: Node, node2: Node, relationship: String, direction: Direction)
+case class CreateRelationshipTo(node1: Node, node2: Node, relationship: String)
 
 case class GetNodeRelationships(node: Node)
 
@@ -236,3 +248,5 @@ case class DeleteRelationship(node: Node, relationship: String, direction: Direc
 case class GetAllNodes()
 
 case class GetAllRelationships()
+
+case class GetChunkedNodeStream(chunkSize: Int)

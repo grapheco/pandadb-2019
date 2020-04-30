@@ -33,3 +33,10 @@ class Neo4jServer(config: Config) extends LifecycleServerModule {
   def createNode(id: Long, labels: Array[String], properties: Map[String, String]): Unit = {
   }
 }
+
+object Neo4jServer {
+  def main(args: Array[String]): Unit = {
+    val server = new Neo4jServer(new Config)
+    server.start()
+  }
+}

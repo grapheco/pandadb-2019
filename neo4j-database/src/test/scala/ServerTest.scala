@@ -36,10 +36,15 @@ class ServerTest extends FunSuite with BeforeAndAfter {
     nodeTest3 = Await.result(endpointRef.askWithBuffer[Node](CreateNode(label3, propertiesMap3)), Duration.Inf)
     nodeTest4 = Await.result(endpointRef.askWithBuffer[Node](CreateNode(label4, propertiesMap4)), Duration.Inf)
 
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](CreateRelationshipTo(nodeTest2, nodeTest3, "enemy", Direction.OUTGOING)), Duration.Inf)
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](CreateRelationshipTo(nodeTest2, nodeTest4, "friend", Direction.OUTGOING)), Duration.Inf)
+    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](CreateRelationshipTo(nodeTest2, nodeTest3, "enemy")), Duration.Inf)
+    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](CreateRelationshipTo(nodeTest2, nodeTest4, "friend")), Duration.Inf)
 
   }
+
+  //  test("hippo getChunkedStream"){
+  //    val res  = endpointRef.getChunkedStream[Node](GetChunkedNodeStream(2), Duration.Inf)
+  //    println(res.foreach(n=>n.props))
+  //  }
 
   test("Server rpc test") {
     val res = Await.result(endpointRef.askWithBuffer[SayHelloResponse](SayHelloRequest("hello")), Duration.Inf)
@@ -47,12 +52,12 @@ class ServerTest extends FunSuite with BeforeAndAfter {
   }
 
   test("Create node and delete node test") {
-    val propertiesMap = Map("name" -> "Liam", "age" -> 18)
+    val propertiesMap = Map("name" -> "Liam", "age" -> 188888)
     val label = "Person"
     val node = Await.result(endpointRef.askWithBuffer[Node](CreateNode(label, propertiesMap)), Duration.Inf)
     val name = node.props.apply("name").asString()
     val age = node.props.apply("age").asInt()
-    assert(name == "Liam" && age == 18)
+    assert(name == "Liam" && age == 188888)
     val msg = Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(node)), Duration.Inf)
     assert(msg == ServerReplyMsg.SUCCESS)
   }
@@ -102,7 +107,7 @@ class ServerTest extends FunSuite with BeforeAndAfter {
     val label = "Person"
     val relation = "same person"
     val node = Await.result(endpointRef.askWithBuffer[Node](CreateNode(label, propertiesMap)), Duration.Inf)
-    val result = Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](CreateRelationshipTo(nodeTest, node, relation, Direction.BOTH)), Duration.Inf)
+    val result = Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](CreateRelationshipTo(nodeTest, node, relation)), Duration.Inf)
     assert(result == ServerReplyMsg.SUCCESS)
     Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(node)), Duration.Inf)
   }
@@ -112,7 +117,6 @@ class ServerTest extends FunSuite with BeforeAndAfter {
     assert(relations.size == 2)
   }
 
-  //TODO: three type of direction should be test
   test("delete node relation") {
     val relationToDelete = "enemy"
     val res = Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteRelationship(nodeTest2, relationToDelete, Direction.OUTGOING)), Duration.Inf)
@@ -130,7 +134,9 @@ class ServerTest extends FunSuite with BeforeAndAfter {
   }
 
   after {
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeTest)), Duration.Inf)
+    println("enter finish")
+    val a = Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeTest)), Duration.Inf)
+    println(a)
     Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeTest2)), Duration.Inf)
     Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeTest3)), Duration.Inf)
     Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeTest4)), Duration.Inf)
