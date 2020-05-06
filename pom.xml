@@ -17,6 +17,7 @@
         <module>aipm-service</module>
         <module>cluster-service</module>
         <module>database-node-service</module>
+        <module>zk-tools</module>
     </modules>
 
     <properties>

@@ -9,15 +9,19 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>id-management</artifactId>
+    <artifactId>zk-tools</artifactId>
     <groupId>cn.pandadb</groupId>
     <version>0.0.2</version>
 
     <dependencies>
         <dependency>
             <groupId>cn.pandadb</groupId>
-            <artifactId>zk-tools</artifactId>
+            <artifactId>common</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
         </dependency>
     </dependencies>
 

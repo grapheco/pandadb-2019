@@ -4,7 +4,7 @@ import java.io.File
 import org.slf4j.{Logger, LoggerFactory}
 
 class Config {
-  private var zkAddress: Option[String] = None
+  private var zkAddress: Option[String] = Option("127.0.0.1:2181")
   private var rpcPort: Option[Int] = Option(52345)
   private val pandaZKDir: String = "/pandadb/v0.0.3/"
   private val listenHost: String = "localhost"
@@ -24,6 +24,7 @@ class Config {
 
   def getListenHost(): String = {listenHost}
   def getRpcPort(): Int = {rpcPort.get}
+  def getNodeAddress(): String = {listenHost + ":" + rpcPort.get.toString}
 
   def getLocalNeo4jDatabasePath(): String = {localNeo4jDatabasePath}
   def getRpcServerName(): String = {rpcServerName}

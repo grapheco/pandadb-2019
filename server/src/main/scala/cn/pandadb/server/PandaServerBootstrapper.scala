@@ -25,7 +25,7 @@ class PandaServerBootstrapper extends Bootstrapper {
   }
 
   def stop(): Unit = {
-    pandaServer.stop()
+    pandaServer.shutdown()
   }
 
 }
