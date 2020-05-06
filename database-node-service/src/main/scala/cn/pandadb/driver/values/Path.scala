@@ -1,4 +1,4 @@
-package cn.pandadb.neo4j.driver.values
+package cn.pandadb.driver.values
 
 case class Path(nodes: Array[Node],
                 relationships: Array[Relationship]) extends Serializable {

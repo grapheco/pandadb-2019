@@ -1,4 +1,4 @@
-package cn.pandadb.neo4j.util
+package cn.pandadb.util
 
 object ServerReplyMsg extends Enumeration {
   val SUCCESS = Value(1)

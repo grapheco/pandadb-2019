@@ -1,4 +1,4 @@
-package cn.pandadb.neo4j.driver.result
+package cn.pandadb.driver.result
 
 import scala.collection.mutable.ArrayBuffer
 

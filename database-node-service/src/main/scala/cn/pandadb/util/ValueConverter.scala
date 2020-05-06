@@ -1,16 +1,19 @@
-package cn.pandadb.neo4j.util
+package cn.pandadb.util
 
 import java.time.{LocalDate, LocalDateTime, LocalTime, OffsetTime, ZonedDateTime}
 import java.time.temporal.Temporal
 
-import cn.pandadb.neo4j.driver.values.{Label, Node, Relationship, RelationshipType, Value}
+import cn.pandadb.driver.result.{InternalRecords, Record}
+import cn.pandadb.driver.values
+import cn.pandadb.driver.values.{Label, MapValue, Node, Relationship, RelationshipType, Value}
+import cn.pandadb.driver.values.{Label, Node, Relationship, RelationshipType, Value}
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import org.neo4j.graphdb.{Result => Neo4jResult}
-import cn.pandadb.neo4j.driver.result.{InternalRecords, Record}
-import cn.pandadb.neo4j.driver.values
+import cn.pandadb.driver.result.{InternalRecords, Record}
+import cn.pandadb.driver.values
 import org.neo4j.kernel.impl.core.{NodeProxy, RelationshipProxy}
 import org.neo4j.graphdb.Path
 import org.neo4j.values.storable.{DurationValue => Neo4jDurationValue, PointValue => Neo4jPointValue}
@@ -42,7 +45,7 @@ object ValueConverter {
       case localTime: LocalTime => values.LocalTimeValue(localTime)
       case localDateTime: LocalDateTime => values.LocalDateTimeValue(localDateTime)
       case point: Neo4jPointValue => convertPoint(point)
-      case map: Map[String, Value] => values.MapValue(map)
+      case map: Map[String, Value] => MapValue(map)
       case list: Object => convertList(list)
       case _ => if (v == null) values.NullValue
       else new values.AnyValue(v)
