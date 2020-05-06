@@ -1,15 +1,18 @@
 package cn.pandadb.datanode
 
 import java.io.File
+import java.nio.ByteBuffer
 
 import net.neoremind.kraps.rpc._
-import org.neo4j.graphdb.{GraphDatabaseService, Label}
+import org.neo4j.graphdb.{GraphDatabaseService}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.slf4j.Logger
 import cn.pandadb.configuration.{Config => PandaConfig}
+import cn.pandadb.util.{ServerReplyMsg}
+import org.grapheco.hippo.{ChunkedStream, HippoRpcHandler, ReceiveContext}
 
 
-class DataNodeRpcEndpoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig) extends RpcEndpoint {
+class DataNodeRpcEndpoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig) extends RpcEndpoint with HippoRpcHandler {
 
   val logger: Logger = pandaConfig.getLogger(this.getClass)
   val dbFile = new File(pandaConfig.getLocalNeo4jDatabasePath())
@@ -23,20 +26,68 @@ class DataNodeRpcEndpoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig)
     logger.info("start DataNodeRpcEndpoint")
   }
 
-  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
-
-    case createNodeWithId(id, labels, properties) => {
-      logger.info(s"createNodeWithId($id)")
-      dataNodeService.createNodeWithId(id, labels, properties)
-      context.reply("createNodeWithId")
+  override def receiveWithBuffer(extraInput: ByteBuffer, context: ReceiveContext): PartialFunction[Any, Unit] = {
+    case SayHello(msg) => {
+      context.reply(msg.toUpperCase())
     }
-
-    case getNode(id) => {
-      logger.info(s"addNode($id)")
-      dataNodeService.getNode(id)
-      context.reply("getNode")
+    case CreateNode(labels, properties) => {
+      val driverNode = dataNodeService.createNode(labels, properties)
+      context.reply(driverNode)
     }
+    case AddNodeLabel(id, label) => {
+      val driverNode = dataNodeService.addNodeLabel(id, label)
+      context.reply(ServerReplyMsg.SUCCESS)
+    }
+    case GetNodeById(id) => {
+      val node = dataNodeService.getNodeById(id)
+      context.reply(node)
+    }
+    case GetNodesByProperty(label, propertiesMap) => {
+      //maybe to chunkStream
+      val res = dataNodeService.getNodesByProperty(label, propertiesMap)
+      context.reply(res)
+    }
+    case GetNodesByLabel(label) => {
+      val res = dataNodeService.getNodesByLabel(label)
+      context.reply(res)
+    }
+    case UpdateNodeProperty(id, propertiesMap) => {
+      val res = dataNodeService.updateNodeProperty(id, propertiesMap)
+      context.reply(res)
+    }
+    case UpdateNodeLabel(id, toDeleteLabel, newLabel) => {
+      val res = dataNodeService.updateNodeLabel(id, toDeleteLabel, newLabel)
+      context.reply(res)
+    }
+    case DeleteNode(id) => {
+      val res = dataNodeService.deleteNode(id)
+      context.reply(res)
+    }
+    case RemoveProperty(id, property) => {
+      val res = dataNodeService.removeProperty(id, property)
+      context.reply(res)
+    }
+    case CreateNodeRelationship(id1, id2, relationship, direction) => {
+      val res = dataNodeService.createNodeRelationship(id1, id2, relationship, direction)
+      context.reply(res)
+    }
+    case GetNodeRelationships(id) => {
+      val res = dataNodeService.getNodeRelationships(id)
+      context.reply(res)
+    }
+    case DeleteNodeRelationship(id, relationship, direction) => {
+      val res = dataNodeService.deleteNodeRelationship(id, relationship, direction)
+      context.reply(res)
+    }
+  }
 
+  override def openChunkedStream(): PartialFunction[Any, ChunkedStream] = {
+    case GetAllDBNodes(chunkSize) => {
+      dataNodeService.getAllDBNodes(chunkSize)
+    }
+    case GetAllDBRelationships(chunkSize) => {
+      dataNodeService.getAllDBRelationships(chunkSize)
+    }
   }
 
   override def onStop(): Unit = {

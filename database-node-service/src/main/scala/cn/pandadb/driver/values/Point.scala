@@ -1,4 +1,4 @@
-package cn.pandadb.neo4j.driver.values
+package cn.pandadb.driver.values
 
 trait Point extends Serializable {
   def srid: Int

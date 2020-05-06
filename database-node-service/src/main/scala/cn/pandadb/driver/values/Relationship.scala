@@ -1,4 +1,4 @@
-package cn.pandadb.neo4j.driver.values
+package cn.pandadb.driver.values
 
 case class Relationship(id: Long,
                         props: Map[String, AnyRef],

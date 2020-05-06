@@ -1,6 +1,6 @@
-package cn.pandadb.neo4j.driver.result
+package cn.pandadb.driver.result
 
-import cn.pandadb.neo4j.driver.values.{NullValue, Value}
+import cn.pandadb.driver.values.{NullValue, Value}
 
 import scala.collection.immutable.Map
 
