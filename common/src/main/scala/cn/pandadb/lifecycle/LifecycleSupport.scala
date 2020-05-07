@@ -58,14 +58,13 @@ class LifecycleSupport extends Lifecycle {
   def remove(instance: Lifecycle): Boolean = this.synchronized {
     for (i <- 0 to components.size-1) {
       if (components(i) == instance) {
-        val tmp =  components.remove(i)
+        val tmp = components.remove(i)
         tmp.shutdown()
         true
       }
     }
     false
   }
-
 
   private def changedStatus(oldStatus: LifeStatus, newStatus: LifeStatus): LifeStatus = {
     newStatus

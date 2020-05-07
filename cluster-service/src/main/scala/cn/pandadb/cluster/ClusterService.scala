@@ -15,7 +15,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
   val dataVersionPath = zkTools.buildFullZKPath("/dataVersion")
   val freshNodesPath = zkTools.buildFullZKPath("/freshNodes")
 
-  val curator = zkTools.getCurator()
+//  val curator = zkTools.getCurator()
   var asFreshNodePath: String = null
   var asDataNodePath: String = null
   var asLeaderNodePath: String = null
@@ -27,7 +27,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   override def start(): Unit = {
     logger.info(this.getClass + ": start")
-    registerAsFreshNode()
+    doNodeStart()
   }
 
   override def stop(): Unit = {
@@ -38,55 +38,76 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     logger.info(this.getClass + ": shutdown")
   }
 
+  def doNodeStart(): Unit = {
+    logger.info(this.getClass + ": doNodeStart")
+    registerAsFreshNode()
+    syncLocalGraphData()
+    unregisterAsFreshNode()
+    registerAsDataNode()
+  }
+
+  def syncLocalGraphData(): Unit = {
+    logger.info(this.getClass + ": syncLocalGraphData")
+    val leaderNodeAddress = getLeaderNode()
+    logger.info("LeaderNode: " + leaderNodeAddress)
+    logger.info("pull ")
+  }
+
   def registerAsFreshNode(): Unit = {
     logger.info(this.getClass + "registerAsFreshNodes: " + nodeAddress)
     val freshNodePrefix = freshNodesPath + "/" + "node-"
-    asFreshNodePath = curator.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-      .forPath(freshNodePrefix, nodeAddress.getBytes("UTF-8"))
+    asFreshNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, freshNodePrefix, nodeAddress)
   }
 
-  def unregisterAsFreshNode: Unit = {
-    curator.delete().deletingChildrenIfNeeded().forPath(asFreshNodePath)
+  def unregisterAsFreshNode(): Unit = {
+    logger.info(this.getClass + "unregisterAsFreshNode: " + nodeAddress)
+    zkTools.deleteZKNodeAndChildren(asFreshNodePath)
     asFreshNodePath = null
   }
 
   def registerAsDataNode(): Unit = {
+    logger.info(this.getClass + "registerAsDataNode: " + nodeAddress)
     val dataNodePrefix = dataNodesPath + "/" + "node-"
-    asDataNodePath = curator.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-      .forPath(dataNodePrefix, nodeAddress.getBytes("UTF-8"))
+    asDataNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, dataNodePrefix, nodeAddress)
+
   }
 
   def unregisterAsDataNode: Unit = {
-    curator.delete().deletingChildrenIfNeeded().forPath(asDataNodePath)
+    logger.info(this.getClass + "unregisterAsDataNode: " + nodeAddress)
+    zkTools.deleteZKNodeAndChildren(asDataNodePath)
     asDataNodePath = null
   }
 
   def registerAsLeaderNode(): Unit = {
+    logger.info(this.getClass + "registerAsLeaderNode: " + nodeAddress)
     val leaderNodePrefix = leaderNodesPath + "/" + "node-"
-    curator.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
-      .forPath(leaderNodePrefix, nodeAddress.getBytes("UTF-8"))
+    asLeaderNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, leaderNodePrefix, nodeAddress)
   }
 
   def unregisterAsLeaderNode: Unit = {
-    curator.delete().deletingChildrenIfNeeded().forPath(asLeaderNodePath)
+    logger.info(this.getClass + "unregisterAsLeaderNode: " + nodeAddress)
+    zkTools.deleteZKNodeAndChildren(asLeaderNodePath)
     asLeaderNodePath = null
   }
 
+  def getLeaderNode(): String = {
+    val leaderNodes = zkTools.getZKNodeChildren(leaderNodesPath)
+    if (leaderNodes.length > 0) {
+      leaderNodes(0)
+    }
+    null
+  }
+
+  def getDataNodes(): List[String] = {
+    zkTools.getZKNodeChildren(dataNodesPath)
+  }
+
   def setDataVersion(version: String): Unit = {
-    curator.create().withMode(CreateMode.PERSISTENT).forPath(dataVersionPath, version.getBytes("UTF-8"))
+    zkTools.createZKNode(CreateMode.PERSISTENT, dataVersionPath, version)
   }
 
   private def assurePathExist(): Unit = {
-    val tmpList = List(leaderNodesPath, dataNodesPath, dataVersionPath, freshNodesPath)
-    tmpList.foreach(path => {
-      if (curator.checkExists().forPath(path) == null) {
-        curator.create()
-          .creatingParentsIfNeeded()
-          .withMode(CreateMode.PERSISTENT)
-          .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-          .forPath(path)
-      }
-    })
+    zkTools.assureZKNodeExist(leaderNodesPath, dataNodesPath, dataVersionPath, freshNodesPath)
   }
 
 }
