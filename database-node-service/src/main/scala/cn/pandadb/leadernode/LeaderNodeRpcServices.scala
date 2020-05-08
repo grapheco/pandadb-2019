@@ -3,6 +3,7 @@ package cn.pandadb.leadernode
 import org.neo4j.graphdb.Direction
 
 case class LeaderSayHello(msg: String)
+case class LeaderSayHello2(msg: String)
 
 // node
 case class LeaderCreateNode(labels: Array[String], properties: Map[String, Any])

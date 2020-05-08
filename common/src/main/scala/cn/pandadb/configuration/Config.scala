@@ -8,7 +8,7 @@ class Config {
   private var rpcPort: Option[Int] = Option(52345)
   private val pandaZKDir: String = "/pandadb/v0.0.3/"
   private val listenHost: String = "localhost"
-  private val localNeo4jDatabasePath = "output/testdb"
+  private val localNeo4jDatabasePath = "output1/testdb1"
   private val rpcServerName = "data-node-server"
   private val dataNodeRpcEndpointName = "data-node-endpoint"
   private val leaderNodeRpcEndpointName = "leader-node-endpoint"
@@ -24,7 +24,7 @@ class Config {
 
   def getListenHost(): String = {listenHost}
   def getRpcPort(): Int = {rpcPort.get}
-  def getNodeAddress(): String = {listenHost + ":" + rpcPort.get.toString}
+  def getNodeAddress(): String = {getListenHost + ":" + getRpcPort.toString}
 
   def getLocalNeo4jDatabasePath(): String = {localNeo4jDatabasePath}
   def getRpcServerName(): String = {rpcServerName}

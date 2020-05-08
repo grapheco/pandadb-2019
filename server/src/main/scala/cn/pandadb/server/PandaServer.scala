@@ -17,12 +17,15 @@ class PandaServer(config: Config)  {
   val logger = config.getLogger(this.getClass)
   val zkTools = new ZKTools(config)
   zkTools.init()
-  val localNeo4jDB = getOrCreateLocalNeo4jDatabase()
+//  val localNeo4jDB = getOrCreateLocalNeo4jDatabase()
   val clusterService = new ClusterService(config, zkTools)
 
-  life.add(clusterService)
+  clusterService.init()
+
+//  life.add(clusterService)
   life.add(new CostoreServer(config) )
-  life.add(new PandaRpcServer(config) )
+  life.add(new PandaRpcServer(config, clusterService) )
+  clusterService.start()
 
   def start(): Unit = {
     logger.info("==== PandaDB Server Starting... ====")
@@ -41,15 +44,16 @@ class PandaServer(config: Config)  {
     logger.info(this.getClass + ": syncDataFromLeader")
     val leaderNodeAddress = clusterService.getLeaderNode()
     val localDBPath = config.getLocalNeo4jDatabasePath()
-    logger.info(s"sync data from leaderNode<$leaderNodeAddress> to local<$localDBPath>")
+    logger.info(this.getClass + s"sync data from leaderNode<$leaderNodeAddress> to local<$localDBPath>")
   }
 
-  def getOrCreateLocalNeo4jDatabase(): GraphDatabaseService = {
-    return
-    val dbFile = new File(config.getLocalNeo4jDatabasePath())
-    if (!dbFile.exists()) {
-      dbFile.mkdirs
-    }
-    new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
-  }
+
+
+//  def getOrCreateLocalNeo4jDatabase(): GraphDatabaseService = {
+//    val dbFile = new File(config.getLocalNeo4jDatabasePath())
+//    if (!dbFile.exists()) {
+//      dbFile.mkdirs
+//    }
+//    new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
+//  }
 }

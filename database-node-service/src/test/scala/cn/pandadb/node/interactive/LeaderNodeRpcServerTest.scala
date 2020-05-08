@@ -11,7 +11,7 @@ object LeaderNodeRpcServerTest {
     val pandaConfig = new Config
     val serverConfig = RpcEnvServerConfig(new RpcConf(), "leader-server", "localhost", 7777)
     val serverRpcEnv = HippoRpcEnvFactory.create(serverConfig)
-    val endpoint = new LeaderNodeRpcEndPoint(serverRpcEnv, pandaConfig)
+    val endpoint = new LeaderNodeRpcEndPoint(serverRpcEnv, pandaConfig, null)
     serverRpcEnv.setupEndpoint("leader-server", endpoint)
     serverRpcEnv.setRpcHandler(endpoint)
     serverRpcEnv.awaitTermination()
