@@ -1,21 +1,22 @@
-package cn.pandadb.datanode
+package cn.pandadb.node.interactive
 
 import java.io.File
 import java.nio.ByteBuffer
 
 import net.neoremind.kraps.rpc._
-import org.neo4j.graphdb.{GraphDatabaseService}
+import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.slf4j.Logger
 import cn.pandadb.configuration.{Config => PandaConfig}
-import cn.pandadb.util.{PandaReplyMsg}
+import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, RemoveProperty, SayHello, UpdateNodeLabel, UpdateNodeProperty}
+import cn.pandadb.util.PandaReplyMsg
 import org.grapheco.hippo.{ChunkedStream, HippoRpcHandler, ReceiveContext}
 
 
-class DataNodeRpcEndpoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig) extends RpcEndpoint with HippoRpcHandler {
+class DataNodeRpcEndpoint2(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig) extends RpcEndpoint with HippoRpcHandler {
 
   val logger: Logger = pandaConfig.getLogger(this.getClass)
-  val dbFile = new File(pandaConfig.getLocalNeo4jDatabasePath())
+  val dbFile = new File("output2/testdb")
   if (!dbFile.exists()) {
     dbFile.mkdirs
   }
@@ -95,3 +96,4 @@ class DataNodeRpcEndpoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig)
   }
 
 }
+

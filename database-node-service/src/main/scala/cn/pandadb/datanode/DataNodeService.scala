@@ -1,7 +1,7 @@
 package cn.pandadb.datanode
 
 import cn.pandadb.driver.values.{Node, Relationship}
-import cn.pandadb.util.{ServerReplyMsg, ValueConverter}
+import cn.pandadb.util.{PandaReplyMsg, ValueConverter}
 import org.grapheco.hippo.ChunkedStream
 import org.neo4j.graphdb.{Direction, GraphDatabaseService, Label, RelationshipType, ResourceIterable, ResourceIterator}
 
@@ -20,19 +20,19 @@ trait DataNodeService {
 
   def getNodesByLabel(label: String): ArrayBuffer[Node]
 
-  def updateNodeProperty(id: Long, propertiesMap: Map[String, Any]): ServerReplyMsg.Value
+  def updateNodeProperty(id: Long, propertiesMap: Map[String, Any]): PandaReplyMsg.Value
 
-  def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String): ServerReplyMsg.Value
+  def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String): PandaReplyMsg.Value
 
-  def deleteNode(id: Long): ServerReplyMsg.Value
+  def deleteNode(id: Long): PandaReplyMsg.Value
 
-  def removeProperty(id: Long, property: String): ServerReplyMsg.Value
+  def removeProperty(id: Long, property: String): PandaReplyMsg.Value
 
-  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction): ServerReplyMsg.Value
+  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction): PandaReplyMsg.Value
 
   def getNodeRelationships(id: Long): ArrayBuffer[Relationship]
 
-  def deleteNodeRelationship(id: Long, relationship: String, direction: Direction): ServerReplyMsg.Value
+  def deleteNodeRelationship(id: Long, relationship: String, direction: Direction): PandaReplyMsg.Value
 
   def getAllDBNodes(chunkSize: Int): ChunkedStream
 
@@ -107,7 +107,7 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     lst
   }
 
-  override def updateNodeProperty(id: Long, propertiesMap: Map[String, Any]): ServerReplyMsg.Value = {
+  override def updateNodeProperty(id: Long, propertiesMap: Map[String, Any]): PandaReplyMsg.Value = {
     val tx = localDatabase.beginTx()
     val db_node = localDatabase.getNodeById(id)
     for (map <- propertiesMap) {
@@ -115,20 +115,20 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     }
     tx.success()
     tx.close()
-    ServerReplyMsg.SUCCESS
+    PandaReplyMsg.SUCCESS
   }
 
-  override def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String): ServerReplyMsg.Value = {
+  override def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String): PandaReplyMsg.Value = {
     val tx = localDatabase.beginTx()
     val db_node = localDatabase.getNodeById(id)
     db_node.removeLabel(Label.label(toDeleteLabel))
     db_node.addLabel(Label.label(newLabel))
     tx.success()
     tx.close()
-    ServerReplyMsg.SUCCESS
+    PandaReplyMsg.SUCCESS
   }
 
-  override def deleteNode(id: Long): ServerReplyMsg.Value = {
+  override def deleteNode(id: Long): PandaReplyMsg.Value = {
     val tx = localDatabase.beginTx()
     val db_node = localDatabase.getNodeById(id)
     if (db_node.hasRelationship) {
@@ -140,19 +140,19 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     db_node.delete()
     tx.success()
     tx.close()
-    ServerReplyMsg.SUCCESS
+    PandaReplyMsg.SUCCESS
   }
 
-  override def removeProperty(id: Long, property: String): ServerReplyMsg.Value = {
+  override def removeProperty(id: Long, property: String): PandaReplyMsg.Value = {
     val tx = localDatabase.beginTx()
     val db_node = localDatabase.getNodeById(id)
     db_node.removeProperty(property)
     tx.success()
     tx.close()
-    ServerReplyMsg.SUCCESS
+    PandaReplyMsg.SUCCESS
   }
 
-  override def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction): ServerReplyMsg.Value = {
+  override def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction): PandaReplyMsg.Value = {
     val tx = localDatabase.beginTx()
     val dbNode1 = localDatabase.getNodeById(id1)
     val dbNode2 = localDatabase.getNodeById(id2)
@@ -170,7 +170,7 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     }
     tx.success()
     tx.close()
-    ServerReplyMsg.SUCCESS
+    PandaReplyMsg.SUCCESS
   }
 
   override def getNodeRelationships(id: Long): ArrayBuffer[Relationship] = {
@@ -189,14 +189,14 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     lst
   }
 
-  override def deleteNodeRelationship(id: Long, relationship: String, direction: Direction): ServerReplyMsg.Value = {
+  override def deleteNodeRelationship(id: Long, relationship: String, direction: Direction): PandaReplyMsg.Value = {
     val tx = localDatabase.beginTx()
     val db_node = localDatabase.getNodeById(id)
     val relation = db_node.getSingleRelationship(RelationshipType.withName(relationship), direction)
     relation.delete()
     tx.success()
     tx.close()
-    ServerReplyMsg.SUCCESS
+    PandaReplyMsg.SUCCESS
   }
 
   override def getAllDBNodes(chunkSize: Int): ChunkedStream = {
