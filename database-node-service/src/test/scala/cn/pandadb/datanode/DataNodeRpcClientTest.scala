@@ -4,20 +4,18 @@ import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
 import net.neoremind.kraps.rpc.netty.HippoRpcEnvFactory
 import org.junit.{After, Before, Test}
-import cn.pandadb.driver.values.{Node, Relationship}
-import cn.pandadb.util.ServerReplyMsg
+import cn.pandadb.driver.values.{Node}
+import cn.pandadb.util.PandaReplyMsg
 import org.neo4j.graphdb.Direction
 
-import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 // before test, run DataNodeRpcServerTest
 class DataNodeRpcClientTest {
-
+  val dataNodeDriver = new DataNodeDriver
   val clientConfig = RpcEnvClientConfig(new RpcConf(), "panda-client")
   val clientRpcEnv = HippoRpcEnvFactory.create(clientConfig)
-  val endpointRef = clientRpcEnv.setupEndpointRef(new RpcAddress("localhost", 12345), "server")
+  val endpointRef = clientRpcEnv.setupEndpointRef(new RpcAddress("localhost", 6666), "server")
 
   var nodeTest: Node = _
   var nodeTest2: Node = _
@@ -36,28 +34,28 @@ class DataNodeRpcClientTest {
     val propertiesMap4 = Map("name" -> "drum", "age" -> 17)
     val label4 = Array("Instrument")
 
-    nodeTest = Await.result(endpointRef.askWithBuffer[Node](CreateNode(label, propertiesMap)), Duration.Inf)
-    nodeTest2 = Await.result(endpointRef.askWithBuffer[Node](CreateNode(label2, propertiesMap2)), Duration.Inf)
-    nodeTest3 = Await.result(endpointRef.askWithBuffer[Node](CreateNode(label3, propertiesMap3)), Duration.Inf)
-    nodeTest4 = Await.result(endpointRef.askWithBuffer[Node](CreateNode(label4, propertiesMap4)), Duration.Inf)
+    nodeTest = dataNodeDriver.createNode(label, propertiesMap, endpointRef, Duration.Inf)
+    nodeTest2 = dataNodeDriver.createNode(label2, propertiesMap2, endpointRef, Duration.Inf)
+    nodeTest3 = dataNodeDriver.createNode(label3, propertiesMap3, endpointRef, Duration.Inf)
+    nodeTest4 = dataNodeDriver.createNode(label4, propertiesMap4, endpointRef, Duration.Inf)
 
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](CreateNodeRelationship(nodeTest2.id, nodeTest3.id, "enemy", Direction.OUTGOING)), Duration.Inf)
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](CreateNodeRelationship(nodeTest2.id, nodeTest4.id, "friend", Direction.INCOMING)), Duration.Inf)
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](CreateNodeRelationship(nodeTest3.id, nodeTest4.id, "true love", Direction.BOTH)), Duration.Inf)
-
+    dataNodeDriver.createNodeRelationship(nodeTest2.id, nodeTest3.id, "enemy", Direction.OUTGOING, endpointRef, Duration.Inf)
+    dataNodeDriver.createNodeRelationship(nodeTest2.id, nodeTest4.id, "friend", Direction.INCOMING, endpointRef, Duration.Inf)
+    dataNodeDriver.createNodeRelationship(nodeTest3.id, nodeTest4.id, "true love", Direction.BOTH, endpointRef, Duration.Inf)
   }
 
   // chunkedStream
   @Test
   def getAllNodes(): Unit = {
-    val res = endpointRef.getChunkedStream[Node](GetAllDBNodes(2), Duration.Inf)
+    val res = dataNodeDriver.getAllDBNodes(2, endpointRef, Duration.Inf)
     assert(res.size == 4)
   }
 
   @Test
   def getAllRelations(): Unit = {
-    val relations = endpointRef.getChunkedStream[Relationship](GetAllDBRelationships(2), Duration.Inf)
-    assert(relations.size == 4)
+
+    val relations = dataNodeDriver.getAllDBRelationships(2, endpointRef, Duration.Inf)
+    assert(relations.size == 3)
   }
 
   // askWithBuffer
@@ -65,14 +63,14 @@ class DataNodeRpcClientTest {
   def createAndDeleteNode(): Unit = {
     val propertiesMap = Map("name" -> "toDelete", "age" -> 666)
     val label = Array("Person")
-    val nodeToDelete = Await.result(endpointRef.askWithBuffer[Node](CreateNode(label, propertiesMap)), Duration.Inf)
-    val res = Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeToDelete.id)), Duration.Inf)
-    assert(res == ServerReplyMsg.SUCCESS)
+    val nodeToDelete = dataNodeDriver.createNode(label, propertiesMap, endpointRef, Duration.Inf)
+    val res = dataNodeDriver.deleteNode(nodeToDelete.id, endpointRef, Duration.Inf)
+    assert(res == PandaReplyMsg.SUCCESS)
   }
 
   @Test
   def getNodeById(): Unit = {
-    val node = Await.result(endpointRef.askWithBuffer[Node](GetNodeById(nodeTest.id)), Duration.Inf)
+    val node = dataNodeDriver.getNodeById(nodeTest.id, endpointRef, Duration.Inf)
     assert(node == nodeTest)
   }
 
@@ -82,30 +80,30 @@ class DataNodeRpcClientTest {
 
     val propertyMap = Map("age" -> 17)
     val label = "Person"
-    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[Node]](GetNodesByProperty(label, propertyMap)), Duration.Inf)
+    val res = dataNodeDriver.getNodesByProperty(label, propertyMap, endpointRef, Duration.Inf)
     assert(res.size == 1)
   }
 
   @Test
   def getNodesByLabel(): Unit = {
     val label = "Instrument"
-    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[Node]](GetNodesByLabel(label)), Duration.Inf)
+    val res = dataNodeDriver.getNodesByLabel(label, endpointRef, Duration.Inf)
     assert(res.size == 3)
   }
 
   @Test
   def removeProperty(): Unit = {
     val propertyToDelete = "age"
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](RemoveProperty(nodeTest.id, propertyToDelete)), Duration.Inf)
-    val node = Await.result(endpointRef.askWithBuffer[Node](GetNodeById(nodeTest.id)), Duration.Inf)
+    dataNodeDriver.removeProperty(nodeTest.id, propertyToDelete, endpointRef, Duration.Inf)
+    val node = dataNodeDriver.getNodeById(nodeTest.id, endpointRef, Duration.Inf)
     assert(node.props.size == 1)
   }
 
   @Test
   def updateNodeProperty(): Unit = {
     val propertyMap = Map("age" -> 27)
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](UpdateNodeProperty(nodeTest.id, propertyMap)), Duration.Inf)
-    val node = Await.result(endpointRef.askWithBuffer[Node](GetNodeById(nodeTest.id)), Duration.Inf)
+    dataNodeDriver.updateNodeProperty(nodeTest.id, propertyMap, endpointRef, Duration.Inf)
+    val node = dataNodeDriver.getNodeById(nodeTest.id, endpointRef, Duration.Inf)
     assert(node.props.apply("age").asInt() == 27)
   }
 
@@ -113,31 +111,39 @@ class DataNodeRpcClientTest {
   def updateNodeLabel(): Unit = {
     val oldLabel = "Person"
     val newLabel = "People"
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](UpdateNodeLabel(nodeTest.id, oldLabel, newLabel)), Duration.Inf)
-    val node = Await.result(endpointRef.askWithBuffer[Node](GetNodeById(nodeTest.id)), Duration.Inf)
+    dataNodeDriver.updateNodeLabel(nodeTest.id, oldLabel, newLabel, endpointRef, Duration.Inf)
+    val node = dataNodeDriver.getNodeById(nodeTest.id, endpointRef, Duration.Inf)
     assert(node.labels(0).name == newLabel)
   }
 
   @Test
+  def addNodeLabel(): Unit = {
+    val newLabel = "Player"
+    dataNodeDriver.addNodeLabel(nodeTest.id, newLabel, endpointRef, Duration.Inf)
+    val node = dataNodeDriver.getNodeById(nodeTest.id, endpointRef, Duration.Inf)
+    assert(node.labels.length == 2)
+  }
+
+  @Test
   def getNodeRelationship(): Unit = {
-    val relation2 = Await.result(endpointRef.askWithBuffer[ArrayBuffer[Relationship]](GetNodeRelationships(nodeTest2.id)), Duration.Inf)
+    val relation2 = dataNodeDriver.getNodeRelationships(nodeTest2.id, endpointRef, Duration.Inf)
     assert(relation2.size == 2)
   }
 
   @Test
   def deleteNodeRelation(): Unit = {
     val relationToDelete = "enemy"
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNodeRelationship(nodeTest2.id, relationToDelete, Direction.OUTGOING)), Duration.Inf)
-    val relations = Await.result(endpointRef.askWithBuffer[ArrayBuffer[Node]](GetNodeRelationships(nodeTest2.id)), Duration.Inf)
+    dataNodeDriver.deleteNodeRelationship(nodeTest2.id, relationToDelete, Direction.OUTGOING, endpointRef, Duration.Inf)
+    val relations = dataNodeDriver.getNodeRelationships(nodeTest2.id, endpointRef, Duration.Inf)
     assert(relations.size == 1)
   }
 
   @After
   def release(): Unit = {
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeTest.id)), Duration.Inf)
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeTest2.id)), Duration.Inf)
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeTest3.id)), Duration.Inf)
-    Await.result(endpointRef.askWithBuffer[ServerReplyMsg.Value](DeleteNode(nodeTest4.id)), Duration.Inf)
+    dataNodeDriver.deleteNode(nodeTest.id, endpointRef, Duration.Inf)
+    dataNodeDriver.deleteNode(nodeTest2.id, endpointRef, Duration.Inf)
+    dataNodeDriver.deleteNode(nodeTest3.id, endpointRef, Duration.Inf)
+    dataNodeDriver.deleteNode(nodeTest4.id, endpointRef, Duration.Inf)
     clientRpcEnv.stop(endpointRef)
     clientRpcEnv.shutdown()
   }

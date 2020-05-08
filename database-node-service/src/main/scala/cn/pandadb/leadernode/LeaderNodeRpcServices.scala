@@ -1,3 +1,35 @@
 package cn.pandadb.leadernode
 
-case class createNode(labels: Iterable[String] = null, properties: Map[String, Any] = null) {}
+import org.neo4j.graphdb.Direction
+
+case class LeaderSayHello(msg: String)
+
+// node
+case class LeaderCreateNode(labels: Array[String], properties: Map[String, Any])
+
+case class LeaderAddNodeLabel(id: Long, label: String)
+
+case class LeaderGetNodeById(id: Long)
+
+case class LeaderGetNodesByProperty(label: String, propertiesMap: Map[String, Object])
+
+case class LeaderGetNodesByLabel(label: String)
+
+case class LeaderUpdateNodeProperty(id: Long, propertiesMap: Map[String, Any])
+
+case class LeaderUpdateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String)
+
+case class LeaderDeleteNode(id: Long)
+
+case class LeaderRemoveProperty(id: Long, property: String)
+
+//// relationship
+case class LeaderCreateNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction)
+
+case class LeaderGetNodeRelationships(id: Long)
+
+case class LeaderDeleteNodeRelationship(id: Long, relationship: String, direction: Direction)
+
+case class LeaderGetAllDBNodes(chunkSize: Int)
+
+case class LeaderGetAllDBRelationships(chunkSize: Int)
