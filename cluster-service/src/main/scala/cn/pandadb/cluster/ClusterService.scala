@@ -29,7 +29,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   override def init(): Unit = {
     logger.info(this.getClass + ": init")
-//    assurePathExist()
+    assurePathExist()
   }
 
   override def start(): Unit = {

@@ -2,9 +2,9 @@ package cn.pandadb.zk
 
 import scala.collection.JavaConverters._
 import cn.pandadb.configuration.Config
+import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheListener}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.zookeeper.data.Stat
 import org.apache.zookeeper.{CreateMode, ZooDefs}
 import org.slf4j.Logger
 
@@ -87,6 +87,28 @@ class ZKTools(config: Config) {
     })
   }
 
+  def registerPathChildrenListener(nodePath: String, listener: PathChildrenCacheListener): PathChildrenCache = {
+    try {
+      val pathChildrenCache = new PathChildrenCache(curator, nodePath, true)
+      pathChildrenCache.getListenable.addListener(listener)
+      pathChildrenCache.start(PathChildrenCache.StartMode.BUILD_INITIAL_CACHE)
+      return pathChildrenCache
+    } catch {
+      case e: Exception =>
+        logger.error(e.getMessage)
+    }
+    null
+  }
 
+  def registerPathChildrenListener(pathChildrenCache: PathChildrenCache, listener: PathChildrenCacheListener): PathChildrenCache = {
+    try {
+      pathChildrenCache.getListenable.addListener(listener)
+      return pathChildrenCache
+    } catch {
+      case e: Exception =>
+        logger.error(e.getMessage)
+    }
+    null
+  }
 
 }
