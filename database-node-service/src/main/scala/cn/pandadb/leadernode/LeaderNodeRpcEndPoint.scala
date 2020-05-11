@@ -20,19 +20,19 @@ class LeaderNodeRpcEndPoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfi
   }
 
 
-  override def receiveWithBuffer(extraInput: ByteBuffer, context: ReceiveContext): PartialFunction[Any, Unit] = {
+  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
     case LeaderSayHello(msg) => {
-      val res = leaderNodeService.sayHello()
+      val res = leaderNodeService.sayHello(clusterService)
       context.reply(res)
     }
   }
 
-  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
-    case LeaderSayHello2(msg) => {
-      logger.info("BBBBBBBB: " + clusterService.getDataNodes())
-      context.reply(msg)
-    }
-  }
+  //  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
+  //    case LeaderSayHello2(msg) => {
+  //      logger.info("BBBBBBBB: " + clusterService.getDataNodes())
+  //      context.reply(msg)
+  //    }
+  //  }
 
   override def onStop(): Unit = {
     logger.info("stop LeaderNodeRpcEndPoint")

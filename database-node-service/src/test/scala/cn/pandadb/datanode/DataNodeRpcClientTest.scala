@@ -45,17 +45,24 @@ class DataNodeRpcClientTest {
   }
 
   // chunkedStream
-  @Test
-  def getAllNodes(): Unit = {
-    val res = dataNodeDriver.getAllDBNodes(2, endpointRef, Duration.Inf)
-    assert(res.size == 4)
-  }
+  //  @Test
+  //  def getAllNodes(): Unit = {
+  //    val res = dataNodeDriver.getAllDBNodes(2, endpointRef, Duration.Inf)
+  //    assert(res.size == 4)
+  //  }
+  //
+  //  @Test
+  //  def getAllRelations(): Unit = {
+  //
+  //    val relations = dataNodeDriver.getAllDBRelationships(2, endpointRef, Duration.Inf)
+  //    assert(relations.size == 3)
+  //  }
 
   @Test
-  def getAllRelations(): Unit = {
-
-    val relations = dataNodeDriver.getAllDBRelationships(2, endpointRef, Duration.Inf)
-    assert(relations.size == 3)
+  def runCpyher(): Unit = {
+    val s = "match (n) return n"
+    val res = dataNodeDriver.runCypher(s, endpointRef, Duration.Inf)
+    println(res)
   }
 
   // askWithBuffer

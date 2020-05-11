@@ -26,7 +26,13 @@ class DataNodeRpcEndpoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig)
     logger.info("start DataNodeRpcEndpoint")
   }
 
-  override def receiveWithBuffer(extraInput: ByteBuffer, context: ReceiveContext): PartialFunction[Any, Unit] = {
+  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
+    case RunCypher(cypher) => {
+      println(cypher)
+      val res = dataNodeService.runCypher(cypher)
+      context.reply(res)
+    }
+
     case SayHello(msg) => {
       context.reply(PandaReplyMsg.SUCCESS)
     }
@@ -81,14 +87,14 @@ class DataNodeRpcEndpoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig)
     }
   }
 
-  override def openChunkedStream(): PartialFunction[Any, ChunkedStream] = {
-    case GetAllDBNodes(chunkSize) => {
-      dataNodeService.getAllDBNodes(chunkSize)
-    }
-    case GetAllDBRelationships(chunkSize) => {
-      dataNodeService.getAllDBRelationships(chunkSize)
-    }
-  }
+  //  override def openChunkedStream(): PartialFunction[Any, ChunkedStream] = {
+  //    case GetAllDBNodes(chunkSize) => {
+  //      dataNodeService.getAllDBNodes(chunkSize)
+  //    }
+  //    case GetAllDBRelationships(chunkSize) => {
+  //      dataNodeService.getAllDBRelationships(chunkSize)
+  //    }
+  //  }
 
   override def onStop(): Unit = {
     logger.info("stop DataNodeRpcEndpoint")

@@ -1,4 +1,4 @@
-package cn.pandadb.node.interactive
+package cn.pandadb.node.interactivebyhippo
 
 import java.io.File
 import java.nio.ByteBuffer
@@ -8,15 +8,15 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.slf4j.Logger
 import cn.pandadb.configuration.{Config => PandaConfig}
-import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, RemoveProperty, SayHello, UpdateNodeLabel, UpdateNodeProperty}
+import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, RemoveProperty, SayHello, UpdateNodeLabel, UpdateNodeProperty}
 import cn.pandadb.util.PandaReplyMsg
 import org.grapheco.hippo.{ChunkedStream, HippoRpcHandler, ReceiveContext}
 
 
-class DataNodeRpcEndpoint2(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig) extends RpcEndpoint with HippoRpcHandler {
+class DataNodeRpcEndpoint1(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig) extends RpcEndpoint with HippoRpcHandler {
 
   val logger: Logger = pandaConfig.getLogger(this.getClass)
-  val dbFile = new File("output2/testdb")
+  val dbFile = new File("output1/testdb")
   if (!dbFile.exists()) {
     dbFile.mkdirs
   }
@@ -82,14 +82,14 @@ class DataNodeRpcEndpoint2(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig
     }
   }
 
-  override def openChunkedStream(): PartialFunction[Any, ChunkedStream] = {
-    case GetAllDBNodes(chunkSize) => {
-      dataNodeService.getAllDBNodes(chunkSize)
-    }
-    case GetAllDBRelationships(chunkSize) => {
-      dataNodeService.getAllDBRelationships(chunkSize)
-    }
-  }
+  //  override def openChunkedStream(): PartialFunction[Any, ChunkedStream] = {
+  //    case GetAllDBNodes(chunkSize) => {
+  //      dataNodeService.getAllDBNodes(chunkSize)
+  //    }
+  //    case GetAllDBRelationships(chunkSize) => {
+  //      dataNodeService.getAllDBRelationships(chunkSize)
+  //    }
+  //  }
 
   override def onStop(): Unit = {
     logger.info("stop DataNodeRpcEndpoint")

@@ -4,6 +4,8 @@ import org.neo4j.graphdb.Direction
 
 case class SayHello(msg: String)
 
+case class RunCypher(cypher: String)
+
 // node
 case class CreateNode(labels: Array[String], properties: Map[String, Any])
 
@@ -30,6 +32,6 @@ case class GetNodeRelationships(id: Long)
 
 case class DeleteNodeRelationship(id: Long, relationship: String, direction: Direction)
 
-case class GetAllDBNodes(chunkSize: Int)
-
-case class GetAllDBRelationships(chunkSize: Int)
+//case class GetAllDBNodes(chunkSize: Int)
+//
+//case class GetAllDBRelationships(chunkSize: Int)

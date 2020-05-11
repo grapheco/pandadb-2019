@@ -3,7 +3,7 @@ package cn.pandadb.leadernode
 import org.neo4j.graphdb.Direction
 
 case class LeaderSayHello(msg: String)
-case class LeaderSayHello2(msg: String)
+//case class LeaderSayHello2(msg: String)
 
 // node
 case class LeaderCreateNode(labels: Array[String], properties: Map[String, Any])
@@ -31,6 +31,6 @@ case class LeaderGetNodeRelationships(id: Long)
 
 case class LeaderDeleteNodeRelationship(id: Long, relationship: String, direction: Direction)
 
-case class LeaderGetAllDBNodes(chunkSize: Int)
-
-case class LeaderGetAllDBRelationships(chunkSize: Int)
+//case class LeaderGetAllDBNodes(chunkSize: Int)
+//
+//case class LeaderGetAllDBRelationships(chunkSize: Int)
