@@ -1,8 +1,10 @@
 package cn.pandadb.zk
 
+import java.text.MessageFormat
+
 import scala.collection.JavaConverters._
 import cn.pandadb.configuration.Config
-import org.apache.curator.framework.recipes.cache.{PathChildrenCache, PathChildrenCacheListener}
+import org.apache.curator.framework.recipes.cache.{ChildData, NodeCache, NodeCacheListener, PathChildrenCache, PathChildrenCacheListener, TreeCache, TreeCacheListener}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.zookeeper.{CreateMode, ZooDefs}
@@ -96,6 +98,7 @@ class ZKTools(config: Config) {
     } catch {
       case e: Exception =>
         logger.error(e.getMessage)
+        throw e
     }
     null
   }
@@ -105,8 +108,69 @@ class ZKTools(config: Config) {
       pathChildrenCache.getListenable.addListener(listener)
       return pathChildrenCache
     } catch {
+      case e: IllegalStateException =>
+        logger.error(e.getMessage)
       case e: Exception =>
         logger.error(e.getMessage)
+        throw e
+    }
+    null
+  }
+
+  def registerTreeCacheListener(nodePath: String, maxDepth: Int, listener: TreeCacheListener): TreeCache = {
+    try {
+      val treeCache = TreeCache.newBuilder(curator, nodePath).setCacheData(true).setMaxDepth(maxDepth).build
+      treeCache.getListenable.addListener(listener)
+      treeCache.start
+      return treeCache
+    } catch {
+      case e: Exception =>
+        logger.error(e.getMessage)
+        throw e
+    }
+    null
+  }
+
+  def registerTreeCacheListener(treeCache: TreeCache, maxDepth: Int, listener: TreeCacheListener): TreeCache = {
+    try {
+      treeCache.getListenable.addListener(listener)
+      treeCache.start
+      return treeCache
+    } catch {
+      case e: IllegalStateException =>
+        logger.error(e.getMessage)
+      case e: Exception =>
+        logger.error(e.getMessage)
+        throw e
+    }
+    null
+  }
+
+  def registerNodeCacheListener(nodePath: String, listener: NodeCacheListener): NodeCache = {
+    try {
+      val nodeCache = new NodeCache(curator, nodePath)
+      nodeCache.getListenable.addListener(listener)
+      nodeCache.start()
+      return nodeCache
+    } catch {
+      case e: Exception =>
+        logger.error(e.getMessage)
+        throw e
+    }
+    null
+  }
+
+  def registerNodeCacheListener(nodeCache: NodeCache, listener: NodeCacheListener): NodeCache = {
+    try {
+      nodeCache.getListenable.addListener(listener)
+      nodeCache.start()
+      return nodeCache
+    } catch {
+      case e: IllegalStateException =>
+        logger.error(e.getMessage)
+      case e: Exception =>
+        logger.error(e.getMessage)
+        throw e
     }
     null
   }
