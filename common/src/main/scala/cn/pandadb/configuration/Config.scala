@@ -7,20 +7,20 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable
 
+object SettingKeys {
+  val zkAddress = "zk.address"
+  val zkPandaDBPath = "zk.pandadb.node.path"
+  val rpcListenHost = "rpc.listen.host"
+  val rpcListenPort = "rpc.listen.port"
+  val rpcServerName = "rpc.server.name"
+  val dataNodeRpcEndpointName = "rpc.endpoint.datanode.name"
+  val leaderNodeRpcEndpointName = "rpc.endpoint.leadernode.name"
+  val localNeo4jDBPath = "db.local.neo4j.path"
+}
+
 class Config {
   private val settingsMap = new mutable.HashMap[String, String]()
   private val logger = getLogger(this.getClass)
-
-  object SettingKeys {
-    val zkAddress = "zk.address"
-    val zkPandaDBPath = "zk.pandadb.node.path"
-    val rpcListenHost = "rpc.listen.host"
-    val rpcListenPort = "rpc.listen.port"
-    val rpcServerName = "rpc.server.name"
-    val dataNodeRpcEndpointName = "rpc.endpoint.datanode.name"
-    val leaderNodeRpcEndpointName = "rpc.endpoint.leadernode.name"
-    val localNeo4jDBPath = "db.local.neo4j.path"
-  }
 
   def withFile(configFile: Option[File]): Config = {
     if (configFile.isDefined) {
@@ -41,7 +41,7 @@ class Config {
   def getZKAddress(): String = {
     getValueAsString(SettingKeys.zkAddress, "127.0.0.1:2181")
   }
-  def getPandaZKDir: String = {
+  def getPandaZKDir(): String = {
     getValueAsString(SettingKeys.zkPandaDBPath, "/pandadb/vx.x.x/")
   }
 
@@ -49,7 +49,7 @@ class Config {
     getValueAsString(SettingKeys.rpcListenHost, "127.0.0.1")
   }
   def getRpcPort(): Int = {
-    getValueAsInt(SettingKeys.rpcListenHost, 52300)
+    getValueAsInt(SettingKeys.rpcListenPort, 52300)
   }
   def getNodeAddress(): String = {getListenHost + ":" + getRpcPort.toString}
 
