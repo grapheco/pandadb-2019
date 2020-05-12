@@ -45,11 +45,14 @@ class DataNodeRpcClientTest {
   }
 
   // chunkedStream
-  //  @Test
-  //  def getAllNodes(): Unit = {
-  //    val res = dataNodeDriver.getAllDBNodes(2, endpointRef, Duration.Inf)
-  //    assert(res.size == 4)
-  //  }
+  @Test
+  def getAllNodes(): Unit = {
+    val res = dataNodeDriver.getAllDBNodes(2, endpointRef, Duration.Inf).iterator
+    while (res.hasNext) {
+      println(res.next())
+    }
+    //      assert(res.size == 4)
+  }
   //
   //  @Test
   //  def getAllRelations(): Unit = {

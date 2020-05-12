@@ -32,6 +32,6 @@ case class GetNodeRelationships(id: Long)
 
 case class DeleteNodeRelationship(id: Long, relationship: String, direction: Direction)
 
-//case class GetAllDBNodes(chunkSize: Int)
-//
-//case class GetAllDBRelationships(chunkSize: Int)
+case class GetAllDBNodes(chunkSize: Int)
+
+case class GetAllDBRelationships(chunkSize: Int)

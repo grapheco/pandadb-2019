@@ -1,12 +1,13 @@
 package cn.pandadb.datanode
 
 import cn.pandadb.configuration.Config
-import cn.pandadb.leadernode.LeaderNodeRpcEndPoint
+import cn.pandadb.leadernode.{LeaderNodeHandler, LeaderNodeRpcEndPoint}
 import cn.pandadb.server.modules.LifecycleServerModule
 import cn.pandadb.cluster.{ClusterService, LeaderNodeChangedEvent, NodeRoleChangedEvent, NodeRoleChangedEventListener}
+import cn.pandadb.server.PandaRpcHandler
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc._
-import net.neoremind.kraps.rpc.netty.NettyRpcEnvFactory
+import net.neoremind.kraps.rpc.netty.{HippoRpcEnv, HippoRpcEnvFactory, NettyRpcEnvFactory}
 import org.slf4j.Logger
 
 
@@ -18,7 +19,7 @@ class PandaRpcServer(config: Config, clusterService: ClusterService) extends Lif
   val rpcServerName = config.getRpcServerName()
 
   val rpcConfig = RpcEnvServerConfig(new RpcConf(), rpcServerName, rpcHost, rpcPort)
-  val rpcEnv: RpcEnv = NettyRpcEnvFactory.create(rpcConfig)
+  val rpcEnv: HippoRpcEnv = HippoRpcEnvFactory.create(rpcConfig)
 
   val dataNodeEndpointName = config.getDataNodeEndpointName()
   val dataNodeRpcEndpoint: RpcEndpoint = new DataNodeRpcEndpoint(rpcEnv, config)
@@ -28,14 +29,17 @@ class PandaRpcServer(config: Config, clusterService: ClusterService) extends Lif
   val leaderNodeRpcEndpoint: RpcEndpoint = new LeaderNodeRpcEndPoint(rpcEnv, config, clusterService)
   var leaderNodeRpcEndpointRef: RpcEndpointRef = null
 
+  val pandaRpcHandler = new PandaRpcHandler(config, clusterService)
+
   override def init(): Unit = {
     logger.info(this.getClass + ": init")
   }
 
   override def start(): Unit = {
     logger.info(this.getClass + ": start")
+    rpcEnv.setRpcHandler(pandaRpcHandler)
     dataNodeRpcEndpointRef = rpcEnv.setupEndpoint(dataNodeEndpointName, dataNodeRpcEndpoint)
-//    clusterService.addNodeRoleChangedEventListener(new LeaderNodeChangeListener)
+    //    clusterService.addNodeRoleChangedEventListener(new LeaderNodeChangeListener)
     addLeaderNodeRpcEndpoint()
     rpcEnv.awaitTermination()
   }

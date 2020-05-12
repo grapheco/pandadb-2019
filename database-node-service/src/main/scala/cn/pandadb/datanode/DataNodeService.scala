@@ -16,7 +16,7 @@ trait DataNodeService {
 
   def createNode(labels: Array[String], properties: Map[String, Any]): Node
 
-  def addNodeLabel(id: Long, label: String): Node
+  def addNodeLabel(id: Long, label: String): PandaReplyMsg.Value
 
   def getNodeById(id: Long): Node
 
@@ -38,9 +38,9 @@ trait DataNodeService {
 
   def deleteNodeRelationship(id: Long, relationship: String, direction: Direction): PandaReplyMsg.Value
 
-  //  def getAllDBNodes(chunkSize: Int): ChunkedStream
-  //
-  //  def getAllDBRelationships(chunkSize: Int): ChunkedStream
+  def getAllDBNodes(chunkSize: Int): ChunkedStream
+
+  def getAllDBRelationships(chunkSize: Int): ChunkedStream
 }
 
 
@@ -73,14 +73,14 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     driverNode
   }
 
-  override def addNodeLabel(id: Long, label: String): Node = {
+  override def addNodeLabel(id: Long, label: String): PandaReplyMsg.Value = {
     val tx = localDatabase.beginTx()
     val node = localDatabase.getNodeById(id)
     node.addLabel(Label.label(label))
-    val driverNode = ValueConverter.toDriverNode(node)
+    //    val driverNode = ValueConverter.toDriverNode(node)
     tx.success()
     tx.close()
-    driverNode
+    PandaReplyMsg.SUCCESS
   }
 
   override def getNodeById(id: Long): Node = {
@@ -215,23 +215,23 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     PandaReplyMsg.SUCCESS
   }
 
-  //  override def getAllDBNodes(chunkSize: Int): ChunkedStream = {
-  //    val tx = localDatabase.beginTx()
-  //    val nodesIter = localDatabase.getAllNodes().iterator().stream().iterator()
-  //    val iterable = JavaConversions.asScalaIterator(nodesIter).toIterable
-  //    ChunkedStream.grouped(chunkSize, iterable.map(x => ValueConverter.toDriverNode(x)), {
-  //      tx.success()
-  //      tx.close()
-  //    })
-  //  }
-  //
-  //  override def getAllDBRelationships(chunkSize: Int): ChunkedStream = {
-  //    val tx = localDatabase.beginTx()
-  //    val relationIter = localDatabase.getAllRelationships().iterator().stream().iterator()
-  //    val iterable = JavaConversions.asScalaIterator(relationIter).toIterable
-  //    ChunkedStream.grouped(chunkSize, iterable.map(x => ValueConverter.toDriverRelationship(x)), {
-  //      tx.success()
-  //      tx.close()
-  //    })
-  //  }
+  override def getAllDBNodes(chunkSize: Int): ChunkedStream = {
+    val tx = localDatabase.beginTx()
+    val nodesIter = localDatabase.getAllNodes().iterator().stream().iterator()
+    val iterable = JavaConversions.asScalaIterator(nodesIter).toIterable
+    ChunkedStream.grouped(chunkSize, iterable.map(x => ValueConverter.toDriverNode(x)), {
+      tx.success()
+      tx.close()
+    })
+  }
+
+  override def getAllDBRelationships(chunkSize: Int): ChunkedStream = {
+    val tx = localDatabase.beginTx()
+    val relationIter = localDatabase.getAllRelationships().iterator().stream().iterator()
+    val iterable = JavaConversions.asScalaIterator(relationIter).toIterable
+    ChunkedStream.grouped(chunkSize, iterable.map(x => ValueConverter.toDriverRelationship(x)), {
+      tx.success()
+      tx.close()
+    })
+  }
 }

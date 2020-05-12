@@ -13,26 +13,11 @@ class LeaderNodeRpcEndPoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfi
   extends RpcEndpoint with HippoRpcHandler {
 
   val logger: Logger = pandaConfig.getLogger(this.getClass)
-  val leaderNodeService = new LeaderNodeServiceImpl
+//  val leaderNodeService = new LeaderNodeServiceImpl
 
   override def onStart(): Unit = {
     logger.info("start LeaderNodeRpcEndPoint")
   }
-
-
-  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
-    case LeaderSayHello(msg) => {
-      val res = leaderNodeService.sayHello(clusterService)
-      context.reply(res)
-    }
-  }
-
-  //  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = {
-  //    case LeaderSayHello2(msg) => {
-  //      logger.info("BBBBBBBB: " + clusterService.getDataNodes())
-  //      context.reply(msg)
-  //    }
-  //  }
 
   override def onStop(): Unit = {
     logger.info("stop LeaderNodeRpcEndPoint")

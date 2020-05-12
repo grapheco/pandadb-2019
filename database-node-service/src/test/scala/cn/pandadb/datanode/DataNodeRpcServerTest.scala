@@ -11,8 +11,9 @@ object DataNodeRpcServerTest {
     val serverConfig = RpcEnvServerConfig(new RpcConf(), "server", "localhost", 6666)
     val serverRpcEnv = HippoRpcEnvFactory.create(serverConfig)
     val endpoint = new DataNodeRpcEndpoint(serverRpcEnv, pandaConfig)
+    val handler = new DataNodeHandler(pandaConfig)
     serverRpcEnv.setupEndpoint("server", endpoint)
-    serverRpcEnv.setRpcHandler(endpoint)
+    serverRpcEnv.setRpcHandler(handler)
     serverRpcEnv.awaitTermination()
   }
 }
