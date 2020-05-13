@@ -18,6 +18,7 @@
         <module>cluster-service</module>
         <module>database-node-service</module>
         <module>zk-tools</module>
+        <module>pandadb-client</module>
     </modules>
 
     <properties>

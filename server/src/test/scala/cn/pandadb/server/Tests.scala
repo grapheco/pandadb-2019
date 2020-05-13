@@ -15,11 +15,14 @@ import scala.concurrent.duration.Duration
 class Tests {
   val config1 = new Config {
     override def getRpcPort(): Int = 52310
+
+    override def getPandaZKDir(): String = "/pandadb/v0.0.3"
     override def getLocalNeo4jDatabasePath(): String = "output1/db1"
   }
 
   val config2 = new Config {
     override def getRpcPort(): Int = 52320
+    override def getPandaZKDir(): String = "/pandadb/v0.0.3"
     override def getLocalNeo4jDatabasePath(): String = "output2/db2"
   }
   val pandaServer1 = new PandaServer(config1)
@@ -79,4 +82,8 @@ class Tests {
 //    assert(res4.size == 2)
   }
 
+  @Test
+  def runServer(): Unit = {
+    Thread.sleep(Int.MaxValue)
+  }
 }

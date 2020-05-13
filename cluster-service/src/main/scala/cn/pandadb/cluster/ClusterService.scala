@@ -83,7 +83,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     asDataNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, dataNodePrefix, nodeAddress)
   }
 
-  def unregisterAsDataNode: Unit = {
+  def unregisterAsDataNode(): Unit = {
     logger.info(this.getClass + "unregisterAsDataNode: " + nodeAddress)
     zkTools.deleteZKNodeAndChildren(asDataNodePath)
     asDataNodePath = null
