@@ -2,7 +2,7 @@ package cn.pandadb.node.interactivebyhippo
 
 import cn.pandadb.configuration.Config
 import cn.pandadb.datanode.{DataNodeDriver, SayHello}
-import cn.pandadb.util.PandaReplyMsg
+import cn.pandadb.util.PandaReplyMessage
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.netty.{HippoEndpointRef, HippoRpcEnvFactory}
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
@@ -14,7 +14,7 @@ import scala.concurrent.duration.Duration
 
 // do cluster data update
 trait LeaderNodeService {
-  def sayHello(): PandaReplyMsg.Value
+  def sayHello(): PandaReplyMessage.Value
 
   //  def createNode(labels: Array[String], properties: Map[String, Any]): PandaReplyMsg.Value
 
@@ -51,21 +51,21 @@ class LeaderNodeServiceImpl1() extends LeaderNodeService {
   val pandaConfig = new Config()
 
   // leader node services
-  override def sayHello(): PandaReplyMsg.Value = {
+  override def sayHello(): PandaReplyMessage.Value = {
     // begin cluster transaction
     //TODO: begin leader node's transaction
     val res = sendSayHelloCommandToAllNodes()
 
     //TODO: close leader node's transaction
-    if (res == PandaReplyMsg.LEAD_NODE_SUCCESS) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+    if (res == PandaReplyMessage.LEAD_NODE_SUCCESS) {
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
 
-  private def sendSayHelloCommandToAllNodes(): PandaReplyMsg.Value = {
+  private def sendSayHelloCommandToAllNodes(): PandaReplyMessage.Value = {
     val clientConfig = RpcEnvClientConfig(new RpcConf(), pandaConfig.getRpcServerName())
     val clientRpcEnv = HippoRpcEnvFactory.create(clientConfig)
     val allDataNodeEndpointRefs = ArrayBuffer[HippoEndpointRef]()
@@ -82,17 +82,17 @@ class LeaderNodeServiceImpl1() extends LeaderNodeService {
     // send command to all data nodes
     var countReplyRef = 0
     allDataNodeEndpointRefs.par.foreach(endpointRef => {
-      val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](SayHello("hello")), Duration.Inf)
-      if (res == PandaReplyMsg.SUCCESS) {
+      val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](SayHello("hello")), Duration.Inf)
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
     })
     println("refNumber:", refNumber, "countReply:", countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 

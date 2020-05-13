@@ -4,7 +4,7 @@ import cn.pandadb.cluster.ClusterService
 import cn.pandadb.configuration.Config
 import cn.pandadb.datanode.DataNodeDriver
 import cn.pandadb.leadernode.LeaderNodeDriver
-import cn.pandadb.util.PandaReplyMsg
+import cn.pandadb.util.PandaReplyMessage
 import cn.pandadb.zk.ZKTools
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}

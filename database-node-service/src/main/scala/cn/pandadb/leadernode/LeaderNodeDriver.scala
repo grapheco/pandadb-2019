@@ -2,7 +2,7 @@ package cn.pandadb.leadernode
 
 import cn.pandadb.driver.result.InternalRecords
 import cn.pandadb.driver.values.{Node, Relationship}
-import cn.pandadb.util.PandaReplyMsg
+import cn.pandadb.util.PandaReplyMessage
 import net.neoremind.kraps.rpc.netty.HippoEndpointRef
 import org.neo4j.graphdb.Direction
 
@@ -17,8 +17,8 @@ class LeaderNodeDriver {
     res
   }
 
-  def sayHello(msg: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderSayHello(msg)), duration)
+  def sayHello(msg: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderSayHello(msg)), duration)
     res
   }
 
@@ -27,13 +27,13 @@ class LeaderNodeDriver {
     res
   }
 
-  def createNode(labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderCreateNode(labels, properties)), duration)
+  def createNode(labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderCreateNode(labels, properties)), duration)
     res
   }
 
-  def addNodeLabel(id: Long, label: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderAddNodeLabel(id, label)), duration)
+  def addNodeLabel(id: Long, label: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderAddNodeLabel(id, label)), duration)
     res
   }
 
@@ -54,28 +54,28 @@ class LeaderNodeDriver {
     res
   }
 
-  def updateNodeProperty(id: Long, propertiesMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderUpdateNodeProperty(id, propertiesMap)), duration)
+  def updateNodeProperty(id: Long, propertiesMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderUpdateNodeProperty(id, propertiesMap)), duration)
     res
   }
 
-  def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderUpdateNodeLabel(id, toDeleteLabel, newLabel)), duration)
+  def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderUpdateNodeLabel(id, toDeleteLabel, newLabel)), duration)
     res
   }
 
-  def deleteNode(id: Long, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderDeleteNode(id)), duration)
+  def deleteNode(id: Long, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderDeleteNode(id)), duration)
     res
   }
 
-  def removeProperty(id: Long, property: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderRemoveProperty(id, property)), duration)
+  def removeProperty(id: Long, property: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderRemoveProperty(id, property)), duration)
     res
   }
 
-  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderCreateNodeRelationship(id1, id2, relationship, Direction.OUTGOING)), duration)
+  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderCreateNodeRelationship(id1, id2, relationship, Direction.OUTGOING)), duration)
     res
   }
 
@@ -84,8 +84,8 @@ class LeaderNodeDriver {
     res
   }
 
-  def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderDeleteNodeRelationship(id, relationship, Direction.OUTGOING)), duration)
+  def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderDeleteNodeRelationship(id, relationship, Direction.OUTGOING)), duration)
     res
   }
 

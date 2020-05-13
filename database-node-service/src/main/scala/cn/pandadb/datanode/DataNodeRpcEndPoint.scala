@@ -8,7 +8,7 @@ import org.neo4j.graphdb.{GraphDatabaseService}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.slf4j.Logger
 import cn.pandadb.configuration.{Config => PandaConfig}
-import cn.pandadb.util.{PandaReplyMsg}
+import cn.pandadb.util.{PandaReplyMessage}
 
 
 class DataNodeRpcEndpoint(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig) extends RpcEndpoint {

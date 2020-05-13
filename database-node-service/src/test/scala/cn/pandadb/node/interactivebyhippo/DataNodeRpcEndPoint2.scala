@@ -9,7 +9,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.slf4j.Logger
 import cn.pandadb.configuration.{Config => PandaConfig}
 import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, RemoveProperty, SayHello, UpdateNodeLabel, UpdateNodeProperty}
-import cn.pandadb.util.PandaReplyMsg
+import cn.pandadb.util.PandaReplyMessage
 import org.grapheco.hippo.{ChunkedStream, HippoRpcHandler, ReceiveContext}
 
 
@@ -29,7 +29,7 @@ class DataNodeRpcEndpoint2(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig
 
   override def receiveWithBuffer(extraInput: ByteBuffer, context: ReceiveContext): PartialFunction[Any, Unit] = {
     case SayHello(msg) => {
-      context.reply(PandaReplyMsg.SUCCESS)
+      context.reply(PandaReplyMessage.SUCCESS)
     }
     case CreateNode(labels, properties) => {
       val driverNode = dataNodeService.createNode(labels, properties)
@@ -37,7 +37,7 @@ class DataNodeRpcEndpoint2(override val rpcEnv: RpcEnv, pandaConfig: PandaConfig
     }
     case AddNodeLabel(id, label) => {
       val driverNode = dataNodeService.addNodeLabel(id, label)
-      context.reply(PandaReplyMsg.SUCCESS)
+      context.reply(PandaReplyMessage.SUCCESS)
     }
     case GetNodeById(id) => {
       val node = dataNodeService.getNodeById(id)

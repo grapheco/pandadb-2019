@@ -1,7 +1,7 @@
 package cn.pandadb.node.interactivebyhippo
 
 import cn.pandadb.leadernode.{LeaderNodeDriver, LeaderSayHello}
-import cn.pandadb.util.PandaReplyMsg
+import cn.pandadb.util.PandaReplyMessage
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.netty.HippoRpcEnvFactory
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
@@ -19,7 +19,7 @@ class LeaderNodeRpcClientTest {
     val clientConfig = RpcEnvClientConfig(new RpcConf(), "panda-client")
     val clientRpcEnv = HippoRpcEnvFactory.create(clientConfig)
     val endpointRef = clientRpcEnv.setupEndpointRef(new RpcAddress("localhost", 7777), "leader-server")
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderSayHello("hello")), Duration.Inf)
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderSayHello("hello")), Duration.Inf)
     println(res)
     clientRpcEnv.stop(endpointRef)
     clientRpcEnv.shutdown()

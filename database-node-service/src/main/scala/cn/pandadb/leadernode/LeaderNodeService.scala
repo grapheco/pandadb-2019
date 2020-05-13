@@ -8,7 +8,7 @@ import cn.pandadb.configuration.Config
 import cn.pandadb.datanode.{DataNodeDriver, SayHello}
 import cn.pandadb.driver.result.InternalRecords
 import cn.pandadb.driver.values.{Node, Relationship}
-import cn.pandadb.util.{PandaReplyMsg, ValueConverter}
+import cn.pandadb.util.{PandaReplyMessage, ValueConverter}
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.netty.{HippoEndpointRef, HippoRpcEnv, HippoRpcEnvFactory}
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
@@ -22,15 +22,15 @@ import scala.concurrent.duration.Duration
 
 // do cluster data update
 trait LeaderNodeService {
-  def sayHello(clusterService: ClusterService): PandaReplyMsg.Value
+  def sayHello(clusterService: ClusterService): PandaReplyMessage.Value
 
   def runCypher(cypher: String, clusterService: ClusterService): InternalRecords
 
-  def createNode(labels: Array[String], properties: Map[String, Any], clusterService: ClusterService): PandaReplyMsg.Value
+  def createNode(labels: Array[String], properties: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value
 
-  def deleteNode(id: Long, clusterService: ClusterService): PandaReplyMsg.Value
+  def deleteNode(id: Long, clusterService: ClusterService): PandaReplyMessage.Value
 
-  def addNodeLabel(id: Long, label: String, clusterService: ClusterService): PandaReplyMsg.Value
+  def addNodeLabel(id: Long, label: String, clusterService: ClusterService): PandaReplyMessage.Value
 
   def getNodeById(id: Long, clusterService: ClusterService): Node
 
@@ -38,17 +38,17 @@ trait LeaderNodeService {
 
   def getNodesByLabel(label: String, clusterService: ClusterService): ArrayBuffer[Node]
 
-  def updateNodeProperty(id: Long, propertiesMap: Map[String, Any], clusterService: ClusterService): PandaReplyMsg.Value
+  def updateNodeProperty(id: Long, propertiesMap: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value
 
-  def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String, clusterService: ClusterService): PandaReplyMsg.Value
+  def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String, clusterService: ClusterService): PandaReplyMessage.Value
 
-  def removeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMsg.Value
+  def removeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMessage.Value
 
-  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMsg.Value
+  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value
 
   def getNodeRelationships(id: Long, clusterService: ClusterService): ArrayBuffer[Relationship]
 
-  def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMsg.Value
+  def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value
 
   //  def getAllDBNodes(localDatabase:GraphDatabaseService, chunkSize: Int): ChunkedStream
   //
@@ -82,22 +82,22 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     res
   }
 
-  override def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMsg.Value = {
+  override def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
       val res = dataNodeDriver.deleteNodeRelationship(id, relationship, direction, endpointRef, Duration.Inf)
-      if (res == PandaReplyMsg.SUCCESS) {
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
     })
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
@@ -116,83 +116,83 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     res
   }
 
-  override def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMsg.Value = {
+  override def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
       val res = dataNodeDriver.createNodeRelationship(id1, id2, relationship, direction, endpointRef, Duration.Inf)
-      if (res == PandaReplyMsg.SUCCESS) {
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
     })
     println(refNumber, countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
-  override def removeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMsg.Value = {
+  override def removeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
       val res = dataNodeDriver.removeProperty(id, property, endpointRef, Duration.Inf)
-      if (res == PandaReplyMsg.SUCCESS) {
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
     })
     println(refNumber, countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
-  override def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String, clusterService: ClusterService): PandaReplyMsg.Value = {
+  override def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
       val res = dataNodeDriver.updateNodeLabel(id, toDeleteLabel, newLabel, endpointRef, Duration.Inf)
-      if (res == PandaReplyMsg.SUCCESS) {
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
     })
     println(refNumber, countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
-  override def updateNodeProperty(id: Long, propertiesMap: Map[String, Any], clusterService: ClusterService): PandaReplyMsg.Value = {
+  override def updateNodeProperty(id: Long, propertiesMap: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
       val res = dataNodeDriver.updateNodeProperty(id, propertiesMap, endpointRef, Duration.Inf)
-      if (res == PandaReplyMsg.SUCCESS) {
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
     })
     println(refNumber, countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
@@ -226,16 +226,16 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     res
   }
 
-  override def sayHello(clusterService: ClusterService): PandaReplyMsg.Value = {
+  override def sayHello(clusterService: ClusterService): PandaReplyMessage.Value = {
     // begin cluster transaction
     //TODO: begin leader node's transaction
     val res = sendSayHelloCommandToAllNodes(clusterService)
 
     //TODO: close leader node's transaction
-    if (res == PandaReplyMsg.LEAD_NODE_SUCCESS) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+    if (res == PandaReplyMessage.LEAD_NODE_SUCCESS) {
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
@@ -254,7 +254,7 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     res
   }
 
-  override def createNode(labels: Array[String], properties: Map[String, Any], clusterService: ClusterService): PandaReplyMsg.Value = {
+  override def createNode(labels: Array[String], properties: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
@@ -268,49 +268,49 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     println(refNumber, countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
-  override def deleteNode(id: Long, clusterService: ClusterService): PandaReplyMsg.Value = {
+  override def deleteNode(id: Long, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
       val res = dataNodeDriver.deleteNode(id, endpointRef, Duration.Inf)
-      if (res == PandaReplyMsg.SUCCESS) {
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
     })
     println(refNumber, countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
-  override def addNodeLabel(id: Long, label: String, clusterService: ClusterService): PandaReplyMsg.Value = {
+  override def addNodeLabel(id: Long, label: String, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
       val res = dataNodeDriver.addNodeLabel(id, label, endpointRef, Duration.Inf)
-      if (res == PandaReplyMsg.SUCCESS) {
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
     })
     println(refNumber, countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 
@@ -330,7 +330,7 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     res
   }
 
-  private def sendSayHelloCommandToAllNodes(clusterService: ClusterService): PandaReplyMsg.Value = {
+  private def sendSayHelloCommandToAllNodes(clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
 
@@ -338,16 +338,16 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
       val res = dataNodeDriver.sayHello("hello", endpointRef, Duration.Inf)
-      if (res == PandaReplyMsg.SUCCESS) {
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
     })
     println(refNumber, countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
-      PandaReplyMsg.LEAD_NODE_SUCCESS
+      PandaReplyMessage.LEAD_NODE_SUCCESS
     } else {
-      PandaReplyMsg.LEAD_NODE_FAILED
+      PandaReplyMessage.LEAD_NODE_FAILED
     }
   }
 

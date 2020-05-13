@@ -5,7 +5,7 @@ import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
 import net.neoremind.kraps.rpc.netty.HippoRpcEnvFactory
 import org.junit.{After, Before, Test}
 import cn.pandadb.driver.values.{Node}
-import cn.pandadb.util.PandaReplyMsg
+import cn.pandadb.util.PandaReplyMessage
 import org.neo4j.graphdb.Direction
 
 import scala.concurrent.duration.Duration
@@ -75,7 +75,7 @@ class DataNodeRpcClientTest {
     val label = Array("Person")
     val nodeToDelete = dataNodeDriver.createNode(label, propertiesMap, endpointRef, Duration.Inf)
     val res = dataNodeDriver.deleteNode(nodeToDelete.id, endpointRef, Duration.Inf)
-    assert(res == PandaReplyMsg.SUCCESS)
+    assert(res == PandaReplyMessage.SUCCESS)
   }
 
   @Test
