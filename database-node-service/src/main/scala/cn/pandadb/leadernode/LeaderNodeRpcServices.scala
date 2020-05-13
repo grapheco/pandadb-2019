@@ -35,3 +35,6 @@ case class LeaderDeleteNodeRelationship(id: Long, relationship: String, directio
 case class LeaderGetAllDBNodes(chunkSize: Int)
 
 case class LeaderGetAllDBRelationships(chunkSize: Int)
+
+//zk
+case class GetZkDataNodes()

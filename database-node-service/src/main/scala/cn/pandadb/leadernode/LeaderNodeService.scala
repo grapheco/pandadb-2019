@@ -53,6 +53,9 @@ trait LeaderNodeService {
   //  def getAllDBNodes(localDatabase:GraphDatabaseService, chunkSize: Int): ChunkedStream
   //
   //  def getAllDBRelationships(chunkSize: Int, clusterService: ClusterService): Stream[Node]
+
+  // pull from zk
+  def getZkDataNodes(clusterService: ClusterService): List[String]
 }
 
 
@@ -74,6 +77,11 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
   //    })
   //  }
 
+  override def getZkDataNodes(clusterService: ClusterService): List[String] = {
+    val res = clusterService.getDataNodes()
+    res
+  }
+
   override def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMsg.Value = {
     val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
     val refNumber = allEndpointRefs.size
@@ -85,7 +93,6 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
         countReplyRef += 1
       }
     })
-    println(refNumber, countReplyRef)
     clientRpcEnv.shutdown()
     if (countReplyRef == refNumber) {
       PandaReplyMsg.LEAD_NODE_SUCCESS
@@ -356,5 +363,9 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
       allEndpointRefs += ref
     })
     (clientRpcEnv, allEndpointRefs)
+  }
+
+  def test(driverFunc: DataNodeDriver => Any): Unit = {
+
   }
 }

@@ -36,6 +36,7 @@ class DataNodeHandler(pandaConfig: PandaConfig) extends HippoRpcHandler {
     }
 
     case SayHello(msg) => {
+      println("data node handler say hello")
       context.reply(PandaReplyMsg.SUCCESS)
     }
     case CreateNode(labels, properties) => {

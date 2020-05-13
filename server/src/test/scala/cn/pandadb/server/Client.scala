@@ -29,6 +29,13 @@ class Client {
   val port = str(1).toInt
 
   @Test
+  def getZkDataNodes(): Unit = {
+    val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val res = leaderDriver.getZkDataNodes(ref, Duration.Inf)
+    println(res)
+  }
+
+  @Test
   def sayHello(): Unit = {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.sayHello("hello", ref, Duration.Inf)
@@ -45,7 +52,7 @@ class Client {
   @Test
   def createNode(): Unit = {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val res = leaderDriver.createNode(Array("Person"), Map("aaa" -> 111), ref, Duration.Inf)
+    val res = leaderDriver.createNode(Array("Person"), Map("bbb" -> 111), ref, Duration.Inf)
     println(res)
   }
 
@@ -73,7 +80,7 @@ class Client {
   @Test
   def getNodesByProperty(): Unit = {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val res = leaderDriver.getNodesByProperty("Person", Map("a" -> 1.asInstanceOf[Object]), ref, Duration.Inf)
+    val res = leaderDriver.getNodesByProperty("Person", Map("aaa" -> 111.asInstanceOf[Object]), ref, Duration.Inf)
     println(res)
   }
 

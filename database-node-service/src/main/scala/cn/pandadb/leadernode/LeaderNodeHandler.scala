@@ -17,10 +17,11 @@ class LeaderNodeHandler(pandaConfig: PandaConfig, clusterService: ClusterService
     dbFile.mkdirs
   }
   val leaderNodeService = new LeaderNodeServiceImpl
-  var localNeo4jDB: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
+//  var localNeo4jDB: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
 
   override def receiveWithBuffer(extraInput: ByteBuffer, context: ReceiveContext): PartialFunction[Any, Unit] = {
     case LeaderSayHello(msg) => {
+      println("leader handler say hello")
       val res = leaderNodeService.sayHello(clusterService)
       context.reply(res)
     }
@@ -48,6 +49,10 @@ class LeaderNodeHandler(pandaConfig: PandaConfig, clusterService: ClusterService
       val res = leaderNodeService.getNodesByProperty(label, propertiesMap, clusterService)
       context.reply(res)
     }
+    case LeaderGetNodesByLabel(label) => {
+      val res = leaderNodeService.getNodesByLabel(label, clusterService)
+      context.reply(res)
+    }
     case LeaderUpdateNodeProperty(id, propertiesMap) => {
       val res = leaderNodeService.updateNodeProperty(id, propertiesMap, clusterService)
       context.reply(res)
@@ -70,6 +75,10 @@ class LeaderNodeHandler(pandaConfig: PandaConfig, clusterService: ClusterService
     }
     case LeaderDeleteNodeRelationship(id, relationship, direction) => {
       val res = leaderNodeService.deleteNodeRelationship(id, relationship, direction, clusterService)
+      context.reply(res)
+    }
+    case GetZkDataNodes() => {
+      val res = leaderNodeService.getZkDataNodes(clusterService)
       context.reply(res)
     }
   }

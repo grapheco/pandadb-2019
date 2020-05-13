@@ -11,6 +11,12 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class LeaderNodeDriver {
+
+  def getZkDataNodes(endpointRef: HippoEndpointRef, duration: Duration): List[String] = {
+    val res = Await.result(endpointRef.askWithBuffer[List[String]](GetZkDataNodes()), duration)
+    res
+  }
+
   def sayHello(msg: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMsg.Value = {
     val res = Await.result(endpointRef.askWithBuffer[PandaReplyMsg.Value](LeaderSayHello(msg)), duration)
     res
