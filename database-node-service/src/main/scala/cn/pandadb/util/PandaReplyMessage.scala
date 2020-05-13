@@ -1,6 +1,6 @@
 package cn.pandadb.util
 
-object PandaReplyMsg extends Enumeration {
+object PandaReplyMessage extends Enumeration {
   val SUCCESS = Value(1)
   val FAILED = Value(0)
 
