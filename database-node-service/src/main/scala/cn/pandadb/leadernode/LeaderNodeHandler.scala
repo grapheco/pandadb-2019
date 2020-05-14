@@ -29,6 +29,10 @@ class LeaderNodeHandler(pandaConfig: PandaConfig, clusterService: ClusterService
       val res = leaderNodeService.runCypher(cypher, clusterService)
       context.reply(res)
     }
+    case LeaderRunCypherOnAllNodes(cypher) => {
+      val res = leaderNodeService.runCypherOnAllNodes(cypher, clusterService)
+      context.reply(res)
+    }
     case LeaderCreateNode(labels, properties) => {
       val res = leaderNodeService.createNode(labels, properties, clusterService)
       context.reply(res)

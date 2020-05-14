@@ -3,7 +3,7 @@ package cn.pandadb.server
 import cn.pandadb.cluster.ClusterService
 import cn.pandadb.configuration.Config
 import cn.pandadb.datanode.DataNodeDriver
-import cn.pandadb.leadernode.LeaderNodeDriver
+import cn.pandadb.leadernode.{LeaderNodeDriver, LeaderSayHello}
 import cn.pandadb.util.PandaReplyMessage
 import cn.pandadb.zk.ZKTools
 import net.neoremind.kraps.RpcConf
@@ -13,6 +13,7 @@ import org.junit.{After, Test}
 import org.neo4j.csv.reader.Extractors.DurationExtractor
 import org.neo4j.graphdb.Direction
 
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class Client {
@@ -50,11 +51,44 @@ class Client {
   }
 
   @Test
-  def createNode(): Unit = {
+  def runCypherOnAllNodes(): Unit = {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val res = leaderDriver.createNode(Array("Person"), Map("bbb" -> 111), ref, Duration.Inf)
-    println(res)
+    val res = leaderDriver.runCypherOnAllNodes("match (n) return n", ref, Duration.Inf)
+    println(res(0))
+    println(res(1))
   }
+
+  @Test
+  def createNode(): Unit = {
+    // one ref can only use less than 4 times, otherwise it will stuck...
+    val toCreate = Array(Map("aaa" -> 111), Map("bbb" -> 222), Map("ccc" -> 333), Map("ddd" -> 444), Map("eee" -> 555), Map("fff" -> 666))
+    for (i <- 0 to 5) {
+      val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+      val res = leaderDriver.createNode(Array("514"), toCreate(i), ref, Duration.Inf)
+      clientRpcEnv.stop(ref)
+      println(res)
+    }
+  }
+
+  @Test
+  def bugTest(): Unit = {
+    val ref1 = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val res1 = Await.result(ref1.askWithBuffer[PandaReplyMessage.Value](LeaderSayHello("hello")), Duration.Inf)
+    val res2 = Await.result(ref1.askWithBuffer[PandaReplyMessage.Value](LeaderSayHello("hello")), Duration.Inf)
+    val res3 = Await.result(ref1.askWithBuffer[PandaReplyMessage.Value](LeaderSayHello("hello")), Duration.Inf)
+    val res4 = Await.result(ref1.askWithBuffer[PandaReplyMessage.Value](LeaderSayHello("hello")), Duration.Inf)
+    val res5 = Await.result(ref1.askWithBuffer[PandaReplyMessage.Value](LeaderSayHello("hello")), Duration.Inf)
+    val res6 = Await.result(ref1.askWithBuffer[PandaReplyMessage.Value](LeaderSayHello("hello")), Duration.Inf)
+
+    println(res1)
+    println(res2)
+    println(res3)
+    println(res4)
+    println(res5)
+    println(res6)
+
+  }
+
 
   @Test
   def deleteNode(): Unit = {

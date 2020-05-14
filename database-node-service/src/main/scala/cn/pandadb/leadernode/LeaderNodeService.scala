@@ -26,6 +26,8 @@ trait LeaderNodeService {
 
   def runCypher(cypher: String, clusterService: ClusterService): InternalRecords
 
+  def runCypherOnAllNodes(cypher: String, clusterService: ClusterService): ArrayBuffer[InternalRecords]
+
   def createNode(labels: Array[String], properties: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value
 
   def deleteNode(id: Long, clusterService: ClusterService): PandaReplyMessage.Value
@@ -252,6 +254,24 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     val res = dataNodeDriver.runCypher(cypher, ref, Duration.Inf)
     clientRpcEnv.shutdown()
     res
+  }
+
+  override def runCypherOnAllNodes(cypher: String, clusterService: ClusterService): ArrayBuffer[InternalRecords] = {
+    val (clientRpcEnv, allEndpointRefs) = getAllEndpointRef(clusterService)
+    val refNumber = allEndpointRefs.size
+    // send command to all data nodes
+    var countReplyRef = 0
+    val lst = ArrayBuffer[InternalRecords]()
+    allEndpointRefs.par.foreach(endpointRef => {
+      val res = dataNodeDriver.runCypher(cypher, endpointRef, Duration.Inf)
+      if (res.isInstanceOf[InternalRecords]) {
+        countReplyRef += 1
+        lst += res
+      }
+    })
+    println(refNumber, countReplyRef)
+    clientRpcEnv.shutdown()
+    lst
   }
 
   override def createNode(labels: Array[String], properties: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value = {

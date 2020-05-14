@@ -27,6 +27,11 @@ class LeaderNodeDriver {
     res
   }
 
+  def runCypherOnAllNodes(cypher: String, endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[InternalRecords] = {
+    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[InternalRecords]](LeaderRunCypherOnAllNodes(cypher)), duration)
+    res
+  }
+
   def createNode(labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
     val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderCreateNode(labels, properties)), duration)
     res
