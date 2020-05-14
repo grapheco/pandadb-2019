@@ -1,12 +1,14 @@
 package cn.pandadb.server
 
 import java.io.File
+import java.util.ServiceLoader
+import scala.collection.JavaConverters._
 
 import cn.pandadb.configuration.Config
 import cn.pandadb.lifecycle.LifecycleSupport
-import cn.pandadb.costore.CostoreServer
 import cn.pandadb.cluster.ClusterService
 import cn.pandadb.datanode.PandaRpcServer
+import cn.pandadb.index.IndexServiceFactory
 import cn.pandadb.zk.ZKTools
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
@@ -23,7 +25,11 @@ class PandaServer(config: Config)  {
   clusterService.init()
 
 //  life.add(clusterService)
-  life.add(new CostoreServer(config) )
+  val serviceLoaders = ServiceLoader.load(classOf[IndexServiceFactory]).asScala
+  if(serviceLoaders.size > 0) {
+    val indexService = serviceLoaders.iterator.next().create(config)
+    life.add(indexService )
+  }
   life.add(new PandaRpcServer(config, clusterService) )
   clusterService.start()
 
