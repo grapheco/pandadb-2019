@@ -13,7 +13,7 @@
         <module>id-management</module>
         <module>server</module>
         <module>common</module>
-        <module>costore-service</module>
+        <module>index-service</module>
         <module>aipm-service</module>
         <module>cluster-service</module>
         <module>database-node-service</module>

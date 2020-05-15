@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>costore-service</artifactId>
+    <artifactId>index-service</artifactId>
     <groupId>cn.pandadb</groupId>
     <version>0.0.2</version>
 
