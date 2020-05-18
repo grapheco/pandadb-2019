@@ -34,10 +34,10 @@ class DataNodeRpcClientTest {
     val propertiesMap4 = Map("name" -> "drum", "age" -> 17)
     val label4 = Array("Instrument")
 
-    nodeTest = dataNodeDriver.createNode(label, propertiesMap, endpointRef, Duration.Inf)
-    nodeTest2 = dataNodeDriver.createNode(label2, propertiesMap2, endpointRef, Duration.Inf)
-    nodeTest3 = dataNodeDriver.createNode(label3, propertiesMap3, endpointRef, Duration.Inf)
-    nodeTest4 = dataNodeDriver.createNode(label4, propertiesMap4, endpointRef, Duration.Inf)
+    nodeTest = dataNodeDriver.createNode(100L, label, propertiesMap, endpointRef, Duration.Inf)
+    nodeTest2 = dataNodeDriver.createNode(101L, label2, propertiesMap2, endpointRef, Duration.Inf)
+    nodeTest3 = dataNodeDriver.createNode(102L, label3, propertiesMap3, endpointRef, Duration.Inf)
+    nodeTest4 = dataNodeDriver.createNode(103L, label4, propertiesMap4, endpointRef, Duration.Inf)
 
     dataNodeDriver.createNodeRelationship(nodeTest2.id, nodeTest3.id, "enemy", Direction.OUTGOING, endpointRef, Duration.Inf)
     dataNodeDriver.createNodeRelationship(nodeTest2.id, nodeTest4.id, "friend", Direction.INCOMING, endpointRef, Duration.Inf)
@@ -73,7 +73,7 @@ class DataNodeRpcClientTest {
   def createAndDeleteNode(): Unit = {
     val propertiesMap = Map("name" -> "toDelete", "age" -> 666)
     val label = Array("Person")
-    val nodeToDelete = dataNodeDriver.createNode(label, propertiesMap, endpointRef, Duration.Inf)
+    val nodeToDelete = dataNodeDriver.createNode(10L, label, propertiesMap, endpointRef, Duration.Inf)
     val res = dataNodeDriver.deleteNode(nodeToDelete.id, endpointRef, Duration.Inf)
     assert(res == PandaReplyMessage.SUCCESS)
   }

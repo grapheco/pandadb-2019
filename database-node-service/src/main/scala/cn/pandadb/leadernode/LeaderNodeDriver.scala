@@ -27,10 +27,10 @@ class LeaderNodeDriver {
     res
   }
 
-  def runCypherOnAllNodes(cypher: String, endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[InternalRecords] = {
-    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[InternalRecords]](LeaderRunCypherOnAllNodes(cypher)), duration)
-    res
-  }
+  //  def runCypherOnAllNodes(cypher: String, endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[InternalRecords] = {
+  //    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[InternalRecords]](LeaderRunCypherOnAllNodes(cypher)), duration)
+  //    res
+  //  }
 
   def createNode(labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
     val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderCreateNode(labels, properties)), duration)
@@ -94,13 +94,8 @@ class LeaderNodeDriver {
     res
   }
 
-  def getAllDBNodes(chunkSize: Int, endpointRef: HippoEndpointRef, duration: Duration): Stream[Node] = {
-    val res = endpointRef.getChunkedStream[Node](LeaderGetAllDBNodes(chunkSize), duration)
-    res
-  }
-
-  def getAllDBRelationships(chunkSize: Int, endpointRef: HippoEndpointRef, duration: Duration): Array[Relationship] = {
-    val res = Await.result(endpointRef.askWithBuffer[Array[Relationship]](LeaderGetAllDBRelationships(chunkSize)), duration)
+  def getAllDBRelationships(chunkSize: Int, endpointRef: HippoEndpointRef, duration: Duration): Stream[Relationship] = {
+    val res = endpointRef.getChunkedStream[Relationship](LeaderGetAllDBRelationships(chunkSize), duration)
     res
   }
 }

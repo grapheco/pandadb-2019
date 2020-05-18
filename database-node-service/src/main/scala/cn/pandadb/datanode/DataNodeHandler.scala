@@ -39,8 +39,8 @@ class DataNodeHandler(pandaConfig: PandaConfig) extends HippoRpcHandler {
       println("data node handler say hello")
       context.reply(PandaReplyMessage.SUCCESS)
     }
-    case CreateNode(labels, properties) => {
-      val driverNode = dataNodeService.createNode(labels, properties)
+    case CreateNode(id, labels, properties) => {
+      val driverNode = dataNodeService.createNodeFollow(id, labels, properties)
       context.reply(driverNode)
     }
     case AddNodeLabel(id, label) => {

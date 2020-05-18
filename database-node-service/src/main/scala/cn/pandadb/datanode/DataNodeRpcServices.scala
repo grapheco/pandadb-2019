@@ -7,7 +7,7 @@ case class SayHello(msg: String)
 case class RunCypher(cypher: String)
 
 // node
-case class CreateNode(labels: Array[String], properties: Map[String, Any])
+case class CreateNode(id: Long, labels: Array[String], properties: Map[String, Any])
 
 case class AddNodeLabel(id: Long, label: String)
 

@@ -6,8 +6,6 @@ case class LeaderSayHello(msg: String)
 
 case class LeaderRunCypher(cypher: String)
 
-case class LeaderRunCypherOnAllNodes(cypher: String)
-
 // node
 case class LeaderCreateNode(labels: Array[String], properties: Map[String, Any])
 

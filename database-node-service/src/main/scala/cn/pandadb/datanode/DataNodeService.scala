@@ -11,10 +11,13 @@ import scala.collection.mutable.ArrayBuffer
 
 // do local data update
 trait DataNodeService {
+  def sayHello(msg: String): PandaReplyMessage.Value
 
   def runCypher(cypher: String): InternalRecords
 
-  def createNode(labels: Array[String], properties: Map[String, Any]): Node
+  def createNodeLeader(labels: Array[String], properties: Map[String, Any]): Node
+
+  def createNodeFollow(id: Long, labels: Array[String], properties: Map[String, Any]): Node
 
   def addNodeLabel(id: Long, label: String): PandaReplyMessage.Value
 
@@ -46,9 +49,11 @@ trait DataNodeService {
 
 class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeService {
 
+  override def sayHello(msg: String): PandaReplyMessage.Value = {
+    PandaReplyMessage.SUCCESS
+  }
 
   override def runCypher(cypher: String): InternalRecords = {
-    println(cypher)
     val tx = localDatabase.beginTx()
     val result = localDatabase.execute(cypher)
     val internalRecords = ValueConverter.neo4jResultToDriverRecords(result)
@@ -57,9 +62,25 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     internalRecords
   }
 
-  override def createNode(labels: Array[String], properties: Map[String, Any]): Node = {
+  override def createNodeLeader(labels: Array[String], properties: Map[String, Any]): Node = {
     val tx = localDatabase.beginTx()
     val node = localDatabase.createNode()
+    for (labelName <- labels) {
+      val label = Label.label(labelName)
+      node.addLabel(label)
+    }
+    properties.foreach(x => {
+      node.setProperty(x._1, x._2)
+    })
+    val driverNode = ValueConverter.toDriverNode(node)
+    tx.success()
+    tx.close()
+    driverNode
+  }
+
+  override def createNodeFollow(id: Long, labels: Array[String], properties: Map[String, Any]): Node = {
+    val tx = localDatabase.beginTx()
+    val node = localDatabase.createNode(id)
     for (labelName <- labels) {
       val label = Label.label(labelName)
       node.addLabel(label)

@@ -13,7 +13,7 @@ object DataNodeRpcServerTest {
     val endpoint = new DataNodeRpcEndpoint(serverRpcEnv, pandaConfig)
     val handler = new DataNodeHandler(pandaConfig)
     serverRpcEnv.setupEndpoint("server", endpoint)
-    serverRpcEnv.setRpcHandler(handler)
+//    serverRpcEnv.setRpcHandler(handler)
     serverRpcEnv.awaitTermination()
   }
 }

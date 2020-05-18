@@ -1,10 +1,10 @@
 package cn.pandadb.datanode
 
 import cn.pandadb.configuration.Config
-import cn.pandadb.leadernode.{LeaderNodeHandler, LeaderNodeRpcEndPoint}
+import cn.pandadb.leadernode.{LeaderNodeRpcEndPoint}
 import cn.pandadb.server.modules.LifecycleServerModule
 import cn.pandadb.cluster.{ClusterService, LeaderNodeChangedEvent, NodeRoleChangedEvent, NodeRoleChangedEventListener}
-import cn.pandadb.server.{PandaRpcHandler}
+import cn.pandadb.server.{PandaRpcHandler, PandaRpcHandler2}
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc._
 import net.neoremind.kraps.rpc.netty.{HippoRpcEnv, HippoRpcEnvFactory}
@@ -29,9 +29,9 @@ class PandaRpcServer(config: Config, clusterService: ClusterService) extends Lif
   val leaderNodeRpcEndpoint: RpcEndpoint = new LeaderNodeRpcEndPoint(rpcEnv, config, clusterService)
   var leaderNodeRpcEndpointRef: RpcEndpointRef = null
 
-  val pandaRpcHandler = new PandaRpcHandler(config, clusterService)
-  val dataNodeHandler = new DataNodeHandler(config)
-  val leaderNodeHandler = new LeaderNodeHandler(config, clusterService)
+  val pandaRpcHandler = new PandaRpcHandler2(config, clusterService)
+  //  val dataNodeHandler = new DataNodeHandler(config)
+  //  val leaderNodeHandler = new LeaderNodeHandler(config, clusterService)
 
   override def init(): Unit = {
     logger.info(this.getClass + ": init")
@@ -39,8 +39,8 @@ class PandaRpcServer(config: Config, clusterService: ClusterService) extends Lif
 
   override def start(): Unit = {
     logger.info(this.getClass + ": start")
-    pandaRpcHandler.add(dataNodeHandler)
-    pandaRpcHandler.add(leaderNodeHandler)
+    //    pandaRpcHandler.add(dataNodeHandler)
+    //    pandaRpcHandler.add(leaderNodeHandler)
     rpcEnv.setRpcHandler(pandaRpcHandler)
     dataNodeRpcEndpointRef = rpcEnv.setupEndpoint(dataNodeEndpointName, dataNodeRpcEndpoint)
     //    clusterService.addNodeRoleChangedEventListener(new LeaderNodeChangeListener)

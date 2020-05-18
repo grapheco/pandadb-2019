@@ -22,8 +22,8 @@ class DataNodeDriver {
     res
   }
 
-  def createNode(labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): Node = {
-    val res = Await.result(endpointRef.askWithBuffer[Node](CreateNode(labels, properties)), duration)
+  def createNode(id: Long, labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): Node = {
+    val res = Await.result(endpointRef.askWithBuffer[Node](CreateNode(id, labels, properties)), duration)
     res
   }
 
