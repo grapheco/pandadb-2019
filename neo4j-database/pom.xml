@@ -11,6 +11,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>neo4j-database</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>blob-feature</module>
+    </modules>
     <groupId>cn.pandadb</groupId>
     <version>0.0.2</version>
 
