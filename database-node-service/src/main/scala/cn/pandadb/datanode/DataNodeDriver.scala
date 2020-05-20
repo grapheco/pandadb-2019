@@ -70,7 +70,7 @@ class DataNodeDriver {
   }
 
   def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](CreateNodeRelationship(id1, id2, relationship, Direction.OUTGOING)), duration)
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](CreateNodeRelationship(id1, id2, relationship, direction)), duration)
     res
   }
 
@@ -80,7 +80,7 @@ class DataNodeDriver {
   }
 
   def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](DeleteNodeRelationship(id, relationship, Direction.OUTGOING)), duration)
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](DeleteNodeRelationship(id, relationship, direction)), duration)
     res
   }
 

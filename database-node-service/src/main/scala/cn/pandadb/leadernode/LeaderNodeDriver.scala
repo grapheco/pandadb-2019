@@ -1,9 +1,15 @@
 package cn.pandadb.leadernode
 
+import java.util.Random
+
+import cn.pandadb.cluster.ClusterService
+import cn.pandadb.configuration.Config
+import cn.pandadb.datanode.DataNodeDriver
 import cn.pandadb.driver.result.InternalRecords
 import cn.pandadb.driver.values.{Node, Relationship}
 import cn.pandadb.util.PandaReplyMessage
-import net.neoremind.kraps.rpc.netty.HippoEndpointRef
+import net.neoremind.kraps.rpc.RpcAddress
+import net.neoremind.kraps.rpc.netty.{HippoEndpointRef, HippoRpcEnv}
 import org.neo4j.graphdb.Direction
 
 import scala.collection.mutable.ArrayBuffer
@@ -80,7 +86,7 @@ class LeaderNodeDriver {
   }
 
   def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderCreateNodeRelationship(id1, id2, relationship, Direction.OUTGOING)), duration)
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderCreateNodeRelationship(id1, id2, relationship, direction)), duration)
     res
   }
 
@@ -90,12 +96,48 @@ class LeaderNodeDriver {
   }
 
   def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderDeleteNodeRelationship(id, relationship, Direction.OUTGOING)), duration)
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderDeleteNodeRelationship(id, relationship, direction)), duration)
     res
   }
 
   def getAllDBRelationships(chunkSize: Int, endpointRef: HippoEndpointRef, duration: Duration): Stream[Relationship] = {
     val res = endpointRef.getChunkedStream[Relationship](LeaderGetAllDBRelationships(chunkSize), duration)
     res
+  }
+
+  def pullAllNodes(chunkSize: Int, clientRpcEnv: HippoRpcEnv, clusterService: ClusterService, config: Config): (Iterator[Node], HippoEndpointRef) = {
+    val dataNodeDriver = new DataNodeDriver
+    val str = clusterService.getLeaderNode().split(":")
+    val addr = str(0)
+    val port = str(1).toInt
+    val leaderRef = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val nodes = getZkDataNodes(leaderRef, Duration.Inf)
+    clientRpcEnv.stop(leaderRef)
+
+    val choose = nodes(new Random().nextInt(nodes.size))
+    val strs = choose.split(":")
+    val address2 = strs(0)
+    val port2 = strs(1).toInt
+    val dataNodeRef = clientRpcEnv.setupEndpointRef(new RpcAddress(address2, port2), config.getDataNodeEndpointName())
+    val res = dataNodeDriver.getAllDBNodes(chunkSize, dataNodeRef, Duration.Inf).iterator
+    (res, dataNodeRef)
+  }
+
+  def pullAllRelations(chunkSize: Int, clientRpcEnv: HippoRpcEnv, clusterService: ClusterService, config: Config): (Iterator[Relationship], HippoEndpointRef) = {
+    val dataNodeDriver = new DataNodeDriver
+    val str = clusterService.getLeaderNode().split(":")
+    val addr = str(0)
+    val port = str(1).toInt
+    val leaderRef = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val nodes = getZkDataNodes(leaderRef, Duration.Inf)
+    clientRpcEnv.stop(leaderRef)
+
+    val choose = nodes(new Random().nextInt(nodes.size))
+    val strs = choose.split(":")
+    val address2 = strs(0)
+    val port2 = strs(1).toInt
+    val dataNodeRef = clientRpcEnv.setupEndpointRef(new RpcAddress(address2, port2), config.getDataNodeEndpointName())
+    val res = dataNodeDriver.getAllDBRelationships(chunkSize, dataNodeRef, Duration.Inf).iterator
+    (res, dataNodeRef)
   }
 }

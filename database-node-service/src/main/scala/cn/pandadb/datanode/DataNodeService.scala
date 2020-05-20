@@ -195,8 +195,8 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     val dbNode2 = localDatabase.getNodeById(id2)
     direction match {
       case Direction.BOTH => {
-        dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
-        dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship))
+        val r1 = dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
+        val r2 = dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship))
       }
       case Direction.INCOMING => {
         dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship))
@@ -238,7 +238,7 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
 
   override def getAllDBNodes(chunkSize: Int): ChunkedStream = {
     val tx = localDatabase.beginTx()
-    val nodesIter = localDatabase.getAllNodes().iterator().stream().iterator()
+    val nodesIter = localDatabase.getAllNodes.stream().iterator()
     val iterable = JavaConversions.asScalaIterator(nodesIter).toIterable
     ChunkedStream.grouped(chunkSize, iterable.map(x => ValueConverter.toDriverNode(x)), {
       tx.success()
@@ -248,7 +248,7 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
 
   override def getAllDBRelationships(chunkSize: Int): ChunkedStream = {
     val tx = localDatabase.beginTx()
-    val relationIter = localDatabase.getAllRelationships().iterator().stream().iterator()
+    val relationIter = localDatabase.getAllRelationships.stream().iterator()
     val iterable = JavaConversions.asScalaIterator(relationIter).toIterable
     ChunkedStream.grouped(chunkSize, iterable.map(x => ValueConverter.toDriverRelationship(x)), {
       tx.success()

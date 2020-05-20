@@ -38,7 +38,6 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService)
     case LeaderSayHello(msg) => {
       val res = leaderNodeService.sayHello(clusterService)
       val localResult = dataNodeService.sayHello("hello")
-      println(res, localResult)
       if (res.equals(PandaReplyMessage.LEAD_NODE_SUCCESS) && localResult.equals(PandaReplyMessage.SUCCESS)) {
         context.reply(PandaReplyMessage.SUCCESS)
       } else {
@@ -68,7 +67,6 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService)
       }
     }
     case RunCypher(cypher) => {
-      println(cypher)
       val res = dataNodeService.runCypher(cypher)
       context.reply(res)
     }

@@ -53,13 +53,17 @@ class DataNodeRpcClientTest {
     }
     //      assert(res.size == 4)
   }
+
   //
-  //  @Test
-  //  def getAllRelations(): Unit = {
-  //
-  //    val relations = dataNodeDriver.getAllDBRelationships(2, endpointRef, Duration.Inf)
-  //    assert(relations.size == 3)
-  //  }
+  @Test
+  def getAllRelations(): Unit = {
+
+    val relations = dataNodeDriver.getAllDBRelationships(2, endpointRef, Duration.Inf).iterator
+    while (relations.hasNext) {
+      println(relations.next())
+    }
+    //      assert(relations.size == 3)
+  }
 
   @Test
   def runCpyher(): Unit = {
