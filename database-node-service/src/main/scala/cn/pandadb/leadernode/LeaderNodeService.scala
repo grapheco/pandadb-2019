@@ -50,9 +50,11 @@ trait LeaderNodeService {
 
   def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value
 
-  //  def getAllDBNodes(localDatabase:GraphDatabaseService, chunkSize: Int): ChunkedStream
-  //
-  //  def getAllDBRelationships(chunkSize: Int, clusterService: ClusterService): Stream[Node]
+  def getRelationshipByRelationId(id: Long, address: String, port: Int, clusterService: ClusterService): Relationship
+
+  def updateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef], clusterService: ClusterService): PandaReplyMessage.Value
+
+  def deleteRelationshipProperties(id: Long, propertyArray: Array[String], clusterService: ClusterService): PandaReplyMessage.Value
 
   // pull from zk
   def getZkDataNodes(clusterService: ClusterService): List[String]
@@ -63,6 +65,55 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
   val dataNodeDriver = new DataNodeDriver
   val config = new Config()
   val clientConfig = RpcEnvClientConfig(new RpcConf(), "panda-client")
+
+
+  override def getRelationshipByRelationId(id: Long, address: String, port: Int, clusterService: ClusterService): Relationship = {
+    val clientRpcEnv = HippoRpcEnvFactory.create(clientConfig)
+    val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(address, port), config.getDataNodeEndpointName())
+    val res = dataNodeDriver.getRelationshipByRelationId(id, ref, Duration.Inf)
+    clientRpcEnv.shutdown()
+    res
+  }
+
+  override def updateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef], clusterService: ClusterService): PandaReplyMessage.Value = {
+    val (clientRpcEnv, allEndpointRefs) = getEndpointRefsNotIncludeLeader(clusterService)
+    val refNumber = allEndpointRefs.size
+    // send command to all data nodes
+    var countReplyRef = 0
+    allEndpointRefs.par.foreach(endpointRef => {
+      val res = dataNodeDriver.updateRelationshipProperty(id, propertyMap, endpointRef, Duration.Inf)
+      if (res == PandaReplyMessage.SUCCESS) {
+        countReplyRef += 1
+      }
+      clientRpcEnv.stop(endpointRef)
+    })
+    clientRpcEnv.shutdown()
+    if (countReplyRef == refNumber) {
+      PandaReplyMessage.LEAD_NODE_SUCCESS
+    } else {
+      PandaReplyMessage.LEAD_NODE_FAILED
+    }
+  }
+
+  override def deleteRelationshipProperties(id: Long, propertyArray: Array[String], clusterService: ClusterService): PandaReplyMessage.Value = {
+    val (clientRpcEnv, allEndpointRefs) = getEndpointRefsNotIncludeLeader(clusterService)
+    val refNumber = allEndpointRefs.size
+    // send command to all data nodes
+    var countReplyRef = 0
+    allEndpointRefs.par.foreach(endpointRef => {
+      val res = dataNodeDriver.deleteRelationshipProperties(id, propertyArray, endpointRef, Duration.Inf)
+      if (res == PandaReplyMessage.SUCCESS) {
+        countReplyRef += 1
+      }
+      clientRpcEnv.stop(endpointRef)
+    })
+    clientRpcEnv.shutdown()
+    if (countReplyRef == refNumber) {
+      PandaReplyMessage.LEAD_NODE_SUCCESS
+    } else {
+      PandaReplyMessage.LEAD_NODE_FAILED
+    }
+  }
 
   override def getZkDataNodes(clusterService: ClusterService): List[String] = {
     val res = clusterService.getDataNodes()

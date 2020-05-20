@@ -33,11 +33,6 @@ class LeaderNodeDriver {
     res
   }
 
-  //  def runCypherOnAllNodes(cypher: String, endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[InternalRecords] = {
-  //    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[InternalRecords]](LeaderRunCypherOnAllNodes(cypher)), duration)
-  //    res
-  //  }
-
   def createNode(labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
     val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderCreateNode(labels, properties)), duration)
     res
@@ -53,7 +48,7 @@ class LeaderNodeDriver {
     node
   }
 
-  def getNodesByProperty(label: String, propertiesMap: Map[String, Object], endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[Node] = {
+  def getNodesByProperty(label: String, propertiesMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[Node] = {
     implicit def any2Object(x: Map[String, Any]): Map[String, Object] = x.asInstanceOf[Map[String, Object]]
 
     val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[Node]](LeaderGetNodesByProperty(label, propertiesMap)), duration)
@@ -90,8 +85,25 @@ class LeaderNodeDriver {
     res
   }
 
-  def getNodeRelationships(id: Long, endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[Relationship] = {
-    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[Relationship]](LeaderGetNodeRelationships(id)), duration)
+  def getRelationshipByRelationId(relationId: Long, endpointRef: HippoEndpointRef, duration: Duration): Relationship = {
+    val relation = Await.result(endpointRef.askWithBuffer[Relationship](LeaderGetRelationshipByRelationId(relationId)), duration)
+    relation
+  }
+
+  def updateRelationshipProperty(relationId: Long, propertyMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    implicit def any2anyRef(x: Map[String, Any]): Map[String, AnyRef] = x.asInstanceOf[Map[String, AnyRef]]
+
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderUpdateRelationshipProperty(relationId, propertyMap)), duration)
+    res
+  }
+
+  def deleteRelationshipProperties(relationId: Long, propertyArray: Array[String], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderDeleteRelationshipProperties(relationId, propertyArray)), duration)
+    res
+  }
+
+  def getNodeRelationships(nodeId: Long, endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[Relationship] = {
+    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[Relationship]](LeaderGetNodeRelationships(nodeId)), duration)
     res
   }
 

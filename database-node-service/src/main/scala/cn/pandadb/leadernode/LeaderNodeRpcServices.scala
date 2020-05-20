@@ -30,6 +30,12 @@ case class LeaderCreateNodeRelationship(id1: Long, id2: Long, relationship: Stri
 
 case class LeaderGetNodeRelationships(id: Long)
 
+case class LeaderGetRelationshipByRelationId(id: Long)
+
+case class LeaderUpdateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef])
+
+case class LeaderDeleteRelationshipProperties(id: Long, propertyArray: Array[String])
+
 case class LeaderDeleteNodeRelationship(id: Long, relationship: String, direction: Direction)
 
 case class LeaderGetAllDBNodes(chunkSize: Int)

@@ -93,4 +93,20 @@ class DataNodeDriver {
     val res = endpointRef.getChunkedStream[Relationship](GetAllDBRelationships(chunkSize), duration)
     res
   }
+
+  def getRelationshipByRelationId(relationId: Long, endpointRef: HippoEndpointRef, duration: Duration): Relationship = {
+    val res = Await.result(endpointRef.askWithBuffer[Relationship](GetRelationshipByRelationId(relationId)), duration)
+    res
+  }
+
+  def updateRelationshipProperty(relationId: Long, propertyMap: Map[String, AnyRef], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](UpdateRelationshipProperty(relationId, propertyMap)), duration)
+    res
+  }
+
+  def deleteRelationshipProperties(relationId: Long, propertyArray: Array[String], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](DeleteRelationshipProperties(relationId, propertyArray)), duration)
+    res
+  }
+
 }

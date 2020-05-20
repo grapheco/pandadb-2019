@@ -41,6 +41,13 @@ trait DataNodeService {
 
   def deleteNodeRelationship(id: Long, relationship: String, direction: Direction): PandaReplyMessage.Value
 
+  def getRelationshipByRelationId(id: Long): Relationship
+
+  def updateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef]): PandaReplyMessage.Value
+
+  def deleteRelationshipProperties(id: Long, propertyArray: Array[String]): PandaReplyMessage.Value
+
+
   def getAllDBNodes(chunkSize: Int): ChunkedStream
 
   def getAllDBRelationships(chunkSize: Int): ChunkedStream
@@ -48,6 +55,33 @@ trait DataNodeService {
 
 
 class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeService {
+
+  override def getRelationshipByRelationId(id: Long): Relationship = {
+    val tx = localDatabase.beginTx()
+    val relation = localDatabase.getRelationshipById(id)
+    val driverRelation = ValueConverter.toDriverRelationship(relation)
+    tx.success()
+    tx.close()
+    driverRelation
+  }
+
+  override def updateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef]): PandaReplyMessage.Value = {
+    val tx = localDatabase.beginTx()
+    val relation = localDatabase.getRelationshipById(id)
+    propertyMap.foreach(m => relation.setProperty(m._1, m._2))
+    tx.success()
+    tx.close()
+    PandaReplyMessage.SUCCESS
+  }
+
+  override def deleteRelationshipProperties(id: Long, propertyArray: Array[String]): PandaReplyMessage.Value = {
+    val tx = localDatabase.beginTx()
+    val relation = localDatabase.getRelationshipById(id)
+    propertyArray.foreach(p => relation.removeProperty(p))
+    tx.success()
+    tx.close()
+    PandaReplyMessage.SUCCESS
+  }
 
   override def sayHello(msg: String): PandaReplyMessage.Value = {
     PandaReplyMessage.SUCCESS

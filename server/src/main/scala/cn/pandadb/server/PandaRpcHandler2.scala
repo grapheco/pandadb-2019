@@ -7,9 +7,9 @@ import java.util.Random
 import cn.pandadb.cluster.ClusterService
 import org.grapheco.hippo.{ChunkedStream, HippoRpcHandler, ReceiveContext}
 import cn.pandadb.configuration.{Config => PandaConfig}
-import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, RemoveProperty, RunCypher, SayHello, UpdateNodeLabel, UpdateNodeProperty}
+import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, DeleteRelationshipProperties, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, GetRelationshipByRelationId, RemoveProperty, RunCypher, SayHello, UpdateNodeLabel, UpdateNodeProperty, UpdateRelationshipProperty}
 import cn.pandadb.driver.values.Node
-import cn.pandadb.leadernode.{GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderGetAllDBNodes, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderNodeServiceImpl, LeaderRemoveProperty, LeaderRunCypher, LeaderSayHello, LeaderUpdateNodeLabel, LeaderUpdateNodeProperty}
+import cn.pandadb.leadernode.{GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderDeleteRelationshipProperties, LeaderGetAllDBNodes, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderGetRelationshipByRelationId, LeaderNodeServiceImpl, LeaderRemoveProperty, LeaderRunCypher, LeaderSayHello, LeaderUpdateNodeLabel, LeaderUpdateNodeProperty, LeaderUpdateRelationshipProperty}
 import cn.pandadb.util.PandaReplyMessage
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
@@ -266,7 +266,6 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService)
       context.reply(res)
     }
 
-
     case LeaderDeleteNodeRelationship(id, relationship, direction) => {
       val res = leaderNodeService.deleteNodeRelationship(id, relationship, direction, clusterService)
       val localResult = dataNodeService.deleteNodeRelationship(id, relationship, direction)
@@ -279,6 +278,59 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService)
     }
     case DeleteNodeRelationship(id, relationship, direction) => {
       val res = dataNodeService.deleteNodeRelationship(id, relationship, direction)
+      context.reply(res)
+    }
+
+    case LeaderGetRelationshipByRelationId(id) => {
+      val dataNodes = clusterService.getDataNodes()
+      val nodeLength = dataNodes.size
+      val chooseNumber = new Random().nextInt(nodeLength)
+      val chooseNode = dataNodes(chooseNumber)
+      if (chooseNode.equals(clusterService.getLeaderNode())) {
+        val res = dataNodeService.getRelationshipByRelationId(id)
+        context.reply(res)
+      } else {
+        val strs = dataNodes(chooseNumber).split(":")
+        val address = strs(0)
+        val port = strs(1).toInt
+        val res = leaderNodeService.getRelationshipByRelationId(id, address, port, clusterService)
+        context.reply(res)
+      }
+    }
+    case GetRelationshipByRelationId(id) => {
+      val res = dataNodeService.getRelationshipByRelationId(id)
+      context.reply(res)
+    }
+
+
+    case LeaderUpdateRelationshipProperty(id, propertyMap) => {
+      val res = leaderNodeService.updateRelationshipProperty(id, propertyMap, clusterService)
+      val localResult = dataNodeService.updateRelationshipProperty(id, propertyMap)
+      if (res.equals(PandaReplyMessage.LEAD_NODE_SUCCESS) && localResult.equals(PandaReplyMessage.SUCCESS)) {
+        context.reply(PandaReplyMessage.SUCCESS)
+      } else {
+        context.reply(PandaReplyMessage.FAILED)
+      }
+      context.reply(res)
+    }
+    case UpdateRelationshipProperty(id, propertyMap) => {
+      val res = dataNodeService.updateRelationshipProperty(id, propertyMap)
+      context.reply(res)
+    }
+
+
+    case LeaderDeleteRelationshipProperties(id, propertyArray) => {
+      val res = leaderNodeService.deleteRelationshipProperties(id, propertyArray, clusterService)
+      val localResult = dataNodeService.deleteRelationshipProperties(id, propertyArray)
+      if (res.equals(PandaReplyMessage.LEAD_NODE_SUCCESS) && localResult.equals(PandaReplyMessage.SUCCESS)) {
+        context.reply(PandaReplyMessage.SUCCESS)
+      } else {
+        context.reply(PandaReplyMessage.FAILED)
+      }
+      context.reply(res)
+    }
+    case DeleteRelationshipProperties(id, propertyArray) => {
+      val res = dataNodeService.deleteRelationshipProperties(id, propertyArray)
       context.reply(res)
     }
   }

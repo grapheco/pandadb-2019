@@ -32,6 +32,12 @@ case class GetNodeRelationships(id: Long)
 
 case class DeleteNodeRelationship(id: Long, relationship: String, direction: Direction)
 
+case class GetRelationshipByRelationId(id: Long)
+
+case class UpdateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef])
+
+case class DeleteRelationshipProperties(id: Long, propertyArray: Array[String])
+
 case class GetAllDBNodes(chunkSize: Int)
 
 case class GetAllDBRelationships(chunkSize: Int)

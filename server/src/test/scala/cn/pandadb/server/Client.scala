@@ -98,7 +98,7 @@ class Client {
   @Test
   def getNodesByProperty(): Unit = {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val res = leaderDriver.getNodesByProperty("514", Map("aaa" -> 111.asInstanceOf[Object]), ref, Duration.Inf)
+    val res = leaderDriver.getNodesByProperty("514", Map("aaa" -> 111), ref, Duration.Inf)
     println(res)
     clientRpcEnv.stop(ref)
   }
@@ -148,6 +148,29 @@ class Client {
   }
 
   @Test
+  def getRelationshipByRelationId(): Unit = {
+    val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val res = leaderDriver.getRelationshipByRelationId(0L, ref, Duration.Inf)
+    println(res)
+  }
+
+  @Test
+  def updateRelationshipProperty(): Unit = {
+    val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val propertyMap: Map[String, Any] = Map("relation" -> "qqq", "relation2" -> 777)
+    val res = leaderDriver.updateRelationshipProperty(0L, propertyMap, ref, Duration.Inf)
+    println(res)
+  }
+
+  @Test
+  def deleteRelationshipProperty(): Unit = {
+    val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val propertyArray: Array[String] = Array("relation2")
+    val res = leaderDriver.deleteRelationshipProperties(0L, propertyArray, ref, Duration.Inf)
+    println(res)
+  }
+
+  @Test
   def getNodeRelationships(): Unit = {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res1 = leaderDriver.getNodeRelationships(2L, ref, Duration.Inf)
@@ -188,7 +211,10 @@ class Client {
       println(r.startNode.id, r.endNode.id)
       println(r.relationshipType, r.relationshipType.name)
       println("-===============-")
-      println(r.props.isEmpty)
+      val props = r.props
+      for (m <- props) {
+        println(m._2.isInstanceOf[String], "+++++++++++")
+      }
     }
     clientRpcEnv.stop(dataNodeRef)
   }
@@ -209,7 +235,6 @@ class Client {
       val node = newDb.createNode(n.id)
       n.labels.foreach(label => node.addLabel(Label.label(label.name)))
       n.props.foreach(s => node.setProperty(s._1, s._2.asAny()))
-      println("success add node id: ", n.id)
     }
     clientRpcEnv.stop(dataNodeRef1)
 
@@ -221,7 +246,9 @@ class Client {
       val eNode = newDb.getNodeById(r.endNode.id)
       val rr = sNode.createRelationshipTo(eNode, RelationshipType.withName(r.relationshipType.name), r.id)
       if (r.props.nonEmpty) {
-        r.props.foreach(m => rr.setProperty(m._1, m._2))
+        r.props.foreach(m => {
+          rr.setProperty(m._1, m._2.toString)
+        })
       }
     }
     clientRpcEnv.stop(dataNodeRef2)
