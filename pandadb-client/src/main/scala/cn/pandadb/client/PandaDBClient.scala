@@ -1,5 +1,8 @@
 package cn.pandadb.client
 
+import java.io.File
+
+import cn.pandadb.blob.{BlobEntry, MimeType}
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
 import net.neoremind.kraps.rpc.netty.HippoRpcEnvFactory
@@ -49,6 +52,14 @@ class PandaDBClient(zkAddress: String) extends AutoCloseable{
 
   def getAllNodes(): Stream[Node] = {
     dataNodeDriver.getAllDBNodes(5, dataNodeEndpointRef, Duration.Inf)
+  }
+
+  def getNodeById(id: Long): Node = {
+    dataNodeDriver.getNodeById(id, dataNodeEndpointRef, Duration.Inf)
+  }
+
+  def createBlobFromFile(length: Long, mimeType: MimeType, file: File): BlobEntry = {
+    leaderNodeDriver.createBlobEntry(length, mimeType, leaderNodeEndpointRef, Duration.Inf)
   }
 
   override def close(): Unit = {

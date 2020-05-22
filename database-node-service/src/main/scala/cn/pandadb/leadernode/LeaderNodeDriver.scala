@@ -3,6 +3,7 @@ package cn.pandadb.leadernode
 import java.io.{File, InputStream}
 import java.util.Random
 
+import cn.pandadb.blob.{BlobEntry, MimeType}
 import cn.pandadb.cluster.ClusterService
 import cn.pandadb.configuration.Config
 import cn.pandadb.datanode.DataNodeDriver
@@ -179,4 +180,9 @@ class LeaderNodeDriver {
     dataNodeRef
   }
 
+
+  def createBlobEntry(length: Long, mimeType: MimeType, endpointRef: HippoEndpointRef, duration: Duration): BlobEntry = {
+    val res = Await.result(endpointRef.askWithBuffer[BlobEntry](LeaderCreateBlobEntry(length, mimeType)), duration)
+    res
+  }
 }

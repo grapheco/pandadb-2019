@@ -1,5 +1,6 @@
 package cn.pandadb.client
 
+import cn.pandadb.blob.{BlobEntry, MimeType}
 import org.junit.Test
 
 class Tests {
@@ -16,6 +17,15 @@ class Tests {
     val res4 = client.runCypher("match (n:Person) return n")
     println(res4.records.size)
     println(res4)
+  }
+
+  @Test
+  def test2(): Unit = {
+//    val blobEntry: BlobEntry = client.createBlobFromFile(10, MimeType.fromText("application/octet-stream"), null)
+//    println(blobEntry.toString)
+//    val node1 = client.createNode(Array("Person"), Map("name"->"t1", "blob"->blobEntry))
+    val node2 = client.getNodeById(0)
+    println(node2.props)
   }
 
 }

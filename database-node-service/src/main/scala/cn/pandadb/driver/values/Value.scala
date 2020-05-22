@@ -1,6 +1,9 @@
 package cn.pandadb.driver.values
 
 import java.time.{LocalDate, LocalDateTime, LocalTime, OffsetTime, ZonedDateTime}
+
+import cn.pandadb.blob.BlobEntry
+
 import scala.collection.mutable.{ArrayBuffer, Buffer}
 
 trait Value extends Serializable {
@@ -94,6 +97,10 @@ trait Value extends Serializable {
   }
 
   def asPath(): Path = {
+    throw new NotImplementException()
+  }
+
+  def asBlobEntry(): BlobEntry = {
     throw new NotImplementException()
   }
 
@@ -317,4 +324,14 @@ case class PathValue(value: Path) extends Value {
   override def asPath(): Path = value
 
   override def toString: String = value.toString(value)
+}
+
+case class BlobEntryValue(value: BlobEntry) extends Value {
+  override def getType(): String = Types.PATH.toString
+
+  override def asAny(): Any = value
+
+  override def asBlobEntry(): BlobEntry = value
+
+  override def toString: String = value.toString()
 }

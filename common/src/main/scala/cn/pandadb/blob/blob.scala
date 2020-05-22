@@ -10,7 +10,7 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
 import StreamUtils._
 
-trait BlobEntry extends Comparable[BlobEntry] {
+trait BlobEntry extends Comparable[BlobEntry] with Serializable {
   val id: BlobId;
   val length: Long;
   val mimeType: MimeType;
@@ -20,26 +20,13 @@ trait BlobEntry extends Comparable[BlobEntry] {
   override def toString: String = s"blob(id=${id.asLiteralString},length=${length},mime-type=${mimeType.text})";
 }
 
-trait Blob extends BlobEntry {
-//  val length: Long;
-//  val mimeType: MimeType;
-//  val streamSource: InputStreamSource;
+class Blob(override val id: BlobId, override val length: Long, override val mimeType: MimeType,
+           val streamSource: InputStreamSource) extends BlobEntry {
 
-  def offerStream[T](consume: (InputStream) => T): T ;
+  def offerStream[T](consume: (InputStream) => T): T = streamSource.offerStream(consume);
 
   def toBytes(): Array[Byte] = offerStream(IOUtils.toByteArray(_));
 
-//  def makeTempFile(): File = {
-//    offerStream((is) => {
-//      val f = File.createTempFile("blob-", ".bin");
-//      IOUtils.copy(is, new FileOutputStream(f));
-//      f;
-//    })
-//  }
-
-//  override def compareTo(o: Blob): Int = this.length.compareTo(o.length);
-
-//  override def toString: String = s"blob(id=${id.asLiteralString},length=${length},mime-type=${mimeType.text})";
 }
 
 //actually a 4-long values
@@ -75,15 +62,6 @@ object BlobId {
 }
 
 object Blob {
-//  private class BlobImpl(val streamSource: InputStreamSource, val length: Long, val mimeType: MimeType, val oid: Option[BlobId] = None)
-//    extends Blob with BlobWithId {
-//    def withId(nid: BlobId): BlobWithId = new BlobImpl(streamSource, length, mimeType, Some(nid));
-//
-//    def id: BlobId = oid.get;
-//
-//    def entry: BlobEntry = new BlobEntryImpl(id, length, mimeType);
-//  }
-
   private class BlobEntryImpl(val id: BlobId, val length: Long, val mimeType: MimeType)
     extends BlobEntry {
   }
@@ -103,37 +81,38 @@ object Blob {
   def makeEntry(id: BlobId, blob: Blob): BlobEntry =
     new BlobEntryImpl(id, blob.length, blob.mimeType);
 //
-//  def fromBytes(bytes: Array[Byte]): Blob = {
-//    fromInputStreamSource(new InputStreamSource() {
-//      override def offerStream[T](consume: (InputStream) => T): T = {
-//        val fis = new ByteArrayInputStream(bytes);
-//        val t = consume(fis);
-//        fis.close();
-//        t;
-//      }
-//    }, bytes.length, Some(MimeType.fromText("application/octet-stream")));
-//  }
+  def fromBytes(id: BlobId, bytes: Array[Byte]): Blob = {
+    fromInputStreamSource(id, new InputStreamSource() {
+      override def offerStream[T](consume: (InputStream) => T): T = {
+        val fis = new ByteArrayInputStream(bytes);
+        val t = consume(fis);
+        fis.close();
+        t;
+      }
+    }, bytes.length, Some(MimeType.fromText("application/octet-stream")));
+  }
 //
 //  val EMPTY: Blob = fromBytes(Array[Byte]());
 //
-//  def fromInputStreamSource(iss: InputStreamSource, length: Long, mimeType: Option[MimeType] = None): Blob = {
-//    new BlobImpl(iss,
-//      length,
-//      mimeType.getOrElse(MimeType.guessMimeType(iss)));
-//  }
-//
-//  def fromFile(file: File, mimeType: Option[MimeType] = None): Blob = {
-//    fromInputStreamSource(new InputStreamSource() {
-//      override def offerStream[T](consume: (InputStream) => T): T = {
-//        val fis = new FileInputStream(file);
-//        val t = consume(fis);
-//        fis.close();
-//        t;
-//      }
-//    },
-//      file.length(),
-//      mimeType);
-//  }
+  def fromInputStreamSource(id: BlobId, iss: InputStreamSource, length: Long, mimeType: Option[MimeType] = None): Blob = {
+    new Blob(id,
+      length,
+      mimeType.getOrElse(MimeType.guessMimeType(iss)),
+      iss);
+  }
+
+  def fromFile(id: BlobId, file: File, mimeType: Option[MimeType] = None): Blob = {
+    fromInputStreamSource(id, new InputStreamSource() {
+      override def offerStream[T](consume: (InputStream) => T): T = {
+        val fis = new FileInputStream(file);
+        val t = consume(fis);
+        fis.close();
+        t;
+      }
+    },
+      file.length(),
+      mimeType);
+  }
 //
 //  def fromHttpURL(url: String): Blob = {
 //    val client = HttpClientBuilder.create().build();

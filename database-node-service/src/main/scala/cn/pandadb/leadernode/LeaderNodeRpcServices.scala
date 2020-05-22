@@ -1,5 +1,6 @@
 package cn.pandadb.leadernode
 
+import cn.pandadb.blob.MimeType
 import org.neo4j.graphdb.Direction
 
 case class LeaderSayHello(msg: String)
@@ -47,3 +48,6 @@ case class GetZkDataNodes()
 
 //DB files
 case class GetLeaderDbFileNames()
+// blob
+
+case class LeaderCreateBlobEntry(length: Long, mimeType: MimeType)

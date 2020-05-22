@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.pandadb.neo4j-database</groupId>
-    <artifactId>blob-feature</artifactId>
+    <artifactId>neo4j-blob-feature</artifactId>
 
 
 </project>

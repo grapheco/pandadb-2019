@@ -1,10 +1,12 @@
 package cn.pandadb.blob.storage
 
-import cn.pandadb.blob.{Blob, BlobId}
+import cn.pandadb.blob.{Blob, BlobEntry, BlobId, MimeType}
 import cn.pandadb.server.modules.LifecycleServerModule
 
+import scala.tools.nsc.interpreter.InputStream
+
 trait BlobStorageService extends LifecycleServerModule {
-  def save(blob: Blob): BlobId;
+  def save(length: Long, mimeType: MimeType, inputStream: InputStream): BlobEntry;
 
   def load(id: BlobId): Option[Blob];
 

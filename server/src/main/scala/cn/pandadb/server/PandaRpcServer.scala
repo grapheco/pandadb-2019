@@ -1,7 +1,9 @@
 package cn.pandadb.datanode
 
+import cn.pandadb.blob.storage.BlobStorageService
+import cn.pandadb.blob.storage.impl.LocalFileSystemBlobValueStorage
 import cn.pandadb.configuration.Config
-import cn.pandadb.leadernode.{LeaderNodeRpcEndPoint}
+import cn.pandadb.leadernode.LeaderNodeRpcEndPoint
 import cn.pandadb.server.modules.LifecycleServerModule
 import cn.pandadb.cluster.{ClusterService, LeaderNodeChangedEvent, NodeRoleChangedEvent, NodeRoleChangedEventListener}
 import cn.pandadb.server.{PandaRpcHandler, PandaRpcHandler2}
@@ -29,7 +31,8 @@ class PandaRpcServer(config: Config, clusterService: ClusterService) extends Lif
   val leaderNodeRpcEndpoint: RpcEndpoint = new LeaderNodeRpcEndPoint(rpcEnv, config, clusterService)
   var leaderNodeRpcEndpointRef: RpcEndpointRef = null
 
-  val pandaRpcHandler = new PandaRpcHandler2(config, clusterService)
+  val blobStore = new LocalFileSystemBlobValueStorage(config)
+  val pandaRpcHandler = new PandaRpcHandler2(config, clusterService, blobStore)
   //  val dataNodeHandler = new DataNodeHandler(config)
   //  val leaderNodeHandler = new LeaderNodeHandler(config, clusterService)
 

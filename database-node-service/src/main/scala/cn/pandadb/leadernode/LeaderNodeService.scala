@@ -1,6 +1,5 @@
 package cn.pandadb.leadernode
 
-
 import java.util.Random
 
 import cn.pandadb.cluster.ClusterService

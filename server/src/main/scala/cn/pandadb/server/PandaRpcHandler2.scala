@@ -4,12 +4,15 @@ import java.io.{File, FileInputStream}
 import java.nio.ByteBuffer
 import java.util.Random
 
+import cn.pandadb.blob.Blob
+import cn.pandadb.blob.storage.BlobStorageService
 import cn.pandadb.cluster.ClusterService
 import org.grapheco.hippo.{ChunkedStream, CompleteStream, HippoRpcHandler, ReceiveContext}
 import cn.pandadb.configuration.{Config => PandaConfig}
 import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, DeleteRelationshipProperties, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, GetRelationshipByRelationId, ReadDbFileRequest, RemoveProperty, RunCypher, SayHello, UpdateNodeLabel, UpdateNodeProperty, UpdateRelationshipProperty}
 import cn.pandadb.driver.values.Node
 import cn.pandadb.leadernode.{GetLeaderDbFileNames, GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderDeleteRelationshipProperties, LeaderGetAllDBNodes, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderGetRelationshipByRelationId, LeaderNodeServiceImpl, LeaderRemoveProperty, LeaderRunCypher, LeaderSayHello, LeaderUpdateNodeLabel, LeaderUpdateNodeProperty, LeaderUpdateRelationshipProperty}
+import cn.pandadb.leadernode.{GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateBlobEntry, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderDeleteRelationshipProperties, LeaderGetAllDBNodes, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderGetRelationshipByRelationId, LeaderNodeServiceImpl, LeaderRemoveProperty, LeaderRunCypher, LeaderSayHello, LeaderUpdateNodeLabel, LeaderUpdateNodeProperty, LeaderUpdateRelationshipProperty}
 import cn.pandadb.util.PandaReplyMessage
 import io.netty.buffer.Unpooled
 import org.neo4j.graphdb.GraphDatabaseService
@@ -18,7 +21,7 @@ import org.slf4j.Logger
 
 import scala.collection.mutable.ArrayBuffer
 
-class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService) extends HippoRpcHandler {
+class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService, blobStore: BlobStorageService) extends HippoRpcHandler {
   val logger: Logger = pandaConfig.getLogger(this.getClass)
   val dbFile = new File(pandaConfig.getLocalNeo4jDatabasePath())
   if (!dbFile.exists()) {
@@ -351,6 +354,11 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService)
     case DeleteRelationshipProperties(id, propertyArray) => {
       val res = dataNodeService.deleteRelationshipProperties(id, propertyArray)
       context.reply(res)
+    }
+
+    case LeaderCreateBlobEntry(length, mimeType) => {
+      val blobEntry = blobStore.save(length, mimeType, null)
+      context.reply(blobEntry)
     }
   }
 

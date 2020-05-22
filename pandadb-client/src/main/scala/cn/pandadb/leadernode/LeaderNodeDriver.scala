@@ -3,6 +3,8 @@ package cn.pandadb.leadernode
 import cn.pandadb.driver.result.InternalRecords
 import cn.pandadb.driver.values.{Node, Relationship}
 import cn.pandadb.driver.util.PandaReplyMsg
+import cn.pandadb.blob.{MimeType, BlobEntry}
+
 import net.neoremind.kraps.rpc.netty.HippoEndpointRef
 //import org.neo4j.graphdb.Direction
 
@@ -96,6 +98,11 @@ class LeaderNodeDriver {
 
   def getAllDBRelationships(chunkSize: Int, endpointRef: HippoEndpointRef, duration: Duration): Array[Relationship] = {
     val res = Await.result(endpointRef.askWithBuffer[Array[Relationship]](LeaderGetAllDBRelationships(chunkSize)), duration)
+    res
+  }
+
+  def createBlobEntry(length: Long, mimeType: MimeType, endpointRef: HippoEndpointRef, duration: Duration): BlobEntry = {
+    val res = Await.result(endpointRef.askWithBuffer[BlobEntry](LeaderCreateBlobEntry(length, mimeType)), duration)
     res
   }
 }

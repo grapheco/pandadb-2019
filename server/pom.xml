@@ -44,6 +44,11 @@
             <artifactId>neo4j-database</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>cn.pandadb</groupId>
+            <artifactId>blob-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

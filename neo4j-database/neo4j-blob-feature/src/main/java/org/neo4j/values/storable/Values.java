@@ -537,12 +537,12 @@ public final class Values
 
     public static Value unsafeOf( Object value, boolean allowNull )
     {
-        ///NOTE: blob support
-        ////added by pidb
+        // NOTE: pandadb: blob support
         if ( value instanceof BlobEntry)
         {
             return new BlobValue( (BlobEntry) value );
         }
+        // END-NOTE: pandadb
         if ( value instanceof String )
         {
             return stringValue( (String) value );

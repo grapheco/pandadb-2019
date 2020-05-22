@@ -3,6 +3,7 @@ package cn.pandadb.util
 import java.time.{LocalDate, LocalDateTime, LocalTime, OffsetTime, ZonedDateTime}
 import java.time.temporal.Temporal
 
+import cn.pandadb.blob.BlobEntry
 import cn.pandadb.driver.result.{InternalRecords, Record}
 import cn.pandadb.driver.values
 import cn.pandadb.driver.values.{Label, MapValue, Node, Relationship, RelationshipType, Value}
@@ -16,7 +17,7 @@ import cn.pandadb.driver.result.{InternalRecords, Record}
 import cn.pandadb.driver.values
 import org.neo4j.kernel.impl.core.{NodeProxy, RelationshipProxy}
 import org.neo4j.graphdb.Path
-import org.neo4j.values.storable.{DurationValue => Neo4jDurationValue, PointValue => Neo4jPointValue}
+import org.neo4j.values.storable.{BlobValue, DurationValue => Neo4jDurationValue, PointValue => Neo4jPointValue}
 import org.neo4j.graphdb.{Label => Neo4jLabel, Node => Neo4jNode, Relationship => Neo4jRelationship, RelationshipType => Neo4jType}
 
 import scala.collection.mutable.ArrayBuffer
@@ -45,6 +46,7 @@ object ValueConverter {
       case localTime: LocalTime => values.LocalTimeValue(localTime)
       case localDateTime: LocalDateTime => values.LocalDateTimeValue(localDateTime)
       case point: Neo4jPointValue => convertPoint(point)
+      case blob: BlobEntry => values.BlobEntryValue(blob)
       case map: Map[String, Value] => MapValue(map)
       case list: Object => convertList(list)
       case _ => if (v == null) values.NullValue
