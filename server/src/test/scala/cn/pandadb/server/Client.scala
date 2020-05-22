@@ -1,6 +1,6 @@
 package cn.pandadb.server
 
-import java.io.File
+import java.io.{File, FileInputStream, FileOutputStream, FileWriter}
 import java.util.Random
 
 import cn.pandadb.cluster.ClusterService
@@ -254,6 +254,13 @@ class Client {
     clientRpcEnv.stop(dataNodeRef2)
     tx.success()
     tx.close()
+  }
+
+  @Test
+  def pullDbFiles(): Unit = {
+    val localDbPath = "D:/DbTest/output1/db1" + "/"
+    val dataNodeRef = leaderDriver.pullDbFileFromDataNode(localDbPath, clientRpcEnv, clusterService, config)
+    clientRpcEnv.stop(dataNodeRef)
   }
 
   @After

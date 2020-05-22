@@ -1,5 +1,7 @@
 package cn.pandadb.datanode
 
+import java.io.{File, FileOutputStream, InputStream}
+
 import cn.pandadb.driver.result.InternalRecords
 import cn.pandadb.driver.values.{Node, Relationship}
 import cn.pandadb.util.PandaReplyMessage
@@ -7,10 +9,33 @@ import net.neoremind.kraps.rpc.netty.HippoEndpointRef
 import org.neo4j.graphdb.Direction
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class DataNodeDriver {
+
+  def pullFile(dbPath: String, fileNames: ArrayBuffer[String], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val dbFile = new File(dbPath)
+    if (!dbFile.exists()) {
+      dbFile.mkdirs
+    }
+    fileNames.foreach(name => {
+      val filePath = dbPath + name
+      val fis = endpointRef.getInputStream(ReadDbFileRequest(name), Duration.Inf)
+      val fos = new FileOutputStream(filePath)
+      val buffer = new Array[Byte](1024)
+      var size = 0
+      while (size != -1) {
+        fos.write(buffer, 0, size)
+        size = fis.read(buffer)
+      }
+      fos.close()
+      fis.close()
+      println(s"download file: $name")
+    })
+    PandaReplyMessage.SUCCESS
+  }
 
   def runCypher(cypher: String, endpointRef: HippoEndpointRef, duration: Duration): InternalRecords = {
     val res = Await.result(endpointRef.askWithBuffer[InternalRecords](RunCypher(cypher)), duration)

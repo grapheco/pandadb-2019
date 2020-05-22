@@ -1,8 +1,11 @@
 package cn.pandadb.datanode
 
+import java.io.{File, FileInputStream}
+
 import cn.pandadb.driver.result.InternalRecords
 import cn.pandadb.driver.values.{Node, Relationship}
 import cn.pandadb.util.{PandaReplyMessage, ValueConverter}
+import io.netty.buffer.ByteBuf
 import org.grapheco.hippo.ChunkedStream
 import org.neo4j.graphdb.{Direction, GraphDatabaseService, Label, RelationshipType, ResourceIterable, ResourceIterator}
 
@@ -51,6 +54,8 @@ trait DataNodeService {
   def getAllDBNodes(chunkSize: Int): ChunkedStream
 
   def getAllDBRelationships(chunkSize: Int): ChunkedStream
+
+  def getDbFile(path: String, name: String): ChunkedStream
 }
 
 
@@ -288,5 +293,27 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
       tx.success()
       tx.close()
     })
+  }
+
+  override def getDbFile(path: String, name: String): ChunkedStream = {
+    new ChunkedStream {
+      val filePath = path + "/" + name
+      val fis = new FileInputStream(new File(filePath))
+      val length = new File(path).length()
+      var count = 0
+
+      override def hasNext(): Boolean = {
+        count < length
+      }
+
+      override def nextChunk(buf: ByteBuf): Unit = {
+        val written = buf.writeBytes(fis, 1024 * 1024 * 10)
+        count += written
+      }
+
+      override def close(): Unit = {
+        fis.close()
+      }
+    }
   }
 }

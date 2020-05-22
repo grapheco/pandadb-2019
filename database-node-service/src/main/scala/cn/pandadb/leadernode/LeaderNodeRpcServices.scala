@@ -44,3 +44,6 @@ case class LeaderGetAllDBRelationships(chunkSize: Int)
 
 //zk
 case class GetZkDataNodes()
+
+//DB files
+case class GetLeaderDbFileNames()

@@ -1,5 +1,6 @@
 package cn.pandadb.leadernode
 
+import java.io.{File, InputStream}
 import java.util.Random
 
 import cn.pandadb.cluster.ClusterService
@@ -13,13 +14,18 @@ import net.neoremind.kraps.rpc.netty.{HippoEndpointRef, HippoRpcEnv}
 import org.neo4j.graphdb.Direction
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
 class LeaderNodeDriver {
 
   def getZkDataNodes(endpointRef: HippoEndpointRef, duration: Duration): List[String] = {
     val res = Await.result(endpointRef.askWithBuffer[List[String]](GetZkDataNodes()), duration)
+    res
+  }
+
+  def getDbFileNames(endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[String] = {
+    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[String]](GetLeaderDbFileNames()), duration)
     res
   }
 
@@ -152,4 +158,25 @@ class LeaderNodeDriver {
     val res = dataNodeDriver.getAllDBRelationships(chunkSize, dataNodeRef, Duration.Inf).iterator
     (res, dataNodeRef)
   }
+
+  def pullDbFileFromDataNode(toPath: String, clientRpcEnv: HippoRpcEnv, clusterService: ClusterService, config: Config): HippoEndpointRef = {
+    val str = clusterService.getLeaderNode().split(":")
+    val addr = str(0)
+    val port = str(1).toInt
+    val leaderRef = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val nodes = getZkDataNodes(leaderRef, Duration.Inf)
+    val fileNames = getDbFileNames(leaderRef, Duration.Inf)
+    clientRpcEnv.stop(leaderRef)
+    val chooseNode = nodes(new Random().nextInt(nodes.size))
+
+    val strs = chooseNode.split(":")
+    val address2 = strs(0)
+    val port2 = strs(1).toInt
+    val dataNodeRef = clientRpcEnv.setupEndpointRef(new RpcAddress(address2, port2), config.getDataNodeEndpointName())
+    val dataNodeDriver = new DataNodeDriver
+    val res = dataNodeDriver.pullFile(toPath, fileNames, dataNodeRef, Duration.Inf)
+    println("pull result: ", res)
+    dataNodeRef
+  }
+
 }

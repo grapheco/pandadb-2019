@@ -41,3 +41,5 @@ case class DeleteRelationshipProperties(id: Long, propertyArray: Array[String])
 case class GetAllDBNodes(chunkSize: Int)
 
 case class GetAllDBRelationships(chunkSize: Int)
+
+case class ReadDbFileRequest(name: String)

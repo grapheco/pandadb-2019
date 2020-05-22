@@ -1,16 +1,17 @@
 package cn.pandadb.server
 
-import java.io.File
+import java.io.{File, FileInputStream}
 import java.nio.ByteBuffer
 import java.util.Random
 
 import cn.pandadb.cluster.ClusterService
-import org.grapheco.hippo.{ChunkedStream, HippoRpcHandler, ReceiveContext}
+import org.grapheco.hippo.{ChunkedStream, CompleteStream, HippoRpcHandler, ReceiveContext}
 import cn.pandadb.configuration.{Config => PandaConfig}
-import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, DeleteRelationshipProperties, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, GetRelationshipByRelationId, RemoveProperty, RunCypher, SayHello, UpdateNodeLabel, UpdateNodeProperty, UpdateRelationshipProperty}
+import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, DeleteRelationshipProperties, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, GetRelationshipByRelationId, ReadDbFileRequest, RemoveProperty, RunCypher, SayHello, UpdateNodeLabel, UpdateNodeProperty, UpdateRelationshipProperty}
 import cn.pandadb.driver.values.Node
-import cn.pandadb.leadernode.{GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderDeleteRelationshipProperties, LeaderGetAllDBNodes, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderGetRelationshipByRelationId, LeaderNodeServiceImpl, LeaderRemoveProperty, LeaderRunCypher, LeaderSayHello, LeaderUpdateNodeLabel, LeaderUpdateNodeProperty, LeaderUpdateRelationshipProperty}
+import cn.pandadb.leadernode.{GetLeaderDbFileNames, GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderDeleteRelationshipProperties, LeaderGetAllDBNodes, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderGetRelationshipByRelationId, LeaderNodeServiceImpl, LeaderRemoveProperty, LeaderRunCypher, LeaderSayHello, LeaderUpdateNodeLabel, LeaderUpdateNodeProperty, LeaderUpdateRelationshipProperty}
 import cn.pandadb.util.PandaReplyMessage
+import io.netty.buffer.Unpooled
 import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.slf4j.Logger
@@ -27,13 +28,31 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService)
   val dataNodeService = new DataNodeServiceImpl(localNeo4jDB)
   val leaderNodeService = new LeaderNodeServiceImpl
 
+
+  def readDbFileNames(dir: File, lst: ArrayBuffer[String]): ArrayBuffer[String] = {
+    dir.listFiles.map(file => {
+      if (file.isDirectory) {
+        readDbFileNames(file, lst)
+      }
+      else {
+        lst += file.getName
+      }
+    })
+    lst
+  }
+
   override def receiveWithBuffer(extraInput: ByteBuffer, context: ReceiveContext): PartialFunction[Any, Unit] = {
-    // leader's extra func
+    // leader's func
     case GetZkDataNodes() => {
       val res = leaderNodeService.getZkDataNodes(clusterService)
       context.reply(res)
     }
-
+    // leader's func
+    case GetLeaderDbFileNames() => {
+      var fileNames = ArrayBuffer[String]()
+      fileNames = readDbFileNames(dbFile, fileNames)
+      context.reply(fileNames)
+    }
 
     case LeaderSayHello(msg) => {
       val res = leaderNodeService.sayHello(clusterService)
@@ -341,6 +360,22 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService)
     }
     case GetAllDBRelationships(chunkSize) => {
       dataNodeService.getAllDBRelationships(chunkSize)
+    }
+    case ReadDbFileRequest(name) => {
+      pandaConfig.getLocalNeo4jDatabasePath()
+      val path = pandaConfig.getLocalNeo4jDatabasePath()
+      dataNodeService.getDbFile(path, name)
+    }
+  }
+
+  override def openCompleteStream(): PartialFunction[Any, CompleteStream] = {
+    case ReadDbFileRequest(name) => {
+      val path = pandaConfig.getLocalNeo4jDatabasePath()
+      val filePath = path + "/" + name
+      val fis = new FileInputStream(new File(filePath))
+      val buf = Unpooled.buffer()
+      buf.writeBytes(fis.getChannel, new File(filePath).length().toInt)
+      CompleteStream.fromByteBuffer(buf);
     }
   }
 }
