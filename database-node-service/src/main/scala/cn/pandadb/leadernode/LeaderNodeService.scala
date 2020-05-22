@@ -362,8 +362,4 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     })
     (clientRpcEnv, allEndpointRefs)
   }
-
-  def test(driverFunc: DataNodeDriver => Any): Unit = {
-
-  }
 }

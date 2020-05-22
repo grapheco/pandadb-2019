@@ -32,15 +32,27 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService,
   val leaderNodeService = new LeaderNodeServiceImpl
 
 
-  def readDbFileNames(dir: File, lst: ArrayBuffer[String]): ArrayBuffer[String] = {
+  def readDbFileNames(dir: File, lst: ArrayBuffer[String], currentPath: String = ""): ArrayBuffer[String] = {
     dir.listFiles.map(file => {
       if (file.isDirectory) {
-        readDbFileNames(file, lst)
+        if (currentPath != "") {
+          val moreCurrentPath = currentPath + file.getName + "/"
+          readDbFileNames(file, lst, moreCurrentPath)
+        } else {
+          val moreFile = file.getName + "/"
+          readDbFileNames(file, lst, moreFile)
+        }
       }
       else {
-        lst += file.getName
+        if (currentPath == "") {
+          lst += file.getName
+        } else {
+          val temp = currentPath + file.getName
+          lst += temp
+        }
       }
     })
+    println(lst)
     lst
   }
 

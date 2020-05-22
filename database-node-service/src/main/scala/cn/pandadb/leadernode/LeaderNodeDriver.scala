@@ -1,6 +1,5 @@
 package cn.pandadb.leadernode
 
-import java.io.{File, InputStream}
 import java.util.Random
 
 import cn.pandadb.blob.{BlobEntry, MimeType}
@@ -15,10 +14,12 @@ import net.neoremind.kraps.rpc.netty.{HippoEndpointRef, HippoRpcEnv}
 import org.neo4j.graphdb.Direction
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await}
 import scala.concurrent.duration.Duration
 
 class LeaderNodeDriver {
+  val config = new Config
+  val logger = config.getLogger(this.getClass)
 
   def getZkDataNodes(endpointRef: HippoEndpointRef, duration: Duration): List[String] = {
     val res = Await.result(endpointRef.askWithBuffer[List[String]](GetZkDataNodes()), duration)
@@ -176,7 +177,7 @@ class LeaderNodeDriver {
     val dataNodeRef = clientRpcEnv.setupEndpointRef(new RpcAddress(address2, port2), config.getDataNodeEndpointName())
     val dataNodeDriver = new DataNodeDriver
     val res = dataNodeDriver.pullFile(toPath, fileNames, dataNodeRef, Duration.Inf)
-    println("pull result: ", res)
+    logger.info(s"+++++++++pull file from DB: $res+++++++++++++")
     dataNodeRef
   }
 

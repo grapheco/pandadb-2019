@@ -2,6 +2,7 @@ package cn.pandadb.datanode
 
 import java.io.{File, FileOutputStream, InputStream}
 
+import cn.pandadb.configuration.Config
 import cn.pandadb.driver.result.InternalRecords
 import cn.pandadb.driver.values.{Node, Relationship}
 import cn.pandadb.util.PandaReplyMessage
@@ -14,14 +15,22 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class DataNodeDriver {
+  val config = new Config
+  val logger = config.getLogger(this.getClass)
 
-  def pullFile(dbPath: String, fileNames: ArrayBuffer[String], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val dbFile = new File(dbPath)
+  def checkFileIsExist(path: String): Unit = {
+    val dbFile = new File(path)
     if (!dbFile.exists()) {
       dbFile.mkdirs
     }
+  }
+
+  def pullFile(dbPath: String, fileNames: ArrayBuffer[String], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    checkFileIsExist(dbPath)
     fileNames.foreach(name => {
       val filePath = dbPath + name
+      val checkPath = filePath.substring(0, filePath.lastIndexOf("/"))
+      checkFileIsExist(checkPath)
       val fis = endpointRef.getInputStream(ReadDbFileRequest(name), Duration.Inf)
       val fos = new FileOutputStream(filePath)
       val buffer = new Array[Byte](1024)
@@ -32,7 +41,7 @@ class DataNodeDriver {
       }
       fos.close()
       fis.close()
-      println(s"download file: $name")
+      logger.info(s"download file: $name")
     })
     PandaReplyMessage.SUCCESS
   }
