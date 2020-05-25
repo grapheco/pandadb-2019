@@ -56,8 +56,8 @@ class DataNodeDriver {
     res
   }
 
-  def createNode(id: Long, labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): Node = {
-    val res = Await.result(endpointRef.askWithBuffer[Node](CreateNode(id, labels, properties)), duration)
+  def createNode(id: Long, labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](CreateNode(id, labels, properties)), duration)
     res
   }
 
@@ -103,8 +103,8 @@ class DataNodeDriver {
     res
   }
 
-  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](CreateNodeRelationship(id1, id2, relationship, direction)), duration)
+  def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](CreateNodeRelationship(rId, id1, id2, relationship, direction)), duration)
     res
   }
 
