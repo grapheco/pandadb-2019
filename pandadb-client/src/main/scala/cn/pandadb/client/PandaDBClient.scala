@@ -46,8 +46,12 @@ class PandaDBClient(zkAddress: String) extends AutoCloseable{
 
   /// update functions
 
-  def createNode(labels: Array[String], properties: Map[String, Any]): PandaReplyMessage.Value = {
-    leaderNodeDriver.createNode(labels, properties, leaderNodeEndpointRef, Duration.Inf)
+  def createNode(labels: Array[String], properties: Map[String, Any]): Node = {
+    val res = leaderNodeDriver.createNode(labels, properties, leaderNodeEndpointRef, Duration.Inf)
+    res match {
+      case n: Node => n
+      case _ => throw new Exception("Return Type Invalid")
+    }
   }
 
   def deleteNode(id: Long): PandaReplyMessage.Value = {
