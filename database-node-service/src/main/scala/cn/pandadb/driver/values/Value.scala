@@ -327,7 +327,7 @@ case class PathValue(value: Path) extends Value {
 }
 
 case class BlobEntryValue(value: BlobEntry) extends Value {
-  override def getType(): String = Types.PATH.toString
+  override def getType(): String = Types.BLOB_ENTRY.toString
 
   override def asAny(): Any = value
 

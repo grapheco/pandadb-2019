@@ -10,10 +10,12 @@ import cn.pandadb.datanode.DataNodeDriver
 import cn.pandadb.leadernode.LeaderNodeDriver
 import cn.pandadb.cluster.{ClusterInfoService, ZKTools}
 import cn.pandadb.driver.result.InternalRecords
-import cn.pandadb.driver.util.PandaReplyMsg
+import cn.pandadb.util.PandaReplyMessage
 import cn.pandadb.driver.values.Node
 import org.apache.curator.shaded.com.google.common.net.HostAndPort
 
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 
 class PandaDBClient(zkAddress: String) extends AutoCloseable{
@@ -21,7 +23,7 @@ class PandaDBClient(zkAddress: String) extends AutoCloseable{
   private val rpcServerName = "pandadb-client"
   private val LeaderNodeEndpointName = "leader-node-endpoint"
   private val DataNodeEndpointName = "data-node-endpoint"
-  private val pandaDBZkDir = "/pandadb/v0.0.3/"
+  private val pandaDBZkDir = "/pandadb/vx.x.x/"
 
   private val zkTools = new ZKTools(zkAddress, pandaDBZkDir)
   private val clusterInfoService = new ClusterInfoService(zkTools)
@@ -42,9 +44,37 @@ class PandaDBClient(zkAddress: String) extends AutoCloseable{
 
   private val dataNodeDriver = new DataNodeDriver
 
-  def createNode(labels: Array[String], properties: Map[String, Any]): PandaReplyMsg.Value = {
+  /// update functions
+
+  def createNode(labels: Array[String], properties: Map[String, Any]): PandaReplyMessage.Value = {
     leaderNodeDriver.createNode(labels, properties, leaderNodeEndpointRef, Duration.Inf)
   }
+
+  def deleteNode(id: Long): PandaReplyMessage.Value = {
+    leaderNodeDriver.deleteNode(id, leaderNodeEndpointRef, Duration.Inf)
+  }
+
+  def addNodeLabel(id: Long, label: String): PandaReplyMessage.Value = {
+    leaderNodeDriver.addNodeLabel(id, label, leaderNodeEndpointRef, Duration.Inf)
+  }
+
+  //  def removeNodeLabel(id: Long, label: String): PandaReplyMessage.Value = {
+  //    leaderNodeDriver.removeNodeLabel(id, label, leaderNodeEndpointRef, Duration.Inf)
+  //  }
+
+  def setNodeProperty(id: Long, propertiesMap: Map[String, Any]): PandaReplyMessage.Value = {
+    leaderNodeDriver.updateNodeProperty(id: Long, propertiesMap: Map[String, Any], leaderNodeEndpointRef, Duration.Inf)
+  }
+
+  def removeNodeProperty(id: Long, property: String): PandaReplyMessage.Value = {
+    leaderNodeDriver.removeProperty(id: Long, property, leaderNodeEndpointRef, Duration.Inf)
+  }
+
+  def createBlobFromFile(length: Long, mimeType: MimeType, file: File): BlobEntry = {
+    leaderNodeDriver.createBlobEntry(length, mimeType, leaderNodeEndpointRef, Duration.Inf)
+  }
+
+  /// read functions
 
   def runCypher(cypher: String): InternalRecords = {
     dataNodeDriver.runCypher(cypher, dataNodeEndpointRef, Duration.Inf)
@@ -58,8 +88,12 @@ class PandaDBClient(zkAddress: String) extends AutoCloseable{
     dataNodeDriver.getNodeById(id, dataNodeEndpointRef, Duration.Inf)
   }
 
-  def createBlobFromFile(length: Long, mimeType: MimeType, file: File): BlobEntry = {
-    leaderNodeDriver.createBlobEntry(length, mimeType, leaderNodeEndpointRef, Duration.Inf)
+  def getNodesByLabel(label: String): ArrayBuffer[Node] = {
+    dataNodeDriver.getNodesByLabel(label, dataNodeEndpointRef, Duration.Inf)
+  }
+
+  def findNodes(label: String, propertiesMap: Map[String, Any]): ArrayBuffer[Node] = {
+    dataNodeDriver.getNodesByProperty(label, propertiesMap, dataNodeEndpointRef, Duration.Inf)
   }
 
   override def close(): Unit = {

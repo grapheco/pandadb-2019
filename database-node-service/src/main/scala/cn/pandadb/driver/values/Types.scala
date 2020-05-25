@@ -15,13 +15,15 @@ object Types extends Enumeration {
   val LOCAL_DATE_TIME = Value(11, "local_date_time")
   val DURATION = Value(12, "duration")
   val POINT = Value(13, "point")
+  val BLOB_ENTRY = Value(14, "blob_entry")
 
-  val LIST = Value(14, "list")
-  val MAP = Value(15, "map")
+  val LIST = Value(15, "list")
+  val MAP = Value(16, "map")
 
-  val NODE = Value(16, "node")
-  val RELATIONSHIP = Value(17, "relationship")
-  val PATH = Value(18, "path")
-  val NULL = Value(19, "null")
+  val NODE = Value(17, "node")
+  val RELATIONSHIP = Value(18, "relationship")
+  val PATH = Value(19, "path")
+
+  val NULL = Value(20, "null")
 
 }
