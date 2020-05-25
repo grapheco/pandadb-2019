@@ -7,7 +7,7 @@ import cn.pandadb.driver.values.{Node, Relationship}
 import cn.pandadb.util.{PandaReplyMessage, ValueConverter}
 import io.netty.buffer.ByteBuf
 import org.grapheco.hippo.ChunkedStream
-import org.neo4j.graphdb.{Direction, GraphDatabaseService, Label, RelationshipType, ResourceIterable, ResourceIterator}
+import org.neo4j.graphdb.{Direction, GraphDatabaseService, Label, RelationshipType, Relationship => DbRelationship}
 
 import scala.collection.JavaConversions
 import scala.collection.mutable.ArrayBuffer
@@ -20,7 +20,7 @@ trait DataNodeService {
 
   def createNodeLeader(labels: Array[String], properties: Map[String, Any]): Node
 
-  def createNodeFollow(id: Long, labels: Array[String], properties: Map[String, Any]): Node
+  def createNodeFollower(id: Long, labels: Array[String], properties: Map[String, Any]): PandaReplyMessage.Value
 
   def addNodeLabel(id: Long, label: String): PandaReplyMessage.Value
 
@@ -38,7 +38,9 @@ trait DataNodeService {
 
   def removeProperty(id: Long, property: String): PandaReplyMessage.Value
 
-  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction): PandaReplyMessage.Value
+  def createNodeRelationshipLeader(id1: Long, id2: Long, relationship: String, direction: Direction): ArrayBuffer[Relationship]
+
+  def createNodeRelationshipFollower(relationId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction): PandaReplyMessage.Value
 
   def getNodeRelationships(id: Long): ArrayBuffer[Relationship]
 
@@ -117,7 +119,7 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     driverNode
   }
 
-  override def createNodeFollow(id: Long, labels: Array[String], properties: Map[String, Any]): Node = {
+  override def createNodeFollower(id: Long, labels: Array[String], properties: Map[String, Any]): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val node = localDatabase.createNode(id)
     for (labelName <- labels) {
@@ -127,10 +129,9 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     properties.foreach(x => {
       node.setProperty(x._1, x._2)
     })
-    val driverNode = ValueConverter.toDriverNode(node)
     tx.success()
     tx.close()
-    driverNode
+    PandaReplyMessage.SUCCESS
   }
 
   override def addNodeLabel(id: Long, label: String): PandaReplyMessage.Value = {
@@ -228,20 +229,53 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     PandaReplyMessage.SUCCESS
   }
 
-  override def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction): PandaReplyMessage.Value = {
+  override def createNodeRelationshipLeader(id1: Long, id2: Long, relationship: String, direction: Direction): ArrayBuffer[Relationship] = {
+    val tx = localDatabase.beginTx()
+    val dbNode1 = localDatabase.getNodeById(id1)
+    val dbNode2 = localDatabase.getNodeById(id2)
+    var relation1: DbRelationship = null
+    var relation2: DbRelationship = null
+    val relationList = ArrayBuffer[Relationship]()
+    direction match {
+      case Direction.BOTH => {
+        relation1 = dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
+        relation2 = dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship))
+      }
+      case Direction.INCOMING => {
+        relation1 = dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship))
+      }
+      case Direction.OUTGOING => {
+        relation1 = dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
+      }
+    }
+    if (relation2 != null) {
+      val driverRelation1 = ValueConverter.toDriverRelationship(relation1)
+      val driverRelation2 = ValueConverter.toDriverRelationship(relation2)
+      relationList += driverRelation1
+      relationList += driverRelation2
+    } else {
+      val driverRelation1 = ValueConverter.toDriverRelationship(relation1)
+      relationList += driverRelation1
+    }
+    tx.success()
+    tx.close()
+    relationList
+  }
+
+  override def createNodeRelationshipFollower(relationId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val dbNode1 = localDatabase.getNodeById(id1)
     val dbNode2 = localDatabase.getNodeById(id2)
     direction match {
       case Direction.BOTH => {
-        val r1 = dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
-        val r2 = dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship))
+        dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship), relationId(0))
+        dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship), relationId(1))
       }
       case Direction.INCOMING => {
-        dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship))
+        dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship), relationId(0))
       }
       case Direction.OUTGOING => {
-        dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
+        dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship), relationId(0))
       }
     }
     tx.success()

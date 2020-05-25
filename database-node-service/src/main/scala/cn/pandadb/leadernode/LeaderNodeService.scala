@@ -43,7 +43,7 @@ trait LeaderNodeService {
 
   def removeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMessage.Value
 
-  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value
+  def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value
 
   def getNodeRelationships(id: Long, address: String, port: Int, clusterService: ClusterService): ArrayBuffer[Relationship]
 
@@ -147,13 +147,13 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     res
   }
 
-  override def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value = {
+  override def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getEndpointRefsNotIncludeLeader(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
-      val res = dataNodeDriver.createNodeRelationship(id1, id2, relationship, direction, endpointRef, Duration.Inf)
+      val res = dataNodeDriver.createNodeRelationship(rId, id1, id2, relationship, direction, endpointRef, Duration.Inf)
       if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
@@ -283,7 +283,7 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
       val res = dataNodeDriver.createNode(id, labels, properties, endpointRef, Duration.Inf)
-      if (res.isInstanceOf[Node]) {
+      if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
       clientRpcEnv.stop(endpointRef)

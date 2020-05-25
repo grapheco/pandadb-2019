@@ -2,6 +2,8 @@ package cn.pandadb.datanode
 
 import org.neo4j.graphdb.Direction
 
+import scala.collection.mutable.ArrayBuffer
+
 case class SayHello(msg: String)
 
 case class RunCypher(cypher: String)
@@ -26,7 +28,7 @@ case class DeleteNode(id: Long)
 case class RemoveProperty(id: Long, property: String)
 
 // relationship
-case class CreateNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction)
+case class CreateNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction)
 
 case class GetNodeRelationships(id: Long)
 

@@ -1,6 +1,5 @@
 package cn.pandadb.server
 
-import java.io.File
 import java.util.ServiceLoader
 import scala.collection.JavaConverters._
 
@@ -10,8 +9,6 @@ import cn.pandadb.cluster.ClusterService
 import cn.pandadb.datanode.PandaRpcServer
 import cn.pandadb.index.IndexServiceFactory
 import cn.pandadb.zk.ZKTools
-import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
 
 class PandaServer(config: Config)  {
 

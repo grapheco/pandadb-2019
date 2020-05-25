@@ -41,9 +41,20 @@ class LeaderNodeDriver {
     res
   }
 
-  def createNode(labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderCreateNode(labels, properties)), duration)
-    res
+  def createNode(labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): Any = {
+    val res = Await.result(endpointRef.askWithBuffer[Any](LeaderCreateNode(labels, properties)), duration)
+    res match {
+      case n: Node => res.asInstanceOf[Node]
+      case p: PandaReplyMessage.Value => res.asInstanceOf[PandaReplyMessage.Value]
+    }
+  }
+
+  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): Any = {
+    val res = Await.result(endpointRef.askWithBuffer[Any](LeaderCreateNodeRelationship(id1, id2, relationship, direction)), duration)
+    res match {
+      case r: ArrayBuffer[Relationship] => res.asInstanceOf[ArrayBuffer[Relationship]]
+      case p: PandaReplyMessage.Value => res.asInstanceOf[PandaReplyMessage.Value]
+    }
   }
 
   def addNodeLabel(id: Long, label: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
@@ -85,11 +96,6 @@ class LeaderNodeDriver {
 
   def removeProperty(id: Long, property: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
     val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderRemoveProperty(id, property)), duration)
-    res
-  }
-
-  def createNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderCreateNodeRelationship(id1, id2, relationship, direction)), duration)
     res
   }
 
