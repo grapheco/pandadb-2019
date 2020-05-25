@@ -47,10 +47,15 @@ object ValueConverter {
       case localDateTime: LocalDateTime => values.LocalDateTimeValue(localDateTime)
       case point: Neo4jPointValue => convertPoint(point)
       case blob: BlobEntry => values.BlobEntryValue(blob)
-      case map: Map[String, Value] => MapValue(map)
-      case list: Object => convertList(list)
+//      case map: Map[String, Value] => MapValue(map)
+      case listString: Array[String] => convertList(listString)
+      case listDouble: Array[Double] => convertList(listDouble)
+      case listBool: Array[Boolean] => convertList(listBool)
+      case listLong: Array[Long] => convertList(listLong)
+      case listInt: Array[Int] => convertList(listInt)
+      case listTime: Array[Temporal] => convertList(listTime)
       case _ => if (v == null) values.NullValue
-      else new values.AnyValue(v)
+      else throw new Exception(s"unSupported Value Type: ${v.getClass}") //new values.AnyValue(v)
     }
   }
 
@@ -63,7 +68,7 @@ object ValueConverter {
     val props: mutable.Map[String, AnyRef] = node.getAllProperties().asScala
     val propsMap = new mutable.HashMap[String, Value]()
     for (k <- props.keys) {
-      val v1 = props.get(k).getOrElse(null)
+      val v1 = props.getOrElse(k, null)
       val v: Value = convertValue(v1)
       propsMap(k) = v
     }
@@ -126,34 +131,50 @@ object ValueConverter {
     }
   }
 
-  def convertList(list: Object): values.ListValue = {
+  def convertList(list: Array[String]): values.ListValue = {
     var newList = new ArrayBuffer[Value]
-    list match {
-      case listString: Array[Any] =>
-        for (i <- listString) {
-          val v = convertValue(i)
-          newList += v
-        }
-      case listDouble: Array[Double] =>
-        for (i <- listDouble) {
-          val v = convertValue(i)
-          newList += v
-        }
-      case listBool: Array[Boolean] =>
-        for (i <- listBool) {
-          val v = convertValue(i)
-          newList += v
-        }
-      case listLong: Array[Long] =>
-        for (i <- listLong) {
-          val v = convertValue(i)
-          newList += v
-        }
-      case listTime: Array[Temporal] =>
-        for (i <- listTime) {
-          val v = convertValue(i)
-          newList += v
-        }
+    for (item <- list) {
+      newList += convertValue(item)
+    }
+    new values.ListValue(newList)
+  }
+
+  def convertList(list: Array[Int]): values.ListValue = {
+    var newList = new ArrayBuffer[Value]
+    for (item <- list) {
+      newList += convertValue(item)
+    }
+    new values.ListValue(newList)
+  }
+
+  def convertList(list: Array[Long]): values.ListValue = {
+    var newList = new ArrayBuffer[Value]
+    for (item <- list) {
+      newList += convertValue(item)
+    }
+    new values.ListValue(newList)
+  }
+
+  def convertList(list: Array[Double]): values.ListValue = {
+    var newList = new ArrayBuffer[Value]
+    for (item <- list) {
+      newList += convertValue(item)
+    }
+    new values.ListValue(newList)
+  }
+
+  def convertList(list: Array[Boolean]): values.ListValue = {
+    var newList = new ArrayBuffer[Value]
+    for (item <- list) {
+      newList += convertValue(item)
+    }
+    new values.ListValue(newList)
+  }
+
+  def convertList(list: Array[Temporal]): values.ListValue = {
+    var newList = new ArrayBuffer[Value]
+    for (item <- list) {
+      newList += convertValue(item)
     }
     new values.ListValue(newList)
   }
