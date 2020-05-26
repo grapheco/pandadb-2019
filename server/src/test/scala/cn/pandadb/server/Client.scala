@@ -48,7 +48,7 @@ class Client {
     // return ArrayBuffer of nodes
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.runCypher("match (n) return n", ref, Duration.Inf)
-    println(res)
+    res.records.foreach(println)
     clientRpcEnv.stop(ref)
   }
 
@@ -84,6 +84,15 @@ class Client {
   }
 
   @Test
+  def removeNodeLabel(): Unit = {
+    // return PandaReplyMessage.Value
+    val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val res = leaderDriver.removeNodeLabel(0L, "People", ref, Duration.Inf)
+    println(res)
+    clientRpcEnv.stop(ref)
+  }
+
+  @Test
   def getNodeById(): Unit = {
     // return node
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
@@ -97,7 +106,7 @@ class Client {
     // return ArrayBuffer of nodes
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getNodesByProperty("514", Map("aaa" -> 111), ref, Duration.Inf)
-    println(res)
+    println(res.foreach(println))
     clientRpcEnv.stop(ref)
   }
 
@@ -106,33 +115,24 @@ class Client {
     // return ArrayBuffer of nodes
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getNodesByLabel("514", ref, Duration.Inf)
+    println(res.foreach(println))
+    clientRpcEnv.stop(ref)
+  }
+
+  @Test
+  def setNodeProperty(): Unit = {
+    // return PandaReplyMessage.Value
+    val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
+    val res = leaderDriver.setNodeProperty(0L, Map("a" -> 2, "b" -> 1), ref, Duration.Inf)
     println(res)
     clientRpcEnv.stop(ref)
   }
 
   @Test
-  def updateNodeProperty(): Unit = {
+  def removeNodeProperty(): Unit = {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val res = leaderDriver.updateNodeProperty(0L, Map("a" -> 2, "b" -> 1), ref, Duration.Inf)
-    println(res)
-    clientRpcEnv.stop(ref)
-  }
-
-  @Test
-  def updateNodeLabel(): Unit = {
-    // return PandaReplyMessage.Value
-    val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val res = leaderDriver.updateNodeLabel(0L, "People", "boy", ref, Duration.Inf)
-    println(res)
-    clientRpcEnv.stop(ref)
-  }
-
-  @Test
-  def removeProperty(): Unit = {
-    // return PandaReplyMessage.Value
-    val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val res = leaderDriver.removeProperty(0L, "b", ref, Duration.Inf)
+    val res = leaderDriver.removeNodeProperty(0L, "b", ref, Duration.Inf)
     println(res)
     clientRpcEnv.stop(ref)
   }
@@ -165,7 +165,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val propertyMap: Map[String, Any] = Map("relation" -> "qqq", "relation2" -> 777)
-    val res = leaderDriver.updateRelationshipProperty(0L, propertyMap, ref, Duration.Inf)
+    val res = leaderDriver.setRelationshipProperty(0L, propertyMap, ref, Duration.Inf)
     println(res)
   }
 

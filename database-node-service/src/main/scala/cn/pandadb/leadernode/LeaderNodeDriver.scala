@@ -79,13 +79,13 @@ class LeaderNodeDriver {
     res
   }
 
-  def updateNodeProperty(id: Long, propertiesMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderUpdateNodeProperty(id, propertiesMap)), duration)
+  def setNodeProperty(id: Long, propertiesMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderSetNodeProperty(id, propertiesMap)), duration)
     res
   }
 
-  def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderUpdateNodeLabel(id, toDeleteLabel, newLabel)), duration)
+  def removeNodeLabel(id: Long, toDeleteLabel: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderRemoveNodeLabel(id, toDeleteLabel)), duration)
     res
   }
 
@@ -94,8 +94,8 @@ class LeaderNodeDriver {
     res
   }
 
-  def removeProperty(id: Long, property: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderRemoveProperty(id, property)), duration)
+  def removeNodeProperty(id: Long, property: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderRemoveNodeProperty(id, property)), duration)
     res
   }
 
@@ -104,10 +104,10 @@ class LeaderNodeDriver {
     relation
   }
 
-  def updateRelationshipProperty(relationId: Long, propertyMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+  def setRelationshipProperty(relationId: Long, propertyMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
     implicit def any2anyRef(x: Map[String, Any]): Map[String, AnyRef] = x.asInstanceOf[Map[String, AnyRef]]
 
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderUpdateRelationshipProperty(relationId, propertyMap)), duration)
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](LeaderSetRelationshipProperty(relationId, propertyMap)), duration)
     res
   }
 

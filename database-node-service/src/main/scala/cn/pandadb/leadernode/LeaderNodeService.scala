@@ -37,11 +37,11 @@ trait LeaderNodeService {
 
   def getNodesByLabel(label: String, address: String, port: Int, clusterService: ClusterService): ArrayBuffer[Node]
 
-  def updateNodeProperty(id: Long, propertiesMap: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value
+  def setNodeProperty(id: Long, propertiesMap: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value
 
-  def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String, clusterService: ClusterService): PandaReplyMessage.Value
+  def removeNodeLabel(id: Long, toDeleteLabel: String, clusterService: ClusterService): PandaReplyMessage.Value
 
-  def removeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMessage.Value
+  def removeNodeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMessage.Value
 
   def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value
 
@@ -51,7 +51,7 @@ trait LeaderNodeService {
 
   def getRelationshipByRelationId(id: Long, address: String, port: Int, clusterService: ClusterService): Relationship
 
-  def updateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef], clusterService: ClusterService): PandaReplyMessage.Value
+  def setRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef], clusterService: ClusterService): PandaReplyMessage.Value
 
   def deleteRelationshipProperties(id: Long, propertyArray: Array[String], clusterService: ClusterService): PandaReplyMessage.Value
 
@@ -74,13 +74,13 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     res
   }
 
-  override def updateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef], clusterService: ClusterService): PandaReplyMessage.Value = {
+  override def setRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef], clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getEndpointRefsNotIncludeLeader(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
-      val res = dataNodeDriver.updateRelationshipProperty(id, propertyMap, endpointRef, Duration.Inf)
+      val res = dataNodeDriver.setRelationshipProperty(id, propertyMap, endpointRef, Duration.Inf)
       if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
@@ -167,13 +167,13 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     }
   }
 
-  override def removeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMessage.Value = {
+  override def removeNodeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getEndpointRefsNotIncludeLeader(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
-      val res = dataNodeDriver.removeProperty(id, property, endpointRef, Duration.Inf)
+      val res = dataNodeDriver.removeNodeProperty(id, property, endpointRef, Duration.Inf)
       if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
@@ -187,13 +187,13 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     }
   }
 
-  override def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String, clusterService: ClusterService): PandaReplyMessage.Value = {
+  override def removeNodeLabel(id: Long, toDeleteLabel: String, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getEndpointRefsNotIncludeLeader(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
-      val res = dataNodeDriver.updateNodeLabel(id, toDeleteLabel, newLabel, endpointRef, Duration.Inf)
+      val res = dataNodeDriver.removeNodeLabel(id, toDeleteLabel, endpointRef, Duration.Inf)
       if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
@@ -207,13 +207,13 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     }
   }
 
-  override def updateNodeProperty(id: Long, propertiesMap: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value = {
+  override def setNodeProperty(id: Long, propertiesMap: Map[String, Any], clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getEndpointRefsNotIncludeLeader(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
-      val res = dataNodeDriver.updateNodeProperty(id, propertiesMap, endpointRef, Duration.Inf)
+      val res = dataNodeDriver.setNodeProperty(id, propertiesMap, endpointRef, Duration.Inf)
       if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }

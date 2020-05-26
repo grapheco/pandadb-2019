@@ -19,13 +19,13 @@ case class GetNodesByProperty(label: String, propertiesMap: Map[String, Object])
 
 case class GetNodesByLabel(label: String)
 
-case class UpdateNodeProperty(id: Long, propertiesMap: Map[String, Any])
+case class SetNodeProperty(id: Long, propertiesMap: Map[String, Any])
 
-case class UpdateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String)
+case class RemoveNodeLabel(id: Long, toDeleteLabel: String)
 
 case class DeleteNode(id: Long)
 
-case class RemoveProperty(id: Long, property: String)
+case class RemoveNodeProperty(id: Long, property: String)
 
 // relationship
 case class CreateNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction)
@@ -36,7 +36,7 @@ case class DeleteNodeRelationship(id: Long, relationship: String, direction: Dir
 
 case class GetRelationshipByRelationId(id: Long)
 
-case class UpdateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef])
+case class SetRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef])
 
 case class DeleteRelationshipProperties(id: Long, propertyArray: Array[String])
 

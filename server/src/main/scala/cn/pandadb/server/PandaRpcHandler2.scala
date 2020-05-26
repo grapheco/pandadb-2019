@@ -9,10 +9,9 @@ import cn.pandadb.blob.storage.BlobStorageService
 import cn.pandadb.cluster.ClusterService
 import org.grapheco.hippo.{ChunkedStream, CompleteStream, HippoRpcHandler, ReceiveContext}
 import cn.pandadb.configuration.{Config => PandaConfig}
-import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, DeleteRelationshipProperties, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, GetRelationshipByRelationId, ReadDbFileRequest, RemoveProperty, RunCypher, SayHello, UpdateNodeLabel, UpdateNodeProperty, UpdateRelationshipProperty}
+import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, DeleteRelationshipProperties, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, GetRelationshipByRelationId, ReadDbFileRequest, RemoveNodeLabel, RemoveNodeProperty, RunCypher, SayHello, SetNodeProperty, SetRelationshipProperty}
 import cn.pandadb.driver.values.{Node, Relationship}
-import cn.pandadb.leadernode.{GetLeaderDbFileNames}
-import cn.pandadb.leadernode.{GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateBlobEntry, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderDeleteRelationshipProperties, LeaderGetAllDBNodes, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderGetRelationshipByRelationId, LeaderNodeServiceImpl, LeaderRemoveProperty, LeaderRunCypher, LeaderSayHello, LeaderUpdateNodeLabel, LeaderUpdateNodeProperty, LeaderUpdateRelationshipProperty}
+import cn.pandadb.leadernode.{GetLeaderDbFileNames, GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateBlobEntry, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderDeleteRelationshipProperties, LeaderGetAllDBNodes, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderGetRelationshipByRelationId, LeaderNodeServiceImpl, LeaderRemoveNodeLabel, LeaderRemoveNodeProperty, LeaderRunCypher, LeaderSayHello, LeaderSetNodeProperty, LeaderSetRelationshipProperty}
 import cn.pandadb.util.PandaReplyMessage
 import io.netty.buffer.Unpooled
 import org.neo4j.graphdb.GraphDatabaseService
@@ -238,9 +237,9 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService,
     }
 
 
-    case LeaderUpdateNodeProperty(id, propertiesMap) => {
-      val res = leaderNodeService.updateNodeProperty(id, propertiesMap, clusterService)
-      val localResult = dataNodeService.updateNodeProperty(id, propertiesMap)
+    case LeaderSetNodeProperty(id, propertiesMap) => {
+      val res = leaderNodeService.setNodeProperty(id, propertiesMap, clusterService)
+      val localResult = dataNodeService.setNodeProperty(id, propertiesMap)
 
       if (res.equals(PandaReplyMessage.LEAD_NODE_SUCCESS) && localResult.equals(PandaReplyMessage.SUCCESS)) {
         context.reply(PandaReplyMessage.SUCCESS)
@@ -248,15 +247,15 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService,
         context.reply(PandaReplyMessage.FAILED)
       }
     }
-    case UpdateNodeProperty(id, propertiesMap) => {
-      val res = dataNodeService.updateNodeProperty(id, propertiesMap)
+    case SetNodeProperty(id, propertiesMap) => {
+      val res = dataNodeService.setNodeProperty(id, propertiesMap)
       context.reply(res)
     }
 
 
-    case LeaderUpdateNodeLabel(id, toDeleteLabel, newLabel) => {
-      val res = leaderNodeService.updateNodeLabel(id, toDeleteLabel, newLabel, clusterService)
-      val localResult = dataNodeService.updateNodeLabel(id, toDeleteLabel, newLabel)
+    case LeaderRemoveNodeLabel(id, toDeleteLabel) => {
+      val res = leaderNodeService.removeNodeLabel(id, toDeleteLabel, clusterService)
+      val localResult = dataNodeService.removeNodeLabel(id, toDeleteLabel)
 
       if (res.equals(PandaReplyMessage.LEAD_NODE_SUCCESS) && localResult.equals(PandaReplyMessage.SUCCESS)) {
         context.reply(PandaReplyMessage.SUCCESS)
@@ -264,15 +263,15 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService,
         context.reply(PandaReplyMessage.FAILED)
       }
     }
-    case UpdateNodeLabel(id, toDeleteLabel, newLabel) => {
-      val res = dataNodeService.updateNodeLabel(id, toDeleteLabel, newLabel)
+    case RemoveNodeLabel(id, toDeleteLabel) => {
+      val res = dataNodeService.removeNodeLabel(id, toDeleteLabel)
       context.reply(res)
     }
 
 
-    case LeaderRemoveProperty(id, property) => {
-      val res = leaderNodeService.removeProperty(id, property, clusterService)
-      val localResult = dataNodeService.removeProperty(id, property)
+    case LeaderRemoveNodeProperty(id, property) => {
+      val res = leaderNodeService.removeNodeProperty(id, property, clusterService)
+      val localResult = dataNodeService.removeNodeProperty(id, property)
 
       if (res.equals(PandaReplyMessage.LEAD_NODE_SUCCESS) && localResult.equals(PandaReplyMessage.SUCCESS)) {
         context.reply(PandaReplyMessage.SUCCESS)
@@ -280,8 +279,8 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService,
         context.reply(PandaReplyMessage.FAILED)
       }
     }
-    case RemoveProperty(id, property) => {
-      val res = dataNodeService.removeProperty(id, property)
+    case RemoveNodeProperty(id, property) => {
+      val res = dataNodeService.removeNodeProperty(id, property)
       context.reply(res)
     }
 
@@ -328,7 +327,7 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService,
       val chooseNumber = new Random().nextInt(nodeLength)
       val chooseNode = dataNodes(chooseNumber)
       if (chooseNode.equals(clusterService.getLeaderNode())) {
-        val res = dataNodeService.getRelationshipByRelationId(id)
+        val res = dataNodeService.getRelationshipById(id)
         context.reply(res)
       } else {
         val strs = dataNodes(chooseNumber).split(":")
@@ -339,14 +338,14 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService,
       }
     }
     case GetRelationshipByRelationId(id) => {
-      val res = dataNodeService.getRelationshipByRelationId(id)
+      val res = dataNodeService.getRelationshipById(id)
       context.reply(res)
     }
 
 
-    case LeaderUpdateRelationshipProperty(id, propertyMap) => {
-      val res = leaderNodeService.updateRelationshipProperty(id, propertyMap, clusterService)
-      val localResult = dataNodeService.updateRelationshipProperty(id, propertyMap)
+    case LeaderSetRelationshipProperty(id, propertyMap) => {
+      val res = leaderNodeService.setRelationshipProperty(id, propertyMap, clusterService)
+      val localResult = dataNodeService.setRelationshipProperty(id, propertyMap)
 
       if (res.equals(PandaReplyMessage.LEAD_NODE_SUCCESS) && localResult.equals(PandaReplyMessage.SUCCESS)) {
         context.reply(PandaReplyMessage.SUCCESS)
@@ -355,8 +354,8 @@ class PandaRpcHandler2(pandaConfig: PandaConfig, clusterService: ClusterService,
       }
       context.reply(res)
     }
-    case UpdateRelationshipProperty(id, propertyMap) => {
-      val res = dataNodeService.updateRelationshipProperty(id, propertyMap)
+    case SetRelationshipProperty(id, propertyMap) => {
+      val res = dataNodeService.setRelationshipProperty(id, propertyMap)
       context.reply(res)
     }
 

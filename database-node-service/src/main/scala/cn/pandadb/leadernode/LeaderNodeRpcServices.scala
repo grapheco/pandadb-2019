@@ -18,13 +18,13 @@ case class LeaderGetNodesByProperty(label: String, propertiesMap: Map[String, Ob
 
 case class LeaderGetNodesByLabel(label: String)
 
-case class LeaderUpdateNodeProperty(id: Long, propertiesMap: Map[String, Any])
+case class LeaderSetNodeProperty(id: Long, propertiesMap: Map[String, Any])
 
-case class LeaderUpdateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String)
+case class LeaderRemoveNodeLabel(id: Long, toDeleteLabel: String)
 
 case class LeaderDeleteNode(id: Long)
 
-case class LeaderRemoveProperty(id: Long, property: String)
+case class LeaderRemoveNodeProperty(id: Long, property: String)
 
 //// relationship
 case class LeaderCreateNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction)
@@ -33,7 +33,7 @@ case class LeaderGetNodeRelationships(id: Long)
 
 case class LeaderGetRelationshipByRelationId(id: Long)
 
-case class LeaderUpdateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef])
+case class LeaderSetRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef])
 
 case class LeaderDeleteRelationshipProperties(id: Long, propertyArray: Array[String])
 
