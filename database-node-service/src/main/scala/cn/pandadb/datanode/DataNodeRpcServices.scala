@@ -1,7 +1,6 @@
 package cn.pandadb.datanode
 
-import org.neo4j.graphdb.Direction
-
+import cn.pandadb.driver.values.{Direction => PandaDirection}
 import scala.collection.mutable.ArrayBuffer
 
 case class SayHello(msg: String)
@@ -28,11 +27,11 @@ case class DeleteNode(id: Long)
 case class RemoveNodeProperty(id: Long, property: String)
 
 // relationship
-case class CreateNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction)
+case class CreateNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value)
 
 case class GetNodeRelationships(id: Long)
 
-case class DeleteNodeRelationship(id: Long, relationship: String, direction: Direction)
+case class DeleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value)
 
 case class GetRelationshipByRelationId(id: Long)
 
@@ -43,5 +42,7 @@ case class DeleteRelationshipProperties(id: Long, propertyArray: Array[String])
 case class GetAllDBNodes(chunkSize: Int)
 
 case class GetAllDBRelationships(chunkSize: Int)
+
+case class GetAllDBLabels(chunkSize: Int)
 
 case class ReadDbFileRequest(name: String)

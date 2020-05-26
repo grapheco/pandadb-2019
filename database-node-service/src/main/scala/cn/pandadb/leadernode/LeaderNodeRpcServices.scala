@@ -1,7 +1,7 @@
 package cn.pandadb.leadernode
 
 import cn.pandadb.blob.MimeType
-import org.neo4j.graphdb.Direction
+import cn.pandadb.driver.values.Direction
 
 case class LeaderSayHello(msg: String)
 
@@ -27,7 +27,7 @@ case class LeaderDeleteNode(id: Long)
 case class LeaderRemoveNodeProperty(id: Long, property: String)
 
 //// relationship
-case class LeaderCreateNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction)
+case class LeaderCreateNodeRelationship(id1: Long, id2: Long, relationship: String, direction: Direction.Value)
 
 case class LeaderGetNodeRelationships(id: Long)
 
@@ -37,17 +37,18 @@ case class LeaderSetRelationshipProperty(id: Long, propertyMap: Map[String, AnyR
 
 case class LeaderDeleteRelationshipProperties(id: Long, propertyArray: Array[String])
 
-case class LeaderDeleteNodeRelationship(id: Long, relationship: String, direction: Direction)
+case class LeaderDeleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: Direction.Value)
 
-case class LeaderGetAllDBNodes(chunkSize: Int)
-
-case class LeaderGetAllDBRelationships(chunkSize: Int)
+//case class LeaderGetAllDBNodes(chunkSize: Int)
+//case class LeaderGetAllDBRelationships(chunkSize: Int)
+//case class LeaderGetAllDBLabels(chunkSize:Int)
 
 //zk
 case class GetZkDataNodes()
 
 //DB files
 case class GetLeaderDbFileNames()
+
 // blob
 
 case class LeaderCreateBlobEntry(length: Long, mimeType: MimeType)

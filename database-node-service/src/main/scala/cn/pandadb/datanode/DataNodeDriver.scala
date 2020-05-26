@@ -4,10 +4,9 @@ import java.io.{File, FileOutputStream, InputStream}
 
 import cn.pandadb.configuration.Config
 import cn.pandadb.driver.result.InternalRecords
-import cn.pandadb.driver.values.{Node, Relationship}
+import cn.pandadb.driver.values.{Label, Node, Relationship, Direction => PandaDirection}
 import cn.pandadb.util.PandaReplyMessage
 import net.neoremind.kraps.rpc.netty.HippoEndpointRef
-import org.neo4j.graphdb.Direction
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Await, Future}
@@ -103,7 +102,7 @@ class DataNodeDriver {
     res
   }
 
-  def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+  def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
     val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](CreateNodeRelationship(rId, id1, id2, relationship, direction)), duration)
     res
   }
@@ -113,8 +112,8 @@ class DataNodeDriver {
     res
   }
 
-  def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](DeleteNodeRelationship(id, relationship, direction)), duration)
+  def deleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](DeleteNodeRelationship(startNodeId, endNodeId, relationshipName, direction)), duration)
     res
   }
 
@@ -125,6 +124,11 @@ class DataNodeDriver {
 
   def getAllDBRelationships(chunkSize: Int, endpointRef: HippoEndpointRef, duration: Duration): Stream[Relationship] = {
     val res = endpointRef.getChunkedStream[Relationship](GetAllDBRelationships(chunkSize), duration)
+    res
+  }
+
+  def getAllDBLabels(chunkSize: Int, endpointRef: HippoEndpointRef, duration: Duration): Stream[Label] = {
+    val res = endpointRef.getChunkedStream[Label](GetAllDBLabels(chunkSize), duration)
     res
   }
 

@@ -12,8 +12,7 @@ import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.netty.{HippoEndpointRef, HippoRpcEnv, HippoRpcEnvFactory}
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
 import org.grapheco.hippo.ChunkedStream
-import org.neo4j.graphdb.{Direction, GraphDatabaseService}
-
+import cn.pandadb.driver.values.{Direction => PandaDirection}
 import scala.collection.JavaConversions
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration.Duration
@@ -43,11 +42,11 @@ trait LeaderNodeService {
 
   def removeNodeProperty(id: Long, property: String, clusterService: ClusterService): PandaReplyMessage.Value
 
-  def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value
+  def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value, clusterService: ClusterService): PandaReplyMessage.Value
 
   def getNodeRelationships(id: Long, address: String, port: Int, clusterService: ClusterService): ArrayBuffer[Relationship]
 
-  def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value
+  def deleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value, clusterService: ClusterService): PandaReplyMessage.Value
 
   def getRelationshipByRelationId(id: Long, address: String, port: Int, clusterService: ClusterService): Relationship
 
@@ -119,13 +118,13 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     res
   }
 
-  override def deleteNodeRelationship(id: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value = {
+  override def deleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getEndpointRefsNotIncludeLeader(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
     var countReplyRef = 0
     allEndpointRefs.par.foreach(endpointRef => {
-      val res = dataNodeDriver.deleteNodeRelationship(id, relationship, direction, endpointRef, Duration.Inf)
+      val res = dataNodeDriver.deleteNodeRelationship(startNodeId, endNodeId, relationshipName, direction, endpointRef, Duration.Inf)
       if (res == PandaReplyMessage.SUCCESS) {
         countReplyRef += 1
       }
@@ -147,7 +146,7 @@ class LeaderNodeServiceImpl() extends LeaderNodeService {
     res
   }
 
-  override def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction, clusterService: ClusterService): PandaReplyMessage.Value = {
+  override def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value, clusterService: ClusterService): PandaReplyMessage.Value = {
     val (clientRpcEnv, allEndpointRefs) = getEndpointRefsNotIncludeLeader(clusterService)
     val refNumber = allEndpointRefs.size
     // send command to all data nodes
