@@ -50,6 +50,10 @@ class ZKTools(config: Config) {
     curator.delete().deletingChildrenIfNeeded().forPath(path)
   }
 
+  def checkChildExist(path: String, child: String): Boolean = {
+    if (curator.checkExists().forPath(path + "/" + child) == null) false else true
+  }
+
   def getZKNodeChildren(path: String): List[String] = {
     curator.getChildren().forPath(path).asScala.toList
   }

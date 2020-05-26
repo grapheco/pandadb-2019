@@ -13,13 +13,46 @@ class MyConfig extends Config {
 
 }
 
+class ZKToolsTest {
+  val config = new MyConfig
+  val zkTools = new ZKTools(config)
+
+  val nodeAddress = config.getNodeAddress()
+
+  val leaderNodesPath = zkTools.buildFullZKPath("/leaderNodes")
+  val dataNodesPath = zkTools.buildFullZKPath("/dataNodes")
+  val dataVersionPath = zkTools.buildFullZKPath("/dataVersion")
+  val freshNodesPath = zkTools.buildFullZKPath("/freshNodes")
+  val versionZero = "0"
+
+  @Test
+  def testAssurePathExist(): Unit = {
+
+    zkTools.init()
+    zkTools.assureZKNodeExist(leaderNodesPath, dataVersionPath, dataNodesPath, freshNodesPath)
+    //val data = zkTools.getZKNodeData(dataVersionPath)
+/*    println(zkTools.getZKNodeData(dataVersionPath))
+    println(zkTools.getZKNodeData(leaderNodesPath))
+    println(zkTools.getZKNodeData(dataNodesPath))
+    println(zkTools.getZKNodeData(freshNodesPath))*/
+  }
+
+  @Test
+  def testCreateAndGetData(): Unit = {
+    val path = "/test/hiha"
+    zkTools.init()
+    zkTools.createZKNode(CreateMode.PERSISTENT, path)
+    zkTools.createZKNode(CreateMode.PERSISTENT, path + "/jkl")
+    println(zkTools.getZKNodeChildren("/test/hiha"))
+    zkTools.deleteZKNodeAndChildren("/test")
+  }
+
+}
+
 class ClusterTest {
 
   val config = new MyConfig
   val zktools = new ZKTools(config)
-  println(config.getZKAddress())
-  println(config.getPandaZKDir())
-  println(config.getNodeAddress())
 
   @Test
   def nodeOnline(): Unit = {
@@ -27,7 +60,10 @@ class ClusterTest {
     zktools.init()
     val clusterService = new ClusterService(config, zktools)
     clusterService.init()
-    clusterService.doNodeStart()
+    clusterService.doNodeStart2()
+    println(clusterService.nodeAddress)
+    println(clusterService.getLeaderNodeAddress())
+    println(clusterService.getDataVersion())
 
   }
 
