@@ -7,8 +7,8 @@ import cn.pandadb.driver.values.{Node, Relationship}
 import cn.pandadb.util.{PandaReplyMessage, ValueConverter}
 import io.netty.buffer.ByteBuf
 import org.grapheco.hippo.ChunkedStream
-import org.neo4j.graphdb.{Direction, GraphDatabaseService, Label, RelationshipType, Relationship => DbRelationship}
-
+import org.neo4j.graphdb.{Node => DbNode, Direction, GraphDatabaseService, Label, RelationshipType, Relationship => DbRelationship}
+import cn.pandadb.driver.values.{Direction => PandaDirection}
 import scala.collection.JavaConversions
 import scala.collection.mutable.ArrayBuffer
 
@@ -30,25 +30,25 @@ trait DataNodeService {
 
   def getNodesByLabel(label: String): ArrayBuffer[Node]
 
-  def updateNodeProperty(id: Long, propertiesMap: Map[String, Any]): PandaReplyMessage.Value
+  def setNodeProperty(id: Long, propertiesMap: Map[String, Any]): PandaReplyMessage.Value
 
-  def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String): PandaReplyMessage.Value
+  def removeNodeLabel(id: Long, toDeleteLabel: String): PandaReplyMessage.Value
 
   def deleteNode(id: Long): PandaReplyMessage.Value
 
-  def removeProperty(id: Long, property: String): PandaReplyMessage.Value
+  def removeNodeProperty(id: Long, property: String): PandaReplyMessage.Value
 
-  def createNodeRelationshipLeader(id1: Long, id2: Long, relationship: String, direction: Direction): ArrayBuffer[Relationship]
+  def createNodeRelationshipLeader(id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value): ArrayBuffer[Relationship]
 
-  def createNodeRelationshipFollower(relationId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction): PandaReplyMessage.Value
+  def createNodeRelationshipFollower(relationId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value): PandaReplyMessage.Value
 
   def getNodeRelationships(id: Long): ArrayBuffer[Relationship]
 
-  def deleteNodeRelationship(id: Long, relationship: String, direction: Direction): PandaReplyMessage.Value
+  def deleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value): PandaReplyMessage.Value
 
-  def getRelationshipByRelationId(id: Long): Relationship
+  def getRelationshipById(id: Long): Relationship
 
-  def updateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef]): PandaReplyMessage.Value
+  def setRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef]): PandaReplyMessage.Value
 
   def deleteRelationshipProperties(id: Long, propertyArray: Array[String]): PandaReplyMessage.Value
 
@@ -57,13 +57,15 @@ trait DataNodeService {
 
   def getAllDBRelationships(chunkSize: Int): ChunkedStream
 
+  def getAllDBLabels(chunkSize: Int): ChunkedStream
+
   def getDbFile(path: String, name: String): ChunkedStream
 }
 
 
 class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeService {
 
-  override def getRelationshipByRelationId(id: Long): Relationship = {
+  override def getRelationshipById(id: Long): Relationship = {
     val tx = localDatabase.beginTx()
     val relation = localDatabase.getRelationshipById(id)
     val driverRelation = ValueConverter.toDriverRelationship(relation)
@@ -72,7 +74,7 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     driverRelation
   }
 
-  override def updateRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef]): PandaReplyMessage.Value = {
+  override def setRelationshipProperty(id: Long, propertyMap: Map[String, AnyRef]): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val relation = localDatabase.getRelationshipById(id)
     propertyMap.foreach(m => relation.setProperty(m._1, m._2))
@@ -184,7 +186,7 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     lst
   }
 
-  override def updateNodeProperty(id: Long, propertiesMap: Map[String, Any]): PandaReplyMessage.Value = {
+  override def setNodeProperty(id: Long, propertiesMap: Map[String, Any]): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val db_node = localDatabase.getNodeById(id)
     for (map <- propertiesMap) {
@@ -195,11 +197,10 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     PandaReplyMessage.SUCCESS
   }
 
-  override def updateNodeLabel(id: Long, toDeleteLabel: String, newLabel: String): PandaReplyMessage.Value = {
+  override def removeNodeLabel(id: Long, toDeleteLabel: String): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val db_node = localDatabase.getNodeById(id)
     db_node.removeLabel(Label.label(toDeleteLabel))
-    db_node.addLabel(Label.label(newLabel))
     tx.success()
     tx.close()
     PandaReplyMessage.SUCCESS
@@ -220,7 +221,7 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     PandaReplyMessage.SUCCESS
   }
 
-  override def removeProperty(id: Long, property: String): PandaReplyMessage.Value = {
+  override def removeNodeProperty(id: Long, property: String): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val db_node = localDatabase.getNodeById(id)
     db_node.removeProperty(property)
@@ -229,7 +230,7 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     PandaReplyMessage.SUCCESS
   }
 
-  override def createNodeRelationshipLeader(id1: Long, id2: Long, relationship: String, direction: Direction): ArrayBuffer[Relationship] = {
+  override def createNodeRelationshipLeader(id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value): ArrayBuffer[Relationship] = {
     val tx = localDatabase.beginTx()
     val dbNode1 = localDatabase.getNodeById(id1)
     val dbNode2 = localDatabase.getNodeById(id2)
@@ -237,14 +238,14 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     var relation2: DbRelationship = null
     val relationList = ArrayBuffer[Relationship]()
     direction match {
-      case Direction.BOTH => {
+      case PandaDirection.BOTH => {
         relation1 = dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
         relation2 = dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship))
       }
-      case Direction.INCOMING => {
+      case PandaDirection.INCOMING => {
         relation1 = dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship))
       }
-      case Direction.OUTGOING => {
+      case PandaDirection.OUTGOING => {
         relation1 = dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship))
       }
     }
@@ -262,19 +263,19 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     relationList
   }
 
-  override def createNodeRelationshipFollower(relationId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: Direction): PandaReplyMessage.Value = {
+  override def createNodeRelationshipFollower(relationId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val dbNode1 = localDatabase.getNodeById(id1)
     val dbNode2 = localDatabase.getNodeById(id2)
     direction match {
-      case Direction.BOTH => {
+      case PandaDirection.BOTH => {
         dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship), relationId(0))
         dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship), relationId(1))
       }
-      case Direction.INCOMING => {
+      case PandaDirection.INCOMING => {
         dbNode2.createRelationshipTo(dbNode1, RelationshipType.withName(relationship), relationId(0))
       }
-      case Direction.OUTGOING => {
+      case PandaDirection.OUTGOING => {
         dbNode1.createRelationshipTo(dbNode2, RelationshipType.withName(relationship), relationId(0))
       }
     }
@@ -299,11 +300,39 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     lst
   }
 
-  override def deleteNodeRelationship(id: Long, relationship: String, direction: Direction): PandaReplyMessage.Value = {
+  override def deleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
-    val db_node = localDatabase.getNodeById(id)
-    val relation = db_node.getSingleRelationship(RelationshipType.withName(relationship), direction)
-    relation.delete()
+    val db_node: DbNode = localDatabase.getNodeById(startNodeId)
+    var resIter: java.util.Iterator[DbRelationship] = null
+    var resIter2: java.util.Iterator[DbRelationship] = null
+
+    direction match {
+      case PandaDirection.BOTH => {
+        resIter = db_node.getRelationships(RelationshipType.withName(relationshipName), Direction.BOTH).iterator()
+        resIter2 = localDatabase.getNodeById(endNodeId).getRelationships(RelationshipType.withName(relationshipName), Direction.BOTH).iterator()
+      }
+      case PandaDirection.INCOMING => {
+        resIter = db_node.getRelationships(RelationshipType.withName(relationshipName), Direction.INCOMING).iterator()
+      }
+      case PandaDirection.OUTGOING => {
+        resIter = db_node.getRelationships(RelationshipType.withName(relationshipName), Direction.OUTGOING).iterator()
+      }
+    }
+    // This code should be optimized
+    while (resIter.hasNext) {
+      val relation = resIter.next()
+      if (relation.getEndNodeId == endNodeId) {
+        relation.delete()
+      }
+    }
+    if (direction == PandaDirection.BOTH) {
+      while (resIter2.hasNext) {
+        val relation = resIter2.next()
+        if (relation.getEndNodeId == startNodeId) {
+          relation.delete()
+        }
+      }
+    }
     tx.success()
     tx.close()
     PandaReplyMessage.SUCCESS
@@ -324,6 +353,16 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     val relationIter = localDatabase.getAllRelationships.stream().iterator()
     val iterable = JavaConversions.asScalaIterator(relationIter).toIterable
     ChunkedStream.grouped(chunkSize, iterable.map(x => ValueConverter.toDriverRelationship(x)), {
+      tx.success()
+      tx.close()
+    })
+  }
+
+  override def getAllDBLabels(chunkSize: Int): ChunkedStream = {
+    val tx = localDatabase.beginTx()
+    val labelIter = localDatabase.getAllLabels.stream().iterator()
+    val iterable = JavaConversions.asScalaIterator(labelIter).toIterable
+    ChunkedStream.grouped(chunkSize, iterable.map(x => ValueConverter.convertLabel(x)), {
       tx.success()
       tx.close()
     })
