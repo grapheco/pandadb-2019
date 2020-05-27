@@ -99,6 +99,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   def tryToBecomeDataNode(): Unit = {
     //todo
+    logger.info(this.getClass + ": tryToBecomeDataNode" + nodeAddress)
     var dataVersion = getDataVersion()
     var localDataVersion = getLocalDataVersion()
     while (dataVersion.toInt > localDataVersion.toInt) {
@@ -169,6 +170,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
           case PathChildrenCacheEvent.Type.CHILD_ADDED => {
             if (!isLeaderNode()) {
               if (zkTools.checkChildExist(dataNodesPath, nodeAddress)&& !inElection) {
+                logger.info(this.getClass + ": I'm datanode now" + nodeAddress)
                 participateInLeaderElection()
                 inElection = true
               }
