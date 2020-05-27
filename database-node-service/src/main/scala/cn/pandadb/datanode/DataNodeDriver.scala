@@ -1,6 +1,6 @@
 package cn.pandadb.datanode
 
-import java.io.{File, FileOutputStream, InputStream}
+import java.io.{File, FileOutputStream}
 
 import cn.pandadb.configuration.Config
 import cn.pandadb.driver.result.InternalRecords
@@ -9,7 +9,7 @@ import cn.pandadb.util.PandaReplyMessage
 import net.neoremind.kraps.rpc.netty.HippoEndpointRef
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await}
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -17,19 +17,20 @@ class DataNodeDriver {
   val config = new Config
   val logger = config.getLogger(this.getClass)
 
-  def checkFileIsExist(path: String): Unit = {
+  def checkDirectorIsExist(path: String): Unit = {
     val dbFile = new File(path)
     if (!dbFile.exists()) {
       dbFile.mkdirs
     }
   }
 
+  // use hippo's getInputStream corresponding to PandaRpcHandler's openCompleteStream func
   def pullFile(dbPath: String, fileNames: ArrayBuffer[String], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    checkFileIsExist(dbPath)
+    checkDirectorIsExist(dbPath)
     fileNames.foreach(name => {
       val filePath = dbPath + name
       val checkPath = filePath.substring(0, filePath.lastIndexOf("/"))
-      checkFileIsExist(checkPath)
+      checkDirectorIsExist(checkPath)
       val fis = endpointRef.getInputStream(ReadDbFileRequest(name), Duration.Inf)
       val fos = new FileOutputStream(filePath)
       val buffer = new Array[Byte](1024)

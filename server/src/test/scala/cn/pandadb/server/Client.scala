@@ -141,13 +141,11 @@ class Client {
     // return relationship or PandaReplyMessage.Failed
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.createNodeRelationship(0L, 20L, "QQQQ", Direction.BOTH, ref, Duration.Inf)
-    //    val res1 = leaderDriver.createNodeRelationship(1L, 2L, "OOOO", Direction.OUTGOING, ref, Duration.Inf)
-    //    val res2 = leaderDriver.createNodeRelationship(2L, 1L, "IIII", Direction.INCOMING, ref, Duration.Inf)
-    //        leaderDriver.createNodeRelationship(20L, 2L, "IIII", Direction.OUTGOING, ref, Duration.Inf)
-    //    leaderDriver.createNodeRelationship(22L, 21L, "LOVE", Direction.OUTGOING, ref, Duration.Inf)
+    val res1 = leaderDriver.createNodeRelationship(1L, 2L, "OOOO", Direction.OUTGOING, ref, Duration.Inf)
+    val res2 = leaderDriver.createNodeRelationship(2L, 1L, "IIII", Direction.INCOMING, ref, Duration.Inf)
     println(res)
-    //    println(res1)
-    //    println(res2)
+    println(res1)
+    println(res2)
     clientRpcEnv.stop(ref)
   }
 
@@ -182,9 +180,7 @@ class Client {
     // return ArrayBuffer of relationship
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res1 = leaderDriver.getNodeRelationships(2L, ref, Duration.Inf)
-    //    val res2 = leaderDriver.getNodeRelationships(20L, ref, Duration.Inf)
     println(res1.foreach(println))
-    //    println(res2)
     clientRpcEnv.stop(ref)
   }
 
@@ -208,7 +204,6 @@ class Client {
         println(m._2.asAny(), "----")
       }
     }
-    // get stream of all nodes, then stop the ref
     clientRpcEnv.stop(dataNodeRef)
   }
 
@@ -239,45 +234,10 @@ class Client {
     clientRpcEnv.stop(dataNodeRef)
   }
 
-  //  @Test
-  //  def pullNodesAndRelationsFromDataNode(): Unit = {
-  //    val dbFile = new File("D:\\DbTest\\output1\\db1")
-  //    if (!dbFile.exists()) {
-  //      dbFile.mkdirs
-  //    }
-  //    val newDb: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
-  //
-  //    val tx = newDb.beginTx()
-  //    val (res, dataNodeRef1) = leaderDriver.pullAllNodes(10, clientRpcEnv, clusterService, config)
-  //    // add nodes
-  //    while (res.hasNext) {
-  //      val n = res.next()
-  //      val node = newDb.createNode(n.id)
-  //      n.labels.foreach(label => node.addLabel(Label.label(label.name)))
-  //      n.props.foreach(s => node.setProperty(s._1, s._2.asAny()))
-  //    }
-  //    clientRpcEnv.stop(dataNodeRef1)
-  //
-  //    //add relationship
-  //    val (res2, dataNodeRef2) = leaderDriver.pullAllRelations(10, clientRpcEnv, clusterService, config)
-  //    while (res2.hasNext) {
-  //      val r = res2.next()
-  //      val sNode = newDb.getNodeById(r.startNode.id)
-  //      val eNode = newDb.getNodeById(r.endNode.id)
-  //      val rr = sNode.createRelationshipTo(eNode, RelationshipType.withName(r.relationshipType.name), r.id)
-  //      if (r.props.nonEmpty) {
-  //        r.props.foreach(m => {
-  //          rr.setProperty(m._1, m._2.toString)
-  //        })
-  //      }
-  //    }
-  //    clientRpcEnv.stop(dataNodeRef2)
-  //    tx.success()
-  //    tx.close()
-  //  }
 
   @Test
   def pullDbFiles(): Unit = {
+    // this func transport file one by one , not be compressed
     val localDbPath = "D:/DbTest/output1/db1" + "/"
     val dataNodeRef = leaderDriver.pullDbFileFromDataNode(localDbPath, clientRpcEnv, clusterService, config)
     clientRpcEnv.stop(dataNodeRef)
