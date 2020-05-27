@@ -153,7 +153,12 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
         eventType match {
           case PathChildrenCacheEvent.Type.CHILD_REMOVED => {
             if (isLeaderNode()) {
-              //todo check if dataNode off line
+              val data = pathChildrenCacheEvent.getData.getPath.toString.split("/").last
+              logger.info("node: " + data + "off line")
+              logger.info("node: " + data + "off line")
+              logger.info("node: " + data + "off line")
+              logger.info("node: " + data + "off line")
+              logger.info("node: " + data + "off line")
             }
           }
           case _ => null
@@ -277,8 +282,9 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   def registerAsOnLineNode(): Unit = {
     logger.info(this.getClass + "registerAsOnLineNode: " + nodeAddress)
-    val dataNode = onLineNodePath + "/" + nodeAddress
-    zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, dataNode)
+    //val dataNode = onLineNodePath + "/" + nodeAddress
+    //zkTools.createZKNode(CreateMode.EPHEMERAL, dataNode)
+    addNodeToPath(onLineNodePath, nodeAddress)
   }
 
   def unregisterAsDataNode(): Unit = {

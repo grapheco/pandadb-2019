@@ -41,7 +41,7 @@ class ThreadExample(id: Int, config: MyConfig) {
     }
     clusterService.init()
     clusterService.doNodeStart2()
-    while (zktools.getZKNodeChildren(clusterService.dataNodesPath).size < 1) {
+    while (zktools.getZKNodeChildren(clusterService.dataNodesPath).size < 6) {
       Thread.sleep(3000)
       println("I'm sleeping")
     }
