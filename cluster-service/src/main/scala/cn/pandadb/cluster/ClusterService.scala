@@ -21,8 +21,12 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
   val freshNodesPath = zkTools.buildFullZKPath("/freshNodes")
   val leaderLatchPath = zkTools.buildFullZKPath("/leaderLatch")
   val onLineNodePath = zkTools.buildFullZKPath("/onLineNode")
+  val unfreshNodesPath = zkTools.buildFullZKPath("/unFreshNodes")
   val versionZero = "0"
+  var dataVersion: String = null
+  var localDataVersion: String = null
 
+  var inElection = false
   val curator = zkTools.getCurator()
   var asFreshNodePath: String = null
   var asDataNodePath: String = null
@@ -63,18 +67,152 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     }
   }
 
+  def lockDataVersion(): Unit = {
+      //todo
+  }
+
+  def unLockDataVersion(): Unit = {
+    //todo
+  }
+
+  def checkNodeOk(nodeWithVersion: String): Boolean = {
+    val data = nodeWithVersion.split("_")
+    if (data.last.toInt == getDataVersion().toInt) true
+    else false
+  }
+
+  def deleteAllPathNode(path: String): Unit = {
+    zkTools.deleteZKNodeAndChildren(path)
+  }
+
+  def addNodeToPath(path: String, node: String): Unit = {
+    if (zkTools.checkChildExist(path, node)) zkTools.deleteZKNodeAndChildren(path + "/" + node)
+    zkTools.createZKNode(CreateMode.EPHEMERAL, path + "/" + node)
+  }
+
+  def moveNodeFromFreshToData(): Unit = {
+    val nodeList = zkTools.getZKNodeChildren(freshNodesPath)
+    deleteAllPathNode(freshNodesPath)
+    nodeList.foreach(u => if (checkNodeOk(u)) addNodeToPath(dataNodesPath, u.split("_").head)
+    else addNodeToPath(unfreshNodesPath, u.split("_").head))
+  }
+
+  def tryToBecomeDataNode(): Unit = {
+    //todo
+    var dataVersion = getDataVersion()
+    var localDataVersion = getLocalDataVersion()
+    while (dataVersion.toInt > localDataVersion.toInt) {
+      updateLocalDataToLatestVersion()
+      dataVersion = getDataVersion()
+      localDataVersion = getLocalDataVersion()
+    }
+    //todo should init something for read and write data
+    registerAsFreshNode()
+  }
+  def registerListenner(): Unit = {
+    //listen leaderNode
+    val leaderNodeCacheListener = new PathChildrenCacheListener {
+      override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
+        val eventType = pathChildrenCacheEvent.getType
+        eventType match {
+          case PathChildrenCacheEvent.Type.CHILD_REMOVED => {
+            if (!isLeaderNode()) {
+              assureLeaderExist()
+              tryToBecomeDataNode()
+            }
+          }
+          case _ => null
+        }
+      }
+    }
+    zkTools.registerPathChildrenListener(leaderNodesPath, leaderNodeCacheListener)
+
+    //listen freshNode
+    val freshNodeCacheListener = new PathChildrenCacheListener {
+      override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
+        val eventType = pathChildrenCacheEvent.getType
+        eventType match {
+          case PathChildrenCacheEvent.Type.CHILD_ADDED => {
+            if (isLeaderNode()) {
+              lockDataVersion()
+              moveNodeFromFreshToData()
+              unLockDataVersion()
+            }
+          }
+          case _ => null
+        }
+      }
+    }
+    zkTools.registerPathChildrenListener(freshNodesPath, freshNodeCacheListener)
+
+    //listen OnlineNode
+    val onLineNodeCacheListener = new PathChildrenCacheListener {
+      override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
+        val eventType = pathChildrenCacheEvent.getType
+        eventType match {
+          case PathChildrenCacheEvent.Type.CHILD_REMOVED => {
+            if (isLeaderNode()) {
+              //todo check if dataNode off line
+            }
+          }
+          case _ => null
+        }
+      }
+    }
+    zkTools.registerPathChildrenListener(onLineNodePath, onLineNodeCacheListener)
+
+    //listen dataNode
+    val dataNodeCacheListener = new PathChildrenCacheListener {
+      override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
+        val eventType = pathChildrenCacheEvent.getType
+        eventType match {
+          case PathChildrenCacheEvent.Type.CHILD_ADDED => {
+            if (!isLeaderNode()) {
+              if (zkTools.checkChildExist(dataNodesPath, nodeAddress)&& !inElection) {
+                participateInLeaderElection()
+                inElection = true
+              }
+            }
+          }
+          case _ => null
+        }
+      }
+    }
+    zkTools.registerPathChildrenListener(dataNodesPath, dataNodeCacheListener)
+
+    val unFreshNodeCacheListener = new PathChildrenCacheListener {
+      override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
+        val eventType = pathChildrenCacheEvent.getType
+        eventType match {
+          case PathChildrenCacheEvent.Type.CHILD_ADDED => {
+            if (!isLeaderNode()) {
+              if (zkTools.checkChildExist(dataNodesPath, nodeAddress)) {
+                zkTools.deleteZKNodeAndChildren(unfreshNodesPath + "/" + nodeAddress)
+                tryToBecomeDataNode()
+              }
+            }
+          }
+          case _ => null
+        }
+      }
+    }
+    zkTools.registerPathChildrenListener(unfreshNodesPath, unFreshNodeCacheListener)
+  }
   def assureLeaderExist(): Unit = {
 
     var leaderNodeAddress = getLeaderNodeAddress()
     var dataVersion = getDataVersion()
     val localDataVersion = getLocalDataVersion()
-    var inElection = false
+
     while (leaderNodeAddress == null) {
       logger.info(this.getClass + ": cluster has no leader")
       if (dataVersion.toInt <= localDataVersion.toInt && !inElection) {
         inElection = true
         participateInLeaderElection()
       }
+      logger.info("dataVersion ==" + dataVersion)
+      logger.info("localdataVersion ==" + localDataVersion)
+      logger.info("election ==" + inElection)
       logger.info("==== wait getLeaderNode ====")
       Thread.sleep(500)
       leaderNodeAddress = getLeaderNodeAddress()
@@ -84,45 +222,43 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     logger.info(this.getClass + ": dataVersion: " + dataVersion)
 
   }
-  //todo when leader is down,when datanode is done,when node want to become datanode
+
   def doNodeStart2(): Unit = {
     logger.info(this.getClass + ": doNodeStart")
+    registerListenner()
     registerAsOnLineNode()
     assureLeaderExist()
     if(!isLeaderNode()) {
-      val dataVersion = getDataVersion()
-      val localDataVersion = getLocalDataVersion()
-      while (dataVersion.toInt > localDataVersion.toInt) {
-        updateLocalDataToLatestVersion()
+      if (inElection) {
+        if (leaderLatch != null) leaderLatch.close()
+        leaderLatch = null
+        inElection = false
       }
-      //todo should init something for read and write data
-      registerAsFreshNode()
-
-      val leaderChildrenCacheListener = new PathChildrenCacheListener {
-        override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
-          val eventType = pathChildrenCacheEvent.getType
-          eventType match {
-            case PathChildrenCacheEvent.Type.CHILD_REMOVED => assureLeaderExist()
-            case _ => null
-          }
-        }
-      }
-      zkTools.registerPathChildrenListener(leaderNodesPath, leaderChildrenCacheListener)
+      tryToBecomeDataNode()
     }
 
   }
 
   def updateLocalDataToLatestVersion(): Unit = {
     logger.info(this.getClass + ": syncLocalGraphData")
-    val leaderNodeAddress = getLeaderNode()
+    logger.info(this.getClass + ": dataVersion = " + dataVersion)
+    logger.info(this.getClass + ": localdataVersion = " + localDataVersion)
+    val leaderNodeAddress = getLeaderNodeAddress()
     logger.info("LeaderNode: " + leaderNodeAddress)
     logger.info("pull ")
+    localDataVersion = (localDataVersion.toInt + 1 ).toString
+  }
+
+  def registerAsFreshNode1(): Unit = {
+    logger.info(this.getClass + ": registerAsFreshNodes: " + nodeAddress)
+    val freshNodePrefix = freshNodesPath + "/" + "node-"
+    asFreshNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, freshNodePrefix, nodeAddress)
   }
 
   def registerAsFreshNode(): Unit = {
     logger.info(this.getClass + ": registerAsFreshNodes: " + nodeAddress)
-    val freshNodePrefix = freshNodesPath + "/" + "node-"
-    asFreshNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, freshNodePrefix, nodeAddress)
+    val freshNode = freshNodesPath + "/" + nodeAddress + "_" + getLocalDataVersion()
+    asFreshNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL, freshNode)
   }
 
   def unregisterAsFreshNode(): Unit = {
@@ -163,30 +299,19 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   def participateInLeaderElection(): Unit = {
     logger.info(this.getClass + "participateInLeaderElection: " + nodeAddress)
+    if(!zkTools.checkPathExist(leaderLatchPath)) zkTools.createZKNode(CreateMode.PERSISTENT, leaderLatchPath)
     val finalLeaderLatch = new LeaderLatch(curator, leaderLatchPath, nodeAddress)
     leaderLatch = finalLeaderLatch
 
     finalLeaderLatch.addListener(new LeaderLatchListener() {
       override def isLeader(): Unit = {
         logger.info(finalLeaderLatch.getId + ":I am leader.")
+        //if (getDataVersion().toInt > getLocalDataVersion().toInt) leaderLatch.close()
         setDataVersion(getLocalDataVersion())
         setLeaderNodeAddress(nodeAddress)
+        //zkTools.deleteZKNodeAndChildren(leaderLatchPath)
         //changeNodeRole(new LeaderNodeChangedEvent(true, getLeaderNode()))
-        val pathChildrenCacheListener = new PathChildrenCacheListener() {
-          override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
-            val eventType = pathChildrenCacheEvent.getType()
-            eventType match {
-              case PathChildrenCacheEvent.Type.CHILD_ADDED => {
-                //todo get lock of dataVersion
-                val freshNodes = zkTools.getZKNodeChildren(freshNodesPath)
-                zkTools.deleteZKNodeAndChildren(freshNodesPath)
-                freshNodes.foreach(u => zkTools.createZKNode(CreateMode.EPHEMERAL, dataNodesPath, u))
-              }
-              case _ => null
-            }
-          }
-        }
-        zkTools.registerPathChildrenListener(freshNodesPath, pathChildrenCacheListener)
+
       }
       override def notLeader(): Unit = {
         logger.info(finalLeaderLatch.getId + ":I am not leader.")
@@ -224,17 +349,19 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
   }
 
   def getDataVersion(): String = {
-    val dataVersion = zkTools.getZKNodeChildren(dataVersionPath)
-    if (dataVersion isEmpty) versionZero else dataVersion.head
+    //val dataVersion = zkTools.getZKNodeChildren(dataVersionPath)
+    //if (dataVersion isEmpty) versionZero else dataVersion.head
+    dataVersion
   }
 
   def getLocalDataVersion(): String = {
-    versionZero
+    //versionZero
+    localDataVersion
   }
 
   def setDataVersion(version: String): Unit = {
     val path = dataVersionPath + "/" + version
-    zkTools.createZKNode(CreateMode.PERSISTENT, path)
+    if (!zkTools.checkChildExist(dataVersionPath, version)) zkTools.createZKNode(CreateMode.PERSISTENT, path)
   }
 
   def getLeaderNodeAddress(): String = {
@@ -247,7 +374,8 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
   }
 
   private def assurePathExist(): Unit = {
-    zkTools.assureZKNodeExist(leaderNodesPath, dataNodesPath, dataVersionPath, freshNodesPath)
+    zkTools.assureZKNodeExist(leaderNodesPath, dataNodesPath, dataVersionPath, freshNodesPath, onLineNodePath,
+      leaderLatchPath, unfreshNodesPath)
   }
 
   def addNodeRoleChangedEventListener(listener: NodeRoleChangedEventListener): Unit = {

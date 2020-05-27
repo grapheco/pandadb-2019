@@ -1,4 +1,6 @@
 package cn.pandadb.cluster
+import java.util.concurrent.{ExecutorService, Executors}
+
 import cn.pandadb.cluster.ClusterService
 import cn.pandadb.configuration.Config
 import cn.pandadb.zk.ZKTools
@@ -7,44 +9,43 @@ import org.junit.Test
 // scalastyle:off println
 class MyConfig extends Config {
 
-  override def getZKAddress(): String = "127.0.0.1:2181"
+  val zkAddress = "127.0.0.1:2181"
+  var nodeAddress: String = null
+  override def getZKAddress(): String = zkAddress
 
-  override def getNodeAddress(): String = "192.168.1.5"
+  override def getNodeAddress(): String = nodeAddress
 
 }
 
-class ZKToolsTest {
-  val config = new MyConfig
-  val zkTools = new ZKTools(config)
+class ThreadExample(id: Int, config: MyConfig) {
 
-  val nodeAddress = config.getNodeAddress()
+  var zktools: ZKTools = null
+  var clusterService: ClusterService = null
+  def run(): Unit = {
+    if (id == 1) {
+      config.nodeAddress = "192.168.1.1"
+      zktools = new ZKTools(config)
+      zktools.init()
+      clusterService = new ClusterService(config, zktools)
+      clusterService.localDataVersion = "1"
+      clusterService.dataVersion = "15"
 
-  val leaderNodesPath = zkTools.buildFullZKPath("/leaderNodes")
-  val dataNodesPath = zkTools.buildFullZKPath("/dataNodes")
-  val dataVersionPath = zkTools.buildFullZKPath("/dataVersion")
-  val freshNodesPath = zkTools.buildFullZKPath("/freshNodes")
-  val versionZero = "0"
+    }
+    else {
+      config.nodeAddress = "8.8.8.8"
+      zktools = new ZKTools(config)
+      zktools.init()
+      clusterService = new ClusterService(config, zktools)
+      clusterService.localDataVersion = "15"
+      clusterService.dataVersion = "15"
+    }
+    clusterService.init()
+    clusterService.doNodeStart2()
+    while (zktools.getZKNodeChildren(clusterService.dataNodesPath).size < 1) {
+      Thread.sleep(3000)
+      println("I'm sleeping")
+    }
 
-  @Test
-  def testAssurePathExist(): Unit = {
-
-    zkTools.init()
-    zkTools.assureZKNodeExist(leaderNodesPath, dataVersionPath, dataNodesPath, freshNodesPath)
-    //val data = zkTools.getZKNodeData(dataVersionPath)
-/*    println(zkTools.getZKNodeData(dataVersionPath))
-    println(zkTools.getZKNodeData(leaderNodesPath))
-    println(zkTools.getZKNodeData(dataNodesPath))
-    println(zkTools.getZKNodeData(freshNodesPath))*/
-  }
-
-  @Test
-  def testCreateAndGetData(): Unit = {
-    val path = "/test/hiha"
-    zkTools.init()
-    zkTools.createZKNode(CreateMode.PERSISTENT, path)
-    zkTools.createZKNode(CreateMode.PERSISTENT, path + "/jkl")
-    println(zkTools.getZKNodeChildren("/test/hiha"))
-    zkTools.deleteZKNodeAndChildren("/test")
   }
 
 }
@@ -55,7 +56,7 @@ class ClusterTest {
   val zktools = new ZKTools(config)
 
   @Test
-  def nodeOnline(): Unit = {
+  def singleNodeOnline(): Unit = {
 
     zktools.init()
     val clusterService = new ClusterService(config, zktools)
@@ -64,6 +65,14 @@ class ClusterTest {
     println(clusterService.nodeAddress)
     println(clusterService.getLeaderNodeAddress())
     println(clusterService.getDataVersion())
+
+  }
+
+  @Test
+  def multiNodeOnline(): Unit = {
+    //val node1 = new ThreadExample(1, config)
+    val node2 = new ThreadExample(3, config)
+    node2.run()
 
   }
 
