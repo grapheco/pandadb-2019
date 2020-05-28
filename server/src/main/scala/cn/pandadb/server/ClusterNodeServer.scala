@@ -18,14 +18,28 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
   override def start(): Unit = {
     logger.info(this.getClass + ": start")
 
-    if (clusterService.hasLeaderNode()) {
+    //clusterService.doNodeStart2()
+    logger.info(this.getClass + ": doNodeStart")
+    clusterService.registerListenner()
+    clusterService.registerAsOnLineNode()
+    clusterService.assureLeaderExist()
+    if(!clusterService.isLeaderNode()) {
+      if (clusterService.inElection) {
+        if (clusterService.leaderLatch != null) clusterService.leaderLatch.close()
+        clusterService.leaderLatch = null
+        clusterService.inElection = false
+      }
+      clusterService.tryToBecomeDataNode()
+    }
+
+/*    if (clusterService.hasLeaderNode()) {
       val leaderNode = clusterService.getLeaderNodeHostAndPort()
       syncDataFromCluster(leaderNode)
     }
     clusterService.registerAsFreshNode()
     while (!clusterService.hasLeaderNode()) {
       participateInLeaderElection()
-    }
+    }*/
   }
 
   def syncDataFromCluster(leaderNode: HostAndPort): Unit = {
