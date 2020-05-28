@@ -7,6 +7,7 @@ import cn.pandadb.zk.ZKTools
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.{PathChildrenCacheEvent, PathChildrenCacheListener}
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener, Participant}
+import org.apache.curator.shaded.com.google.common.net.HostAndPort
 import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.{CreateMode, ZooDefs}
 
@@ -248,7 +249,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     val leaderNodeAddress = getLeaderNodeAddress()
     logger.info("LeaderNode: " + leaderNodeAddress)
     logger.info("pull ")
-    localDataVersion = (localDataVersion.toInt + 1 ).toString
+//    localDataVersion = (localDataVersion.toInt + 1 ).toString
   }
 
   def registerAsFreshNode1(): Unit = {
@@ -337,6 +338,25 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
       case ex: NoNodeException => null
       case ex: Exception => throw ex
     }
+  }
+
+  def getLeaderNodeHostAndPort(): HostAndPort = {
+    try {
+      HostAndPort.fromString(getLeaderNode)
+    } catch {
+      case ex: NoNodeException => null
+      case ex: Exception => throw ex
+    }
+  }
+
+  def hasLeaderNode(): Boolean = {
+    try {
+      getLeaderLatch().getLeader.isLeader
+    } catch {
+      case ex: NoNodeException => null
+      case ex: Exception => throw ex
+    }
+    false
   }
 
   def isLeaderNode(): Boolean = {
