@@ -308,7 +308,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   def participateInLeaderElection(): Unit = {
     logger.info(this.getClass + "participateInLeaderElection: " + nodeAddress)
-    if(!zkTools.checkPathExist(leaderLatchPath)) zkTools.createZKNode(CreateMode.PERSISTENT, leaderLatchPath)
+    //if(!zkTools.checkPathExist(leaderLatchPath)) zkTools.createZKNode(CreateMode.PERSISTENT, leaderLatchPath)
     val finalLeaderLatch = new LeaderLatch(curator, leaderLatchPath, nodeAddress)
     leaderLatch = finalLeaderLatch
 
