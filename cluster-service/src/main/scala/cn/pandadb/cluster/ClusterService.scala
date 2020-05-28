@@ -57,7 +57,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   def doNodeStart(): Unit = {
     logger.info(this.getClass + ": doNodeStart")
-    registerAsFreshNode()
+    registerAsFreshNode1()
     updateLocalDataToLatestVersion()
     unregisterAsFreshNode()
     registerAsDataNode()
