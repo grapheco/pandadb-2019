@@ -21,7 +21,7 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     //clusterService.doNodeStart2()
     logger.info(this.getClass + ": doNodeStart")
     clusterService.registerListenner()
-    clusterService.registerAsOnLineNode()
+    //clusterService.registerAsOnLineNode()
     clusterService.assureLeaderExist()
     if(!clusterService.isLeaderNode()) {
       if (clusterService.inElection) {
@@ -40,6 +40,32 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     while (!clusterService.hasLeaderNode()) {
       participateInLeaderElection()
     }*/
+  }
+
+  def getLocalDataVersion(): String = {
+    //todo
+    null
+  }
+
+  def becomeDataNode(): Boolean = {
+    null
+  }
+  def tryToBecomeDataNode(): Unit = {
+    //todo
+    logger.info(this.getClass + ": tryToBecomeDataNode" + nodeHostAndPort)
+    var isDataNode = false
+    while (!isDataNode) {
+      syncDataFromCluster(HostAndPort.fromString(clusterService.getLeaderNodeAddress()))
+      //dataVersion = clusterService.getDataVersion()
+      //localDataVersion = getLocalDataVersion()
+      if (becomeDataNode()) {
+        isDataNode = true
+      }
+    }
+    //todo should init something for read and write data
+    //clusterService.lockDataVersion()
+    //clusterService.registerAsDataNode()
+
   }
 
   def syncDataFromCluster(leaderNode: HostAndPort): Unit = {

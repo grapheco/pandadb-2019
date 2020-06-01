@@ -254,7 +254,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     val leaderNodeAddress = getLeaderNodeAddress()
     logger.info("LeaderNode: " + leaderNodeAddress)
     logger.info("pull ")
-//    localDataVersion = (localDataVersion.toInt + 1 ).toString
+    localDataVersion = (localDataVersion.toInt + 1 ).toString
   }
 
   def registerAsFreshNode1(): Unit = {
@@ -402,8 +402,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
   }
 
   private def assurePathExist(): Unit = {
-    zkTools.assureZKNodeExist(leaderNodesPath, dataNodesPath, dataVersionPath, freshNodesPath, onLineNodePath,
-      leaderLatchPath, unfreshNodesPath)
+    zkTools.assureZKNodeExist(leaderNodesPath, dataNodesPath, dataVersionPath, leaderLatchPath)
   }
 
   def addNodeRoleChangedEventListener(listener: NodeRoleChangedEventListener): Unit = {
