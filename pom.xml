@@ -193,6 +193,11 @@
                 <artifactId>curator-recipes</artifactId>
                 <version>3.3.0</version>
             </dependency>
+            <dependency>
+                <groupId>org.grapheco</groupId>
+                <artifactId>regionfs</artifactId>
+                <version>0.9-SNAPSHOT</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>

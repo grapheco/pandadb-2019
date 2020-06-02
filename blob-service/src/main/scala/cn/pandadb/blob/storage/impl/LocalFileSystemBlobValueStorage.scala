@@ -10,8 +10,6 @@ import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.commons.io.filefilter.TrueFileFilter
 import cn.pandadb.util.StreamUtils._
 
-import scala.tools.nsc.interpreter.InputStream
-
 class LocalFileSystemBlobValueStorage(config: Config) extends BlobStorageService{
   val logger = config.getLogger(this.getClass)
   val rootDir: String = "/blob";

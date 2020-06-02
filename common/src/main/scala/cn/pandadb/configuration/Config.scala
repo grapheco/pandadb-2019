@@ -16,6 +16,8 @@ object SettingKeys {
   val dataNodeRpcEndpointName = "rpc.endpoint.datanode.name"
   val leaderNodeRpcEndpointName = "rpc.endpoint.leadernode.name"
   val localNeo4jDBPath = "db.local.neo4j.path"
+
+  val regionfsZKAddress = "blob.regionfs.zk.address"
 }
 
 class Config {
@@ -68,6 +70,10 @@ class Config {
 
   def getLogger(clazz: Class[_]): Logger = {
     LoggerFactory.getLogger(clazz)
+  }
+
+  def getRegionfsZkAddress(): String = {
+    getValueAsString(SettingKeys.regionfsZKAddress, "127.0.0.1:2181")
   }
 
   private def getValueWithDefault[T](key: String, defaultValue: () => T, convert: (String) => T)(implicit m: Manifest[T]): T = {

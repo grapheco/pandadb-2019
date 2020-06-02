@@ -19,5 +19,9 @@
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.grapheco</groupId>
+            <artifactId>regionfs</artifactId>
+        </dependency>
     </dependencies>
 </project>
