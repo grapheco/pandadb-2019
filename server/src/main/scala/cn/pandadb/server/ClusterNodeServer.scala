@@ -57,6 +57,23 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
       }
     }
     clusterService.registerPathChildrenListener(clusterService.leaderNodesPath, leaderNodeCacheListener)
+
+    //listen dataNode
+    val dataNodeCacheListener = new PathChildrenCacheListener {
+      override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
+        val eventType = pathChildrenCacheEvent.getType
+        eventType match {
+          case PathChildrenCacheEvent.Type.CHILD_REMOVED => {
+            if (clusterService.isLeaderNode()) {
+              val data = pathChildrenCacheEvent.getData.getPath.split("/").last
+              logger.info(this.getClass + ": dataNode shutdown: " + "data")
+            }
+          }
+          case _ => null
+        }
+      }
+    }
+    clusterService.registerPathChildrenListener(clusterService.dataNodesPath, leaderNodeCacheListener)
   }
   def assureLeaderExist(): Unit = {
 
