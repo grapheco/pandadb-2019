@@ -23,14 +23,6 @@ class PandaRpcServer(config: Config, clusterService: ClusterService) extends Lif
   val rpcConfig = RpcEnvServerConfig(new RpcConf(), rpcServerName, rpcHost, rpcPort)
   val rpcEnv: HippoRpcEnv = HippoRpcEnvFactory.create(rpcConfig)
 
-  val dataNodeEndpointName = config.getDataNodeEndpointName()
-  val dataNodeRpcEndpoint: RpcEndpoint = new DataNodeRpcEndpoint(rpcEnv, config)
-  var dataNodeRpcEndpointRef: RpcEndpointRef = null
-
-  val leaderNodeEndpointName = config.getLeaderNodeEndpointName()
-  val leaderNodeRpcEndpoint: RpcEndpoint = new LeaderNodeRpcEndPoint(rpcEnv, config, clusterService)
-  var leaderNodeRpcEndpointRef: RpcEndpointRef = null
-
   val blobStore = new LocalFileSystemBlobValueStorage(config)
   val pandaRpcHandler = new PandaRpcHandler(config, clusterService, blobStore)
 
@@ -41,16 +33,11 @@ class PandaRpcServer(config: Config, clusterService: ClusterService) extends Lif
   override def start(): Unit = {
     logger.info(this.getClass + ": start")
     rpcEnv.setRpcHandler(pandaRpcHandler)
-    dataNodeRpcEndpointRef = rpcEnv.setupEndpoint(dataNodeEndpointName, dataNodeRpcEndpoint)
-    //    clusterService.addNodeRoleChangedEventListener(new LeaderNodeChangeListener)
-    addLeaderNodeRpcEndpoint()
     rpcEnv.awaitTermination()
   }
 
   override def stop(): Unit = {
     logger.info(this.getClass + ": stop")
-    rpcEnv.stop(dataNodeRpcEndpointRef)
-    this.removeLeaderNodeRpcEndpoint()
     rpcEnv.shutdown()
   }
 
@@ -58,26 +45,4 @@ class PandaRpcServer(config: Config, clusterService: ClusterService) extends Lif
     logger.info(this.getClass + ": stop")
   }
 
-  def addLeaderNodeRpcEndpoint(): Unit = {
-      logger.info(this.getClass + ": addLeaderNodeRpcEndpoint")
-      leaderNodeRpcEndpointRef = rpcEnv.setupEndpoint(leaderNodeEndpointName, leaderNodeRpcEndpoint)
-  }
-
-  def removeLeaderNodeRpcEndpoint(): Unit = {
-    if (leaderNodeRpcEndpointRef != null) {
-      logger.info(this.getClass + ": removeLeaderNodeRpcEndpoint")
-      rpcEnv.stop(leaderNodeRpcEndpointRef)
-    }
-  }
-
-  class LeaderNodeChangeListener extends NodeRoleChangedEventListener {
-    override def notifyRoleChanged(event: NodeRoleChangedEvent): Unit = {
-      logger.info(this.getClass + ": notifyRoleChanged")
-      event match {
-        case LeaderNodeChangedEvent(isLeader, leaderNode) =>
-          if (isLeader) addLeaderNodeRpcEndpoint()
-          else removeLeaderNodeRpcEndpoint()
-      }
-    }
-  }
 }
