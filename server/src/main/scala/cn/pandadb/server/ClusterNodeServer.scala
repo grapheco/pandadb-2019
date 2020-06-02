@@ -8,38 +8,32 @@ import cn.pandadb.server.modules.LifecycleServerModule
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.netty.HippoRpcEnvFactory
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
+import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.recipes.cache.{PathChildrenCacheEvent, PathChildrenCacheListener}
+import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.apache.curator.shaded.com.google.common.net.HostAndPort
 
 class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStore: DataStore)
       extends LifecycleServerModule{
   val logger = config.getLogger(this.getClass)
   val nodeHostAndPort = HostAndPort.fromString(config.getNodeAddress())
+  val nodeAddress = config.getNodeAddress()
+  var inElection = false
+  var leaderLatch: LeaderLatch = null
 
   override def start(): Unit = {
     logger.info(this.getClass + ": start")
-
-    //clusterService.doNodeStart2()
     logger.info(this.getClass + ": doNodeStart")
-    clusterService.registerListenner()
-    //clusterService.registerAsOnLineNode()
-    clusterService.assureLeaderExist()
+    registerListenner()
+    assureLeaderExist()
     if(!clusterService.isLeaderNode()) {
-      if (clusterService.inElection) {
-        if (clusterService.leaderLatch != null) clusterService.leaderLatch.close()
+      if (inElection) {
+        if (clusterService.leaderLatch != null) leaderLatch.close()
         clusterService.leaderLatch = null
-        clusterService.inElection = false
+        inElection = false
       }
-      clusterService.tryToBecomeDataNode()
+      tryToBecomeDataNode()
     }
-
-/*    if (clusterService.hasLeaderNode()) {
-      val leaderNode = clusterService.getLeaderNodeHostAndPort()
-      syncDataFromCluster(leaderNode)
-    }
-    clusterService.registerAsFreshNode()
-    while (!clusterService.hasLeaderNode()) {
-      participateInLeaderElection()
-    }*/
   }
 
   def getLocalDataVersion(): String = {
@@ -47,27 +41,82 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     null
   }
 
-  def becomeDataNode(): Boolean = {
-    null
-  }
-  def tryToBecomeDataNode(): Unit = {
-    //todo
-    logger.info(this.getClass + ": tryToBecomeDataNode" + nodeHostAndPort)
-    var isDataNode = false
-    while (!isDataNode) {
-      syncDataFromCluster(HostAndPort.fromString(clusterService.getLeaderNodeAddress()))
-      //dataVersion = clusterService.getDataVersion()
-      //localDataVersion = getLocalDataVersion()
-      if (becomeDataNode()) {
-        isDataNode = true
+  def registerListenner(): Unit = {
+    //listen leaderNode
+    val leaderNodeCacheListener = new PathChildrenCacheListener {
+      override def childEvent(curatorFramework: CuratorFramework, pathChildrenCacheEvent: PathChildrenCacheEvent): Unit = {
+        val eventType = pathChildrenCacheEvent.getType
+        eventType match {
+          case PathChildrenCacheEvent.Type.CHILD_REMOVED => {
+            if (!clusterService.isLeaderNode()) {
+              assureLeaderExist()
+              tryToBecomeDataNode()
+            }
+          }
+          case _ => null
+        }
       }
     }
-    //todo should init something for read and write data
-    //clusterService.lockDataVersion()
-    //clusterService.registerAsDataNode()
+    clusterService.registerPathChildrenListener(clusterService.leaderNodesPath, leaderNodeCacheListener)
+  }
+  def assureLeaderExist(): Unit = {
+
+    var leaderNodeAddress = clusterService.getLeaderNodeAddress()
+    var dataVersion = clusterService.getDataVersion()
+    val localDataVersion = getLocalDataVersion()
+
+    while (leaderNodeAddress == null) {
+      logger.info(this.getClass + ": cluster has no leader")
+      if (dataVersion.toInt <= localDataVersion.toInt && !inElection) {
+        inElection = true
+        participateInLeaderElection()
+      }
+      logger.info("dataVersion ==" + dataVersion)
+      logger.info("localdataVersion ==" + localDataVersion)
+      logger.info("election ==" + inElection)
+      logger.info("==== wait getLeaderNode ====")
+      Thread.sleep(500)
+      leaderNodeAddress = clusterService.getLeaderNodeAddress()
+      dataVersion = clusterService.getDataVersion()
+    }
+    logger.info(this.getClass + ": cluster has a new leader: " + leaderNodeAddress)
+    logger.info(this.getClass + ": dataVersion: " + dataVersion)
 
   }
 
+  def tryToBecomeDataNode(): Unit = {
+    logger.info(this.getClass + ": tryToBecomeDataNode" + nodeHostAndPort)
+    while (!clusterService.checkIsDataNode(nodeAddress)) {
+      var dataVersion = clusterService.getDataVersion()
+      var localDataVersion = getLocalDataVersion()
+      if (dataVersion.toInt > localDataVersion.toInt) {
+        syncDataFromCluster(HostAndPort.fromString(clusterService.getLeaderNodeAddress()))
+      }
+      clusterService.lockDataVersion()
+      dataVersion = clusterService.getDataVersion()
+      localDataVersion = getLocalDataVersion()
+      if (dataVersion.toInt > localDataVersion.toInt) {
+        syncDataFromCluster(HostAndPort.fromString(clusterService.getLeaderNodeAddress()))
+      }
+      clusterService.registerAsDataNode()
+      clusterService.unLockDataVersion()
+    }
+    if (!inElection) {
+      inElection = true
+      participateInLeaderElection()
+    }
+  }
+
+  def updateLocalDataToLatestVersion(): Unit = {
+    //todo
+    logger.info(this.getClass + ": syncLocalGraphData")
+    logger.info(this.getClass + ": dataVersion = " + clusterService.getDataVersion())
+    logger.info(this.getClass + ": localdataVersion = " + getLocalDataVersion())
+    val leaderNodeAddress = clusterService.getLeaderNodeAddress()
+    logger.info("LeaderNode: " + leaderNodeAddress)
+    logger.info("pull ")
+    //localDataVersion = (localDataVersion.toInt + 1 ).toString
+  }
   def syncDataFromCluster(leaderNode: HostAndPort): Unit = {
     logger.info("syncDataFromCluster")
       val dbDir = dataStore.databaseDirectory
@@ -86,13 +135,20 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
   }
 
   def participateInLeaderElection(): Unit = {
-    logger.info(this.getClass + "participateInLeaderElection: " )
-    val localDataVersion = dataStore.getDataVersion()
-    val clusterDataVersion = clusterService.getDataVersion().toLong
-    if (localDataVersion >= clusterDataVersion) {
-      // try register leader
-      // add leader lister handler function
+    logger.info(this.getClass + "participateInLeaderElection: " + nodeAddress)
+    val finalLeaderLatch = new LeaderLatch(clusterService.curator, clusterService.leaderLatchPath, nodeAddress)
+    leaderLatch = finalLeaderLatch
 
-    }
+    finalLeaderLatch.addListener(new LeaderLatchListener() {
+      override def isLeader(): Unit = {
+        logger.info(finalLeaderLatch.getId + ":I am leader.")
+        clusterService.setDataVersion(getLocalDataVersion())
+        clusterService.setLeaderNodeAddress(nodeAddress)
+      }
+      override def notLeader(): Unit = {
+        logger.info(finalLeaderLatch.getId + ":I am not leader.")
+      }
+    })
+    finalLeaderLatch.start()
   }
 }
