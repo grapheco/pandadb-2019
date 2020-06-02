@@ -72,6 +72,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   def lockDataVersion(isReadLock: Boolean): Unit = {
 
+    logger.info(this.getClass + ": getDataVersionLock: " + nodeAddress)
     if (lock == null) lock = new InterProcessReadWriteLock(curator, dataVersionLockPath)
 
     if (isReadLock) {
@@ -83,6 +84,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   def unLockDataVersion(): Unit = {
 
+    logger.info(this.getClass + ": releaseDataVersionLock: " + nodeAddress)
     if (interMux.isAcquiredInThisProcess()) interMux.release()
 
   }
@@ -131,8 +133,9 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   def registerAsDataNode(): Unit = {
     logger.info(this.getClass + "registerAsDataNode: " + nodeAddress)
-    val dataNodePrefix = dataNodesPath + "/" + "node-"
-    asDataNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, dataNodePrefix, nodeAddress)
+    //val dataNodePrefix = dataNodesPath + "/" + "node-"
+    //asDataNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, dataNodePrefix, nodeAddress)
+    addNodeToPath(dataNodesPath, nodeAddress)
   }
 
   def registerAsOnLineNode(): Unit = {
@@ -162,7 +165,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   def getLeaderLatch(): LeaderLatch = {
     if (leaderLatch == null) {
-      leaderLatch = new LeaderLatch(curator, leaderNodesPath)
+      leaderLatch = new LeaderLatch(curator, leaderLatchPath, nodeAddress)
     }
     leaderLatch
   }
@@ -193,10 +196,6 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
       case ex: Exception => throw ex
     }
     false
-  }
-
-  def isLeaderNode(): Boolean = {
-    getLeaderLatch().hasLeadership()
   }
 
   def getDataNodes(): List[String] = {

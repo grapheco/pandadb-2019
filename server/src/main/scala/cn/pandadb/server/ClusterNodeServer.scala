@@ -26,7 +26,8 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     logger.info(this.getClass + ": doNodeStart")
     registerListenner()
     assureLeaderExist()
-    if(!clusterService.isLeaderNode()) {
+    if(!isLeaderNode) {
+      logger.info(this.getClass + ": not leaderNode: " + nodeHostAndPort)
       if (inElection) {
         if (clusterService.leaderLatch != null) leaderLatch.close()
         clusterService.leaderLatch = null
@@ -36,6 +37,16 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     }
   }
 
+  def getLeaderLatch(): LeaderLatch = {
+    if (leaderLatch == null) {
+      leaderLatch = new LeaderLatch(clusterService.curator, clusterService.leaderLatchPath, nodeAddress)
+    }
+    leaderLatch
+  }
+
+  def isLeaderNode(): Boolean = {
+    getLeaderLatch().hasLeadership()
+  }
   def getLocalDataVersion(): String = {
     dataStore.getDataVersion().toString
   }
@@ -47,7 +58,7 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
         val eventType = pathChildrenCacheEvent.getType
         eventType match {
           case PathChildrenCacheEvent.Type.CHILD_REMOVED => {
-            if (!clusterService.isLeaderNode()) {
+            if (!isLeaderNode()) {
               assureLeaderExist()
               tryToBecomeDataNode()
             }
@@ -64,16 +75,22 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
         val eventType = pathChildrenCacheEvent.getType
         eventType match {
           case PathChildrenCacheEvent.Type.CHILD_REMOVED => {
-            if (clusterService.isLeaderNode()) {
+            if (isLeaderNode()) {
               val data = pathChildrenCacheEvent.getData.getPath.split("/").last
-              logger.info(this.getClass + ": dataNode shutdown: " + "data")
+              logger.info(this.getClass + ": dataNode shutdown: " + data)
+            }
+          }
+          case PathChildrenCacheEvent.Type.CHILD_ADDED => {
+            if (isLeaderNode()) {
+              val data = pathChildrenCacheEvent.getData.getPath.split("/").last
+              logger.info(this.getClass + ": dataNode online: " + data)
             }
           }
           case _ => null
         }
       }
     }
-    clusterService.registerPathChildrenListener(clusterService.dataNodesPath, leaderNodeCacheListener)
+    clusterService.registerPathChildrenListener(clusterService.dataNodesPath, dataNodeCacheListener)
   }
   def assureLeaderExist(): Unit = {
 
@@ -157,7 +174,9 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     finalLeaderLatch.addListener(new LeaderLatchListener() {
       override def isLeader(): Unit = {
         logger.info(finalLeaderLatch.getId + ":I am leader.")
+        clusterService.lockDataVersion(false)
         clusterService.setDataVersion(getLocalDataVersion())
+        clusterService.unLockDataVersion()
         clusterService.setLeaderNodeAddress(nodeAddress)
       }
       override def notLeader(): Unit = {
