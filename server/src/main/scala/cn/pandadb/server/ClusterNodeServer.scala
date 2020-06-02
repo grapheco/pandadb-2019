@@ -37,8 +37,7 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
   }
 
   def getLocalDataVersion(): String = {
-    //todo
-    null
+    dataStore.getDataVersion().toString
   }
 
   def registerListenner(): Unit = {
@@ -92,7 +91,7 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
       if (dataVersion.toInt > localDataVersion.toInt) {
         syncDataFromCluster(HostAndPort.fromString(clusterService.getLeaderNodeAddress()))
       }
-      clusterService.lockDataVersion()
+      clusterService.lockDataVersion(true)
       dataVersion = clusterService.getDataVersion()
       localDataVersion = getLocalDataVersion()
       if (dataVersion.toInt > localDataVersion.toInt) {
@@ -115,7 +114,6 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     val leaderNodeAddress = clusterService.getLeaderNodeAddress()
     logger.info("LeaderNode: " + leaderNodeAddress)
     logger.info("pull ")
-    //localDataVersion = (localDataVersion.toInt + 1 ).toString
   }
   def syncDataFromCluster(leaderNode: HostAndPort): Unit = {
     logger.info("syncDataFromCluster")

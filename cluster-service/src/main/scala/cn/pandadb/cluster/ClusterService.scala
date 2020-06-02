@@ -7,6 +7,7 @@ import cn.pandadb.zk.ZKTools
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.{PathChildrenCacheEvent, PathChildrenCacheListener}
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener, Participant}
+import org.apache.curator.framework.recipes.locks.{InterProcessMutex, InterProcessReadWriteLock}
 import org.apache.curator.shaded.com.google.common.net.HostAndPort
 import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.{CreateMode, ZooDefs}
@@ -23,6 +24,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
   val leaderLatchPath = zkTools.buildFullZKPath("/leaderLatch")
   val onLineNodePath = zkTools.buildFullZKPath("/onLineNode")
   val unfreshNodesPath = zkTools.buildFullZKPath("/unFreshNodes")
+  val dataVersionLockPath = zkTools.buildFullZKPath("/lockPath")
   val versionZero = "0"
   var dataVersion: String = null
   var localDataVersion: String = null
@@ -34,6 +36,8 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
   var asLeaderNodePath: String = null
 
   val roleEventlisteners = ListBuffer[NodeRoleChangedEventListener]()
+  var lock: InterProcessReadWriteLock = null
+  var interMux: InterProcessMutex = null
 
   override def init(): Unit = {
     logger.info(this.getClass + ": init")
@@ -66,12 +70,21 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     }*/
   }
 
-  def lockDataVersion(): Unit = {
-      //todo
+  def lockDataVersion(isReadLock: Boolean): Unit = {
+
+    if (lock == null) lock = new InterProcessReadWriteLock(curator, dataVersionLockPath)
+
+    if (isReadLock) {
+      interMux = lock.readLock()
+    }
+    else interMux = lock.writeLock()
+    interMux.acquire()
   }
 
   def unLockDataVersion(): Unit = {
-     //todo
+
+    if (interMux.isAcquiredInThisProcess()) interMux.release()
+
   }
 
   def checkNodeOk(nodeWithVersion: String): Boolean = {
@@ -219,7 +232,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
   }
 
   private def assurePathExist(): Unit = {
-    zkTools.assureZKNodeExist(leaderNodesPath, dataNodesPath, dataVersionPath, leaderLatchPath)
+    zkTools.assureZKNodeExist(leaderNodesPath, dataNodesPath, dataVersionPath, leaderLatchPath, dataVersionLockPath)
   }
 
   def addNodeRoleChangedEventListener(listener: NodeRoleChangedEventListener): Unit = {
