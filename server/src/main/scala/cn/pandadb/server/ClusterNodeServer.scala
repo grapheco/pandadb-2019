@@ -176,6 +176,7 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
         logger.info(finalLeaderLatch.getId + ":I am leader.")
         clusterService.lockDataVersion(false)
         clusterService.setDataVersion(getLocalDataVersion())
+        if (!clusterService.checkIsDataNode(nodeAddress)) clusterService.registerAsDataNode(nodeAddress)
         clusterService.unLockDataVersion()
         clusterService.setLeaderNodeAddress(nodeAddress)
       }
