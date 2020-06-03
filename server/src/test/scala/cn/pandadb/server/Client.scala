@@ -16,9 +16,9 @@ class Client {
   val leaderDriver = new LeaderNodeDriver
   val dataNodeDriver = new DataNodeDriver
   val config = new Config
-  val zkTools = new ZKTools(config)
-  zkTools.init()
-  val clusterService = new ClusterService(config, zkTools)
+//  val zkTools = new ZKTools(config)
+//  zkTools.init()
+  val clusterService = new ClusterService(config)
   clusterService.init()
   val clientConfig = RpcEnvClientConfig(new RpcConf(), config.getRpcServerName())
   val clientRpcEnv = HippoRpcEnvFactory.create(clientConfig)
@@ -30,7 +30,6 @@ class Client {
   def getZkDataNodes(): Unit = {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getZkDataNodes(ref, Duration.Inf)
-    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -38,7 +37,6 @@ class Client {
   def sayHello(): Unit = {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.sayHello("hello", ref, Duration.Inf)
-    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -47,10 +45,9 @@ class Client {
     // return ArrayBuffer of nodes
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.runCypher("match (n) return n", ref, Duration.Inf)
-    res.records.foreach(println)
+//    res.records.foreach(println)
     clientRpcEnv.stop(ref)
   }
-
 
   @Test
   def createNode(): Unit = {
@@ -59,7 +56,7 @@ class Client {
     val toCreate = Array(Map("aaa" -> 111), Map("bbb" -> 222), Map("ccc" -> 333), Map("ddd" -> 444), Map("eee" -> 555), Map("fff" -> 666))
     for (i <- 0 to 5) {
       val res = leaderDriver.createNode(Array("514"), toCreate(i), ref, Duration.Inf)
-      println(res)
+//      println(res)
     }
     clientRpcEnv.stop(ref)
   }
@@ -69,7 +66,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.deleteNode(22L, ref, Duration.Inf)
-    println(res)
+//    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -78,7 +75,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.addNodeLabel(0L, "People", ref, Duration.Inf)
-    println(res)
+//    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -87,7 +84,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.removeNodeLabel(0L, "People", ref, Duration.Inf)
-    println(res)
+//    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -96,7 +93,7 @@ class Client {
     // return node
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getNodeById(0L, ref, Duration.Inf)
-    println(res)
+//    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -105,7 +102,7 @@ class Client {
     // return ArrayBuffer of nodes
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getNodesByProperty("514", Map("aaa" -> 111), ref, Duration.Inf)
-    println(res.foreach(println))
+//    println(res.foreach(println))
     clientRpcEnv.stop(ref)
   }
 
@@ -114,7 +111,7 @@ class Client {
     // return ArrayBuffer of nodes
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getNodesByLabel("514", ref, Duration.Inf)
-    println(res.foreach(println))
+//    println(res.foreach(println))
     clientRpcEnv.stop(ref)
   }
 
@@ -123,7 +120,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.setNodeProperty(0L, Map("a" -> 2, "b" -> 1), ref, Duration.Inf)
-    println(res)
+//    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -132,7 +129,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.removeNodeProperty(0L, "b", ref, Duration.Inf)
-    println(res)
+//    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -143,9 +140,9 @@ class Client {
     val res = leaderDriver.createNodeRelationship(0L, 20L, "QQQQ", Direction.BOTH, ref, Duration.Inf)
     val res1 = leaderDriver.createNodeRelationship(1L, 2L, "OOOO", Direction.OUTGOING, ref, Duration.Inf)
     val res2 = leaderDriver.createNodeRelationship(2L, 1L, "IIII", Direction.INCOMING, ref, Duration.Inf)
-    println(res)
-    println(res1)
-    println(res2)
+//    println(res)
+//    println(res1)
+//    println(res2)
     clientRpcEnv.stop(ref)
   }
 
@@ -154,7 +151,7 @@ class Client {
     // return relationship
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getRelationshipByRelationId(0L, ref, Duration.Inf)
-    println(res)
+//    println(res)
   }
 
   @Test
@@ -163,7 +160,7 @@ class Client {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val propertyMap: Map[String, Any] = Map("relation" -> "qqq", "relation2" -> 777)
     val res = leaderDriver.setRelationshipProperty(0L, propertyMap, ref, Duration.Inf)
-    println(res)
+//    println(res)
   }
 
   @Test
@@ -172,7 +169,7 @@ class Client {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val propertyArray: Array[String] = Array("relation2")
     val res = leaderDriver.deleteRelationshipProperties(0L, propertyArray, ref, Duration.Inf)
-    println(res)
+//    println(res)
   }
 
   @Test
@@ -180,7 +177,7 @@ class Client {
     // return ArrayBuffer of relationship
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res1 = leaderDriver.getNodeRelationships(2L, ref, Duration.Inf)
-    println(res1.foreach(println))
+//    println(res1.foreach(println))
     clientRpcEnv.stop(ref)
   }
 
@@ -189,7 +186,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.deleteNodeRelationship(0L, 20L, "TEST", Direction.BOTH, ref, Duration.Inf)
-    println(res)
+//    println(res)
     clientRpcEnv.stop(ref)
   }
 

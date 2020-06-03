@@ -12,9 +12,7 @@ object NodeServer2 {
     config1.nodeAddress = "8.8.8.8:1001"
     config1.zkAddress = "127.0.0.1:2181"
 
-    val zktools = new ZKTools(config1)
-    zktools.init()
-    val clusterService = new ClusterService(config1, zktools) {
+    val clusterService = new ClusterService(config1) {
       override def getDataVersion(): String = {
         dataVersion
       }

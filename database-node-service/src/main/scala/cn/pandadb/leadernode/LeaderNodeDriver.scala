@@ -1,5 +1,6 @@
 package cn.pandadb.leadernode
 
+import java.nio.ByteBuffer
 import java.util.Random
 
 import cn.pandadb.blob.{BlobEntry, MimeType}
@@ -9,6 +10,7 @@ import cn.pandadb.datanode.DataNodeDriver
 import cn.pandadb.driver.result.InternalRecords
 import cn.pandadb.driver.values.{Direction, Label, Node, Relationship}
 import cn.pandadb.util.PandaReplyMessage
+import io.netty.buffer.{ByteBuf, Unpooled}
 import net.neoremind.kraps.rpc.RpcAddress
 import net.neoremind.kraps.rpc.netty.{HippoEndpointRef, HippoRpcEnv}
 
@@ -205,8 +207,9 @@ class LeaderNodeDriver {
   }
 
 
-  def createBlobEntry(length: Long, mimeType: MimeType, endpointRef: HippoEndpointRef, duration: Duration): BlobEntry = {
-    val res = Await.result(endpointRef.askWithBuffer[BlobEntry](LeaderCreateBlobEntry(length, mimeType)), duration)
+  def createBlobEntry(length: Long, mimeType: MimeType, content: Array[Byte], endpointRef: HippoEndpointRef, duration: Duration): BlobEntry = {
+    println(content)
+    val res = Await.result(endpointRef.askWithBuffer[BlobEntry](LeaderCreateBlobEntry(length, mimeType), Unpooled.copiedBuffer(content)), duration)
     res
   }
 }

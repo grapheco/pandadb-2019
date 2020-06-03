@@ -9,4 +9,11 @@ import org.junit.Test
 // scalastyle:off println
 
 class ClusterTest {
+  val config = new Config()
+  val clusterService = new ClusterService(config)
+
+  @Test
+  def testForGetDataNodes(): Unit = {
+    println(clusterService.getDataNodes())
+  }
 }

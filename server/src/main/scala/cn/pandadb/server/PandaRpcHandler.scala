@@ -1,17 +1,20 @@
 package cn.pandadb.server
 
-import java.io.{File, FileInputStream}
+import java.io.{ByteArrayInputStream, File, FileInputStream}
 import java.nio.ByteBuffer
 import java.util.Random
 
-import cn.pandadb.blob.Blob
+import scala.collection.JavaConverters._
+
+import cn.pandadb.blob.{Blob, MimeType}
 import cn.pandadb.blob.storage.BlobStorageService
 import cn.pandadb.cluster.ClusterService
 import org.grapheco.hippo.{ChunkedStream, CompleteStream, HippoRpcHandler, ReceiveContext}
 import cn.pandadb.configuration.{Config => PandaConfig}
 import cn.pandadb.datanode.{AddNodeLabel, CreateNode, CreateNodeRelationship, DataNodeServiceImpl, DeleteNode, DeleteNodeRelationship, DeleteRelationshipProperties, GetAllDBLabels, GetAllDBNodes, GetAllDBRelationships, GetNodeById, GetNodeRelationships, GetNodesByLabel, GetNodesByProperty, GetRelationshipByRelationId, ReadDbFileRequest, RemoveNodeLabel, RemoveNodeProperty, RunCypher, SayHello, SetNodeProperty, SetRelationshipProperty}
 import cn.pandadb.driver.values.{Node, Relationship}
-import cn.pandadb.leadernode.{GetLeaderDbFileNames, GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateBlobEntry, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderDeleteRelationshipProperties, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderGetRelationshipByRelationId, LeaderNodeServiceImpl, LeaderRemoveNodeLabel, LeaderRemoveNodeProperty, LeaderRunCypher, LeaderSayHello, LeaderSetNodeProperty, LeaderSetRelationshipProperty}
+import cn.pandadb.leadernode.{GetLeaderDbFileNames, GetZkDataNodes, LeaderAddNodeLabel, LeaderCreateBlobEntry, LeaderCreateNode, LeaderCreateNodeRelationship, LeaderDeleteNode, LeaderDeleteNodeRelationship, LeaderDeleteRelationshipProperties, LeaderGetNodeById, LeaderGetNodeRelationships, LeaderGetNodesByLabel, LeaderGetNodesByProperty, LeaderGetRelationshipByRelationId, LeaderNodeServiceImpl, LeaderRemoveNodeLabel, LeaderRemoveNodeProperty, LeaderRunCypher, LeaderSaveBlob, LeaderSayHello, LeaderSetNodeProperty, LeaderSetRelationshipProperty}
+import cn.pandadb.server.Store.DataStore
 import cn.pandadb.util.PandaReplyMessage
 import io.netty.buffer.Unpooled
 import org.neo4j.graphdb.GraphDatabaseService
@@ -20,12 +23,14 @@ import org.slf4j.Logger
 
 import scala.collection.mutable.ArrayBuffer
 
-class PandaRpcHandler(pandaConfig: PandaConfig, clusterService: ClusterService, blobStore: BlobStorageService) extends HippoRpcHandler {
+class PandaRpcHandler(pandaConfig: PandaConfig, clusterService: ClusterService,
+                      blobStore: BlobStorageService, localDataStore: DataStore) extends HippoRpcHandler {
   val logger: Logger = pandaConfig.getLogger(this.getClass)
-  val dbFile = new File(pandaConfig.getLocalNeo4jDatabasePath())
-  if (!dbFile.exists()) {
-    dbFile.mkdirs
-  }
+//  val dbFile = new File(pandaConfig.getLocalNeo4jDatabasePath())
+//  if (!dbFile.exists()) {
+//    dbFile.mkdirs
+//  }
+  val dbFile = localDataStore.graphStore
   var localNeo4jDB: GraphDatabaseService = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
   val dataNodeService = new DataNodeServiceImpl(localNeo4jDB)
   val leaderNodeService = new LeaderNodeServiceImpl
@@ -370,7 +375,16 @@ class PandaRpcHandler(pandaConfig: PandaConfig, clusterService: ClusterService, 
     }
 
     case LeaderCreateBlobEntry(length, mimeType) => {
-      val blobEntry = blobStore.save(length, mimeType, null)
+      val bytes: Array[Byte] = new Array[Byte](extraInput.remaining())
+      extraInput.get(bytes)
+      val blobEntry = blobStore.save(length, mimeType, bytes)
+      context.reply(blobEntry)
+    }
+
+    case LeaderSaveBlob(length, mimeType) => {
+      val bytes: Array[Byte] = new Array[Byte](extraInput.remaining())
+      extraInput.get(bytes)
+      val blobEntry = blobStore.save(length, mimeType, bytes)
       context.reply(blobEntry)
     }
   }

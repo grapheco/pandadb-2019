@@ -52,3 +52,5 @@ case class GetLeaderDbFileNames()
 // blob
 
 case class LeaderCreateBlobEntry(length: Long, mimeType: MimeType)
+
+case class LeaderSaveBlob(length: Long, mimeType: MimeType)

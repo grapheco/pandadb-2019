@@ -131,7 +131,7 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
       if (dataVersion.toInt > localDataVersion.toInt) {
         syncDataFromCluster(HostAndPort.fromString(clusterService.getLeaderNodeAddress()))
       }
-      clusterService.registerAsDataNode()
+      clusterService.registerAsDataNode(nodeAddress)
       clusterService.unLockDataVersion()
     }
     if (!inElection) {
@@ -151,7 +151,7 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
   }
   def syncDataFromCluster(leaderNode: HostAndPort): Unit = {
     logger.info("syncDataFromCluster")
-      val dbDir = dataStore.databaseDirectory
+      val dbDir = dataStore.graphStoreDirectory
 
       val rpcServerName = config.getRpcServerName()
       val LeaderNodeEndpointName = config.getLeaderNodeEndpointName()

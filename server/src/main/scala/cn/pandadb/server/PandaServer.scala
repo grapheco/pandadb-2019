@@ -1,33 +1,43 @@
 package cn.pandadb.server
 
 import java.util.ServiceLoader
-import scala.collection.JavaConverters._
+import java.io.File
 
+import cn.pandadb.blob.storage.impl.RegionfsBlobValueStorage
+
+import scala.collection.JavaConverters._
 import cn.pandadb.configuration.Config
 import cn.pandadb.lifecycle.LifecycleSupport
 import cn.pandadb.cluster.ClusterService
 import cn.pandadb.datanode.PandaRpcServer
 import cn.pandadb.index.IndexServiceFactory
+import cn.pandadb.server.Store.{DataStore, DataStoreLayout}
 import cn.pandadb.zk.ZKTools
 
 class PandaServer(config: Config)  {
 
   val life = new LifecycleSupport
   val logger = config.getLogger(this.getClass)
-  val zkTools = new ZKTools(config)
-  zkTools.init()
-//  val localNeo4jDB = getOrCreateLocalNeo4jDatabase()
-  val clusterService = new ClusterService(config, zkTools)
 
+//  val localNeo4jDB = getOrCreateLocalNeo4jDatabase()
+  val clusterService = new ClusterService(config)
   clusterService.init()
 
-//  life.add(clusterService)
+  val localStorePath = config.getLocalDataStorePath()
+  val localDataStore: DataStore = new DataStore(DataStoreLayout.of(new File(localStorePath)))
+  val clusterNodeServer = new ClusterNodeServer(config, clusterService, localDataStore)
+  life.add(clusterNodeServer)
+
   val serviceLoaders = ServiceLoader.load(classOf[IndexServiceFactory]).asScala
   if(serviceLoaders.size > 0) {
     val indexService = serviceLoaders.iterator.next().create(config)
     life.add(indexService )
   }
-  life.add(new PandaRpcServer(config, clusterService) )
+
+  val blobStoreService = new RegionfsBlobValueStorage(config)
+  life.add(blobStoreService)
+
+  life.add(new PandaRpcServer(config, clusterService, blobStoreService, localDataStore) )
   clusterService.start()
 
   def start(): Unit = {
@@ -39,7 +49,6 @@ class PandaServer(config: Config)  {
   def shutdown(): Unit = {
     logger.info("==== PandaDB Server Shutting Down... ====")
     life.shutdown()
-    zkTools.close()
     logger.info("==== PandaDB Server is Shutdown ====")
   }
 

@@ -9,22 +9,27 @@ object StoreFileNames {
 }
 
 class DataStoreLayout(storeDirectory: File) {
-
-  def getDatabaseName: String = StoreFileNames.DATABASE_NAME
-
-  def databaseDirectory: File = file(StoreFileNames.DATABASE_NAME)
-
-  def localDataVersionStore: File = file(StoreFileNames.LOCAL_DATA_VERSION)
-
-  def localDataLogStore: File = file(StoreFileNames.LOCAL_DATA_LOG)
+  val graphDatabaseName: String = StoreFileNames.DATABASE_NAME
+  val graphStoreDirectory: File = file(StoreFileNames.DATABASE_NAME)
+  val localDataVersionStore: File = file(StoreFileNames.LOCAL_DATA_VERSION)
+  val localDataLogStore: File = file(StoreFileNames.LOCAL_DATA_LOG)
 
   private def file(fileName: String): File = new File(storeDirectory, fileName)
+
+  private def layout(): DataStoreLayout = {
+    if (!storeDirectory.exists()) {
+      storeDirectory.mkdirs()
+    }
+    if (!graphStoreDirectory.exists()) {
+      graphStoreDirectory.mkdirs()
+    }
+    if (!localDataVersionStore.exists()) {
+      localDataVersionStore.createNewFile()
+    }
+    this
+  }
 }
 
 object DataStoreLayout {
-  def of(dataStoreDirectory: File): DataStoreLayout = new DataStoreLayout(dataStoreDirectory)
-
-  def layout(): Unit = {
-
-  }
+  def of(dataStoreDirectory: File): DataStoreLayout = (new DataStoreLayout(dataStoreDirectory)).layout()
 }

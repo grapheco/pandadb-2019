@@ -9,7 +9,7 @@ import org.junit.Test
 
 class TestsForRegionfsBlobValueStorage {
   val config1 = new Config() {
-    override def getRegionfsZkAddress(): String = {"10.0.82.216:2181"}
+    override def getRegionfsZkAddress(): String = {"10.0.82.220:2181"}
   }
 
   @Test

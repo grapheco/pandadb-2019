@@ -12,30 +12,32 @@ import org.apache.curator.shaded.com.google.common.net.HostAndPort
 import org.apache.zookeeper.KeeperException.NoNodeException
 import org.apache.zookeeper.{CreateMode, ZooDefs}
 
-class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerModule {
+class ClusterService(config: Config) extends LifecycleServerModule {
 
   val logger = config.getLogger(this.getClass)
   val nodeAddress = config.getNodeAddress()
 
+  val zkTools = new ZKTools(config)
+  zkTools.init()
   val leaderNodesPath = zkTools.buildFullZKPath("/leaderNodes")
   val dataNodesPath = zkTools.buildFullZKPath("/dataNodes")
   val dataVersionPath = zkTools.buildFullZKPath("/dataVersion")
-  val freshNodesPath = zkTools.buildFullZKPath("/freshNodes")
+//  val freshNodesPath = zkTools.buildFullZKPath("/freshNodes")
   val leaderLatchPath = zkTools.buildFullZKPath("/leaderLatch")
-  val onLineNodePath = zkTools.buildFullZKPath("/onLineNode")
-  val unfreshNodesPath = zkTools.buildFullZKPath("/unFreshNodes")
+//  val onLineNodePath = zkTools.buildFullZKPath("/onLineNode")
+//  val unfreshNodesPath = zkTools.buildFullZKPath("/unFreshNodes")
   val dataVersionLockPath = zkTools.buildFullZKPath("/lockPath")
   val versionZero = "0"
   var dataVersion: String = null
-  var localDataVersion: String = null
+//  var localDataVersion: String = null
 
   var leaderLatch : LeaderLatch = null
   val curator = zkTools.getCurator()
-  var asFreshNodePath: String = null
+//  var asFreshNodePath: String = null
   var asDataNodePath: String = null
   var asLeaderNodePath: String = null
 
-  val roleEventlisteners = ListBuffer[NodeRoleChangedEventListener]()
+//  val roleEventlisteners = ListBuffer[NodeRoleChangedEventListener]()
   var lock: InterProcessReadWriteLock = null
   var interMux: InterProcessMutex = null
 
@@ -46,7 +48,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
 
   override def start(): Unit = {
     logger.info(this.getClass + ": start")
-    doNodeStart()
+//    doNodeStart()
   }
 
   override def stop(): Unit = {
@@ -57,21 +59,7 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     logger.info(this.getClass + ": shutdown")
   }
 
-  def doNodeStart(): Unit = {
-  /*  logger.info(this.getClass + ": doNodeStart")
-    registerAsFreshNode1()
-    updateLocalDataToLatestVersion()
-    unregisterAsFreshNode()
-    registerAsDataNode()
-    participateInLeaderElection()
-    while (getLeaderNode() == null) {
-      logger.info("==== wait getLeaderNode ====")
-      Thread.sleep(500)
-    }*/
-  }
-
   def lockDataVersion(isReadLock: Boolean): Unit = {
-
     logger.info(this.getClass + ": getDataVersionLock: " + nodeAddress)
     if (lock == null) lock = new InterProcessReadWriteLock(curator, dataVersionLockPath)
 
@@ -83,10 +71,8 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
   }
 
   def unLockDataVersion(): Unit = {
-
     logger.info(this.getClass + ": releaseDataVersionLock: " + nodeAddress)
     if (interMux.isAcquiredInThisProcess()) interMux.release()
-
   }
 
   def checkNodeOk(nodeWithVersion: String): Boolean = {
@@ -99,9 +85,9 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     zkTools.deleteZKNodeAndChildren(path)
   }
 
-  def addNodeToPath(path: String, node: String): Unit = {
+  def addNodeToPath(path: String, node: String, content: String = ""): Unit = {
     if (zkTools.checkChildExist(path, node)) zkTools.deleteZKNodeAndChildren(path + "/" + node)
-    zkTools.createZKNode(CreateMode.EPHEMERAL, path + "/" + node)
+    zkTools.createZKNode(CreateMode.EPHEMERAL, path + "/" + node, content)
   }
 
   def checkIsDataNode(node: String): Boolean = {
@@ -113,55 +99,18 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     zkTools.registerPathChildrenListener(path, listenner)
   }
 
-  def registerAsFreshNode1(): Unit = {
-    logger.info(this.getClass + ": registerAsFreshNodes: " + nodeAddress)
-    val freshNodePrefix = freshNodesPath + "/" + "node-"
-    asFreshNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, freshNodePrefix, nodeAddress)
-  }
-
-  def registerAsFreshNode(): Unit = {
-    logger.info(this.getClass + ": registerAsFreshNodes: " + nodeAddress)
-    val freshNode = freshNodesPath + "/" + nodeAddress + "_" + getLocalDataVersion()
-    asFreshNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL, freshNode)
-  }
-
-  def unregisterAsFreshNode(): Unit = {
-    logger.info(this.getClass + "unregisterAsFreshNode: " + nodeAddress)
-    zkTools.deleteZKNodeAndChildren(asFreshNodePath)
-    asFreshNodePath = null
-  }
-
-  def registerAsDataNode(): Unit = {
+  def registerAsDataNode(nodeAddress: String): Unit = {
     logger.info(this.getClass + "registerAsDataNode: " + nodeAddress)
     //val dataNodePrefix = dataNodesPath + "/" + "node-"
     //asDataNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, dataNodePrefix, nodeAddress)
-    addNodeToPath(dataNodesPath, nodeAddress)
+    addNodeToPath(dataNodesPath, nodeAddress, nodeAddress)
   }
 
-  def registerAsOnLineNode(): Unit = {
-    logger.info(this.getClass + "registerAsOnLineNode: " + nodeAddress)
-    //val dataNode = onLineNodePath + "/" + nodeAddress
-    //zkTools.createZKNode(CreateMode.EPHEMERAL, dataNode)
-    addNodeToPath(onLineNodePath, nodeAddress)
-  }
-
-  def unregisterAsDataNode(): Unit = {
+  def unregisterAsDataNode(nodeAdress: String): Unit = {
     logger.info(this.getClass + "unregisterAsDataNode: " + nodeAddress)
-    zkTools.deleteZKNodeAndChildren(asDataNodePath)
+    zkTools.deleteZKNodeAndChildren(nodeAdress)
     asDataNodePath = null
   }
-
-//  def registerAsLeaderNode(): Unit = {
-//    logger.info(this.getClass + "registerAsLeaderNode: " + nodeAddress)
-//    val leaderNodePrefix = leaderNodesPath + "/" + "node-"
-//    asLeaderNodePath = zkTools.createZKNode(CreateMode.EPHEMERAL_SEQUENTIAL, leaderNodePrefix, nodeAddress)
-//  }
-//
-//  def unregisterAsLeaderNode: Unit = {
-//    logger.info(this.getClass + "unregisterAsLeaderNode: " + nodeAddress)
-//    zkTools.deleteZKNodeAndChildren(asLeaderNodePath)
-//    asLeaderNodePath = null
-//  }
 
   def getLeaderLatch(): LeaderLatch = {
     if (leaderLatch == null) {
@@ -170,50 +119,18 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     leaderLatch
   }
 
-  def getLeaderNode(): String = {
-    try {
-      getLeaderLatch().getLeader.getId
-    } catch {
-      case ex: NoNodeException => null
-      case ex: Exception => throw ex
-    }
-  }
-
-  def getLeaderNodeHostAndPort(): HostAndPort = {
-    try {
-      HostAndPort.fromString(getLeaderNode)
-    } catch {
-      case ex: NoNodeException => null
-      case ex: Exception => throw ex
-    }
-  }
-
-  def hasLeaderNode(): Boolean = {
-    try {
-      getLeaderLatch().getLeader.isLeader
-    } catch {
-      case ex: NoNodeException => null
-      case ex: Exception => throw ex
-    }
-    false
-  }
-
   def getDataNodes(): List[String] = {
     val dataNodes = zkTools.getZKNodeChildren(dataNodesPath)
-    dataNodes.map(name => {
-      zkTools.getZKNodeData(dataNodesPath + "/" + name)
-    })
+//    dataNodes.map(name => {
+//      zkTools.getZKNodeData(dataNodesPath + "/" + name)
+//    })
+    dataNodes
   }
 
   def getDataVersion(): String = {
-    //val dataVersion = zkTools.getZKNodeChildren(dataVersionPath)
-    //if (dataVersion isEmpty) versionZero else dataVersion.head
-    dataVersion
-  }
-
-  def getLocalDataVersion(): String = {
-    //versionZero
-    localDataVersion
+    val dataVersion = zkTools.getZKNodeChildren(dataVersionPath)
+    if (dataVersion isEmpty) versionZero else dataVersion.head
+//    dataVersion
   }
 
   def setDataVersion(version: String): Unit = {
@@ -221,26 +138,38 @@ class ClusterService(config: Config, zkTools: ZKTools) extends LifecycleServerMo
     if (!zkTools.checkChildExist(dataVersionPath, version)) zkTools.createZKNode(CreateMode.PERSISTENT, path)
   }
 
-  def getLeaderNodeAddress(): String = {
+  def getLeaderNode(): String = {
     val leaderNode = zkTools.getZKNodeChildren(leaderNodesPath)
     if (leaderNode isEmpty) null else leaderNode.head
+  }
+  def getLeaderNodeAddress(): String = {
+    getLeaderNode()
   }
   def setLeaderNodeAddress(nodeAddress: String): Unit = {
     val path = leaderNodesPath + "/" + nodeAddress
     zkTools.createZKNode(CreateMode.EPHEMERAL, path)
   }
 
+  def getLeaderNodeHostAndPort(): HostAndPort = {
+    try {
+      HostAndPort.fromString(getLeaderNodeAddress())
+    } catch {
+      case ex: NoNodeException => null
+      case ex: Exception => throw ex
+    }
+  }
+
   private def assurePathExist(): Unit = {
     zkTools.assureZKNodeExist(leaderNodesPath, dataNodesPath, dataVersionPath, leaderLatchPath, dataVersionLockPath)
   }
-
-  def addNodeRoleChangedEventListener(listener: NodeRoleChangedEventListener): Unit = {
-    logger.info(this.getClass + ": addNodeRoleChangedEventListener" + ":" + config.getNodeAddress())
-    roleEventlisteners.append(listener)
-  }
-
-  def changeNodeRole(event: NodeRoleChangedEvent): Unit = {
-    logger.info(this.getClass + ": changeNodeRole" + ": " + roleEventlisteners.size.toString)
-    roleEventlisteners.foreach(listener => listener.notifyRoleChanged(event))
-  }
+//
+//  def addNodeRoleChangedEventListener(listener: NodeRoleChangedEventListener): Unit = {
+//    logger.info(this.getClass + ": addNodeRoleChangedEventListener" + ":" + config.getNodeAddress())
+//    roleEventlisteners.append(listener)
+//  }
+//
+//  def changeNodeRole(event: NodeRoleChangedEvent): Unit = {
+//    logger.info(this.getClass + ": changeNodeRole" + ": " + roleEventlisteners.size.toString)
+//    roleEventlisteners.foreach(listener => listener.notifyRoleChanged(event))
+//  }
 }

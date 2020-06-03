@@ -1,14 +1,20 @@
 package cn.pandadb.server.Store
 
+import java.io.File
+
 import cn.pandadb.util.FileUtils
 
 class DataStore(storeLayout: DataStoreLayout) {
+  val ZERO_DATA_VERSION = 0L
 
   def getDataVersion(): Long = {
     val versionStore = storeLayout.localDataVersionStore
     val content = FileUtils.readTextFile(versionStore).trim
     if (!content.isEmpty) content.toLong
-    else 0
+    else {
+      FileUtils.writeToFile(versionStore, ZERO_DATA_VERSION.toString, false)
+      ZERO_DATA_VERSION
+    }
   }
 
   def setDataVersion(version: Long): Unit = {
@@ -24,8 +30,10 @@ class DataStore(storeLayout: DataStoreLayout) {
   }
 
   def isDatabaseEmpty(): Boolean = {
-    FileUtils.isEmptyDirectory(storeLayout.databaseDirectory)
+    FileUtils.isEmptyDirectory(storeLayout.graphStoreDirectory)
   }
 
-  def databaseDirectory: String = storeLayout.databaseDirectory.getAbsolutePath
+  def graphStoreDirectory: String = storeLayout.graphStoreDirectory.getAbsolutePath
+
+  def graphStore: File = storeLayout.graphStoreDirectory
 }

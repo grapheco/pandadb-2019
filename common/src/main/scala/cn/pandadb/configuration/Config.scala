@@ -8,6 +8,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.collection.mutable
 
 object SettingKeys {
+  val pandadbVersion = "db.version"
   val zkAddress = "zk.address"
   val zkPandaDBPath = "zk.pandadb.node.path"
   val rpcListenHost = "rpc.listen.host"
@@ -16,6 +17,7 @@ object SettingKeys {
   val dataNodeRpcEndpointName = "rpc.endpoint.datanode.name"
   val leaderNodeRpcEndpointName = "rpc.endpoint.leadernode.name"
   val localNeo4jDBPath = "db.local.neo4j.path"
+  val localDataStorePath = "db.local.data.path"
 
   val regionfsZKAddress = "blob.regionfs.zk.address"
 }
@@ -40,11 +42,15 @@ class Config {
 
   def validate(): Unit = {}
 
+  def getPandadbVersion(): String = {
+    getValueAsString(SettingKeys.pandadbVersion, "v0.0.0")
+  }
+
   def getZKAddress(): String = {
     getValueAsString(SettingKeys.zkAddress, "127.0.0.1:2181")
   }
   def getPandaZKDir(): String = {
-    getValueAsString(SettingKeys.zkPandaDBPath, "/pandadb/vx.x.x/")
+    getValueAsString(SettingKeys.zkPandaDBPath, s"/pandadb/${getPandadbVersion()}/")
   }
 
   def getListenHost(): String = {
@@ -74,6 +80,10 @@ class Config {
 
   def getRegionfsZkAddress(): String = {
     getValueAsString(SettingKeys.regionfsZKAddress, "127.0.0.1:2181")
+  }
+
+  def getLocalDataStorePath(): String = {
+    getValueAsString(SettingKeys.localDataStorePath, "/pandadb/data")
   }
 
   private def getValueWithDefault[T](key: String, defaultValue: () => T, convert: (String) => T)(implicit m: Manifest[T]): T = {

@@ -1,6 +1,7 @@
 package cn.pandadb.client
 
-import java.io.File
+import java.io.{File, FileInputStream}
+import java.nio.ByteBuffer
 
 import cn.pandadb.blob.{BlobEntry, MimeType}
 import net.neoremind.kraps.RpcConf
@@ -23,7 +24,7 @@ class PandaDBClient(zkAddress: String) extends AutoCloseable{
   private val rpcServerName = "pandadb-client"
   private val LeaderNodeEndpointName = "leader-node-endpoint"
   private val DataNodeEndpointName = "data-node-endpoint"
-  private val pandaDBZkDir = "/pandadb/vx.x.x/"
+  private val pandaDBZkDir = "/pandadb/v0.0.0/"
 
   private val zkTools = new ZKTools(zkAddress, pandaDBZkDir)
   private val clusterInfoService = new ClusterInfoService(zkTools)
@@ -36,8 +37,8 @@ class PandaDBClient(zkAddress: String) extends AutoCloseable{
                   new RpcAddress(leaderNode.getHostText, leaderNode.getPort), LeaderNodeEndpointName)
   private val leaderNodeDriver = new LeaderNodeDriver
 
-  private val dataNode: HostAndPort = clusterInfoService.randomGetDataNode()
-//  println(dataNode)
+  private val dataNode: HostAndPort = clusterInfoService.randomGetReadNode()
+  println(leaderNode, dataNode)
 
   private val dataNodeEndpointRef = clientRpcEnv.setupEndpointRef(
                   new RpcAddress(dataNode.getHostText, dataNode.getPort), DataNodeEndpointName)
@@ -67,15 +68,19 @@ class PandaDBClient(zkAddress: String) extends AutoCloseable{
   //  }
 
   def setNodeProperty(id: Long, propertiesMap: Map[String, Any]): PandaReplyMessage.Value = {
-    leaderNodeDriver.updateNodeProperty(id: Long, propertiesMap: Map[String, Any], leaderNodeEndpointRef, Duration.Inf)
+    leaderNodeDriver.setNodeProperty(id: Long, propertiesMap: Map[String, Any], leaderNodeEndpointRef, Duration.Inf)
   }
 
   def removeNodeProperty(id: Long, property: String): PandaReplyMessage.Value = {
-    leaderNodeDriver.removeProperty(id: Long, property, leaderNodeEndpointRef, Duration.Inf)
+    leaderNodeDriver.removeNodeProperty(id: Long, property, leaderNodeEndpointRef, Duration.Inf)
   }
 
-  def createBlobFromFile(length: Long, mimeType: MimeType, file: File): BlobEntry = {
-    leaderNodeDriver.createBlobEntry(length, mimeType, leaderNodeEndpointRef, Duration.Inf)
+  def createBlobFromFile(mimeType: MimeType, file: File): BlobEntry = {
+    val ins = new FileInputStream(file)
+    val length = ins.available()
+    val content = new Array[Byte](ins.available())
+    ins.read(content)
+    leaderNodeDriver.createBlobEntry(length, mimeType, content, leaderNodeEndpointRef, Duration.Inf)
   }
 
   /// read functions

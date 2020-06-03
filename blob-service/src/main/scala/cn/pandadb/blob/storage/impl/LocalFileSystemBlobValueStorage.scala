@@ -33,6 +33,13 @@ class LocalFileSystemBlobValueStorage(config: Config) extends BlobStorageService
       Blob.makeEntry(bid, length, mimeType)
   }
 
+  override def save(length: Long, mimeType: MimeType, bytes: Array[Byte]): BlobEntry = {
+    val bid = generateId();
+    logger.info(this.getClass + ": save" + "| " + bid.asLiteralString())
+
+    Blob.makeEntry(bid, length, mimeType)
+  }
+
   override def load(id: BlobId): Option[Blob] = {
     val file = locateFile(id)
     Option(readFromBlobFile(file))

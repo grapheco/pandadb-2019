@@ -22,10 +22,14 @@ class RegionfsBlobValueStorage(config: Config) extends BlobStorageService {
   val fsClient = new FsClient(fsZKAddress)
 
   override def save(length: Long, mimeType: MimeType, inputStream: InputStream): BlobEntry = {
+    save(length, mimeType, IOUtils.toByteArray(inputStream))
+  }
+
+  override def save(length: Long, mimeType: MimeType, bytes: Array[Byte]): BlobEntry = {
     val baos = new ByteArrayOutputStream()
     baos.writeLong(length)
     baos.writeLong(mimeType.code)
-    baos.write(IOUtils.toByteArray(inputStream))
+    baos.write(bytes)
 
     val future = fsClient.writeFile(ByteBuffer.wrap(baos.toByteArray))
     val fileId: FileId = Await.result(future, Duration.Inf)
@@ -64,4 +68,5 @@ class RegionfsBlobValueStorage(config: Config) extends BlobStorageService {
   private def blobId2FileId(id: BlobId): FileId = {
     FileId(id.value1, id.value2)
   }
+
 }
