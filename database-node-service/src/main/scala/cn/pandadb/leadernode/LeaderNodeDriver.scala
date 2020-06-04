@@ -58,8 +58,8 @@ class LeaderNodeDriver {
       ), duration)
 
     res match {
-      case r: ArrayBuffer[Relationship] => res.asInstanceOf[ArrayBuffer[Relationship]]
-      case p: PandaReplyMessage.Value => res.asInstanceOf[PandaReplyMessage.Value]
+      case r: ArrayBuffer[Relationship] => r
+      case p: PandaReplyMessage.Value => p
     }
   }
 
@@ -261,9 +261,9 @@ class LeaderNodeDriver {
     dataNodeRef
   }
 
-  def createBlobEntry(length: Long, mimeType: MimeType,
-                      endpointRef: HippoEndpointRef, duration: Duration): BlobEntry = {
-    val res = Await.result(endpointRef.askWithBuffer[BlobEntry](LeaderCreateBlobEntry(length, mimeType)), duration)
+  def createBlobEntry(length: Long, mimeType: MimeType, content: Array[Byte], endpointRef: HippoEndpointRef, duration: Duration): BlobEntry = {
+    println(content)
+    val res = Await.result(endpointRef.askWithBuffer[BlobEntry](LeaderCreateBlobEntry(length, mimeType), Unpooled.copiedBuffer(content)), duration)
     res
   }
 }
