@@ -4,8 +4,7 @@ import java.io.{BufferedInputStream, File, FileInputStream, FileOutputStream}
 import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
 class CompressDbFileUtil {
-  def compressToZip(sourceFilePath: String, zipFilePath: String, zipFilename: String): Unit = {
-    val sourceFile = new File(sourceFilePath)
+  def compressToZip(sourceFilePath: Map[String, String], zipFilePath: String, zipFilename: String): Unit = {
     val zipPath = new File(zipFilePath)
     if (!zipPath.exists()) {
       zipPath.mkdirs()
@@ -13,7 +12,10 @@ class CompressDbFileUtil {
     val zipFile = new File(zipPath + File.separator + zipFilename)
     val fos = new FileOutputStream(zipFile)
     val zos = new ZipOutputStream(fos)
-    writeZip(sourceFile, zos)
+    sourceFilePath.foreach(m => {
+      val sourceFile = new File(m._2)
+      writeZip(sourceFile, zos)
+    })
     zos.close()
     fos.close()
   }

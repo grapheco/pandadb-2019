@@ -116,8 +116,10 @@ class DataNodeHandler(pandaConfig: PandaConfig,
       val util = new CompressDbFileUtil
       //      val path = pandaConfig.getLocalNeo4jDatabasePath()
       val path = localDataStore.graphStore.getAbsolutePath
+      val toCompressPath = Map("graphStore" -> localDataStore.graphStore.getAbsolutePath,
+        "dataVersionStore" -> localDataStore.dataVersionStore.getAbsolutePath)
       val compressToDir = path.substring(0, path.lastIndexOf(File.separator)) + "/compress/"
-      util.compressToZip(path, compressToDir, zipFileName)
+      util.compressToZip(toCompressPath, compressToDir, zipFileName)
 
       val filePath = compressToDir + zipFileName
       val fis = new FileInputStream(new File(filePath))
