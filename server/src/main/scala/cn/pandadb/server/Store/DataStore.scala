@@ -7,9 +7,7 @@ import cn.pandadb.util.FileUtils
 class DataStore(storeLayout: DataStoreLayout) {
   val ZERO_DATA_VERSION = 0L
 
-  def getLocalDataVersionStore(): File = {
-    storeLayout.localDataVersionStore
-  }
+  def dataVersionStore: File = storeLayout.localDataVersionStore
 
   def getDataVersion(): Long = {
     val versionStore = storeLayout.localDataVersionStore
