@@ -156,10 +156,10 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     val clientConfig = RpcEnvClientConfig(new RpcConf(), config.getRpcServerName())
     val clientRpcEnv = HippoRpcEnvFactory.create(clientConfig)
 
-    val dbDir = dataStore.graphStoreDirectory
+    val dbDir = dataStore.graphStoreDirectory.replace("graph.db", "")
     val downloadZipPath = dbDir
     val zipFileName = "DB_FILES.zip"
-    val decompressTo = dbDir.replace("graph.db", "")
+    val decompressTo = dbDir
     val ref = leaderDriver.pullCompressedDbFileFromDataNode(
       downloadZipPath, zipFileName, clientRpcEnv, clusterService, config
     )
