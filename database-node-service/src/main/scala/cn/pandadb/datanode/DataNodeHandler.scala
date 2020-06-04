@@ -3,16 +3,19 @@ package cn.pandadb.datanode
 import java.io.{File, FileInputStream}
 import java.nio.ByteBuffer
 
+import cn.pandadb.blob.storage.BlobStorageService
 import org.neo4j.graphdb.GraphDatabaseService
 import org.slf4j.Logger
 import cn.pandadb.configuration.{Config => PandaConfig}
+import cn.pandadb.index.IndexService
 import cn.pandadb.util.CompressDbFileUtil
 import io.netty.buffer.Unpooled
 import org.grapheco.hippo.{ChunkedStream, CompleteStream, HippoRpcHandler, ReceiveContext}
-import cn.pandadb.server.Store.DataStore
+import cn.pandadb.store.local.DataStore
 
 class DataNodeHandler(pandaConfig: PandaConfig,
-                      localNeo4jDB: GraphDatabaseService, localDataStore: DataStore) extends HippoRpcHandler {
+                      localNeo4jDB: GraphDatabaseService, blobStore: BlobStorageService,
+                      indexService: IndexService, localDataStore: DataStore) extends HippoRpcHandler {
   val logger: Logger = pandaConfig.getLogger(this.getClass)
 
   val dataNodeService = new DataNodeServiceImpl(localNeo4jDB)

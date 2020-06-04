@@ -1,16 +1,19 @@
-package cn.pandadb.index.costore
+package cn.pandadb.index.impl
 
 import cn.pandadb.configuration.Config
 import cn.pandadb.index.{IndexService, IndexServiceFactory}
 
-class CostoreIndexServiceFactory extends IndexServiceFactory {
-   override def create(config: Config): CostoreIndexService = {
-    new CostoreIndexService(config)
+object BambooIndexServiceFactory extends IndexServiceFactory {
+   override def create(config: Config): BambooIndexService = {
+    new BambooIndexService(config)
   }
 }
 
-class CostoreIndexService(config: Config) extends IndexService {
+class BambooIndexService(config: Config) extends IndexService {
   val logger = config.getLogger(this.getClass)
+
+//  val client = new Client
+
   override def init(): Unit = {
     logger.info(this.getClass + ": init")
   }

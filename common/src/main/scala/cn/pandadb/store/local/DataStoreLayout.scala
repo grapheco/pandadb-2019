@@ -1,4 +1,4 @@
-package cn.pandadb.server.Store
+package cn.pandadb.store.local
 
 import java.io.File
 

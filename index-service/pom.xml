@@ -19,6 +19,10 @@
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>cn.pandadb</groupId>-->
+<!--            <artifactId>bamboo</artifactId>-->
+<!--        </dependency>-->
     </dependencies>
 
 </project>

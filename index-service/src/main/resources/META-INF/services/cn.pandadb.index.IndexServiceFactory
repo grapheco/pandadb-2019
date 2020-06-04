@@ -1,1 +1,1 @@
-cn.pandadb.index.costore.CostoreIndexServiceFactory
+cn.pandadb.index.impl.BambooIndexServiceFactory

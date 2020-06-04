@@ -17,13 +17,13 @@ class Tests {
     override def getRpcPort(): Int = 52310
 
     override def getPandaZKDir(): String = "/pandadb/v0.0.3"
-    override def getLocalNeo4jDatabasePath(): String = "output1/db1"
+    override def getLocalDataStorePath(): String = "output1/data1"
   }
 
   val config2 = new Config {
     override def getRpcPort(): Int = 52320
     override def getPandaZKDir(): String = "/pandadb/v0.0.3"
-    override def getLocalNeo4jDatabasePath(): String = "output2/db2"
+    override def getLocalDataStorePath(): String = "output2/data2"
   }
   val pandaServer1 = new PandaServer(config1)
   val pandaServer2 = new PandaServer(config2)

@@ -10,16 +10,15 @@ import cn.pandadb.configuration.Config
 import cn.pandadb.lifecycle.LifecycleSupport
 import cn.pandadb.cluster.ClusterService
 import cn.pandadb.datanode.PandaRpcServer
-import cn.pandadb.index.IndexServiceFactory
-import cn.pandadb.server.Store.{DataStore, DataStoreLayout}
-import cn.pandadb.zk.ZKTools
+import cn.pandadb.index.{IndexService, IndexServiceFactory}
+import cn.pandadb.index.impl.{BambooIndexService, BambooIndexServiceFactory}
+import cn.pandadb.store.local.{DataStore, DataStoreLayout}
 
 class PandaServer(config: Config)  {
 
   val life = new LifecycleSupport
   val logger = config.getLogger(this.getClass)
 
-//  val localNeo4jDB = getOrCreateLocalNeo4jDatabase()
   val clusterService = new ClusterService(config)
   clusterService.init()
 
@@ -28,16 +27,18 @@ class PandaServer(config: Config)  {
   val clusterNodeServer = new ClusterNodeServer(config, clusterService, localDataStore)
   life.add(clusterNodeServer)
 
-  val serviceLoaders = ServiceLoader.load(classOf[IndexServiceFactory]).asScala
-  if(serviceLoaders.size > 0) {
-    val indexService = serviceLoaders.iterator.next().create(config)
-    life.add(indexService )
-  }
+//  val serviceLoaders = ServiceLoader.load(classOf[IndexServiceFactory]).asScala
+//  if(serviceLoaders.size > 0) {
+//    val indexService = serviceLoaders.iterator.next().create(config)
+//    life.add(indexService )
+//  }
+
+  val indexService: IndexService = BambooIndexServiceFactory.create(config)
 
   val blobStoreService = new RegionfsBlobValueStorage(config)
   life.add(blobStoreService)
 
-  life.add(new PandaRpcServer(config, clusterService, blobStoreService, localDataStore) )
+  life.add(new PandaRpcServer(config, clusterService, blobStoreService, localDataStore, indexService) )
   clusterService.start()
 
   def start(): Unit = {
@@ -51,21 +52,12 @@ class PandaServer(config: Config)  {
     life.shutdown()
     logger.info("==== PandaDB Server is Shutdown ====")
   }
-
-  def syncDataFromLeader(): Unit = {
-    logger.info(this.getClass + ": syncDataFromLeader")
-    val leaderNodeAddress = clusterService.getLeaderNode()
-    val localDBPath = config.getLocalNeo4jDatabasePath()
-    logger.info(this.getClass + s"sync data from leaderNode<$leaderNodeAddress> to local<$localDBPath>")
-  }
-
-
-
-//  def getOrCreateLocalNeo4jDatabase(): GraphDatabaseService = {
-//    val dbFile = new File(config.getLocalNeo4jDatabasePath())
-//    if (!dbFile.exists()) {
-//      dbFile.mkdirs
-//    }
-//    new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dbFile).newGraphDatabase()
+//
+//  def syncDataFromLeader(): Unit = {
+//    logger.info(this.getClass + ": syncDataFromLeader")
+//    val leaderNodeAddress = clusterService.getLeaderNode()
+//    val localDBPath = config.getLocalNeo4jDatabasePath()
+//    logger.info(this.getClass + s"sync data from leaderNode<$leaderNodeAddress> to local<$localDBPath>")
 //  }
+
 }

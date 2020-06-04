@@ -12,12 +12,15 @@ import cn.pandadb.util.PandaReplyMessage
 import org.grapheco.hippo.{ChunkedStream, CompleteStream, HippoRpcHandler, ReceiveContext}
 import org.neo4j.graphdb.GraphDatabaseService
 import cn.pandadb.blob.storage.BlobStorageService
+import cn.pandadb.index.IndexService
+import cn.pandadb.store.local.DataStore
 import org.slf4j.Logger
 
 import scala.collection.mutable.ArrayBuffer
 
 class LeaderNodeHandler(pandaConfig: PandaConfig, clusterService: ClusterService,
-                        localNeo4jDB: GraphDatabaseService, blobStore: BlobStorageService) extends HippoRpcHandler {
+                        localNeo4jDB: GraphDatabaseService, blobStore: BlobStorageService,
+                        indexService: IndexService, localDataStore: DataStore) extends HippoRpcHandler {
   val logger: Logger = pandaConfig.getLogger(this.getClass)
 
   val leaderNodeService = new LeaderNodeServiceImpl
@@ -60,7 +63,8 @@ class LeaderNodeHandler(pandaConfig: PandaConfig, clusterService: ClusterService
     }
     case GetLeaderDbFileNames() => {
       var fileNames = ArrayBuffer[String]()
-      val dbFile = new File(pandaConfig.getLocalNeo4jDatabasePath())
+//      val dbFile = new File(pandaConfig.getLocalNeo4jDatabasePath())
+      val dbFile = localDataStore.graphStore
       fileNames = readDbFileNames(dbFile, fileNames)
       context.reply(fileNames)
     }

@@ -1,6 +1,6 @@
 package cn.pandadb.server.clusterNodeServerTest
 
-import cn.pandadb.server.Store.DataStore
+import cn.pandadb.store.local.DataStore
 
 class myDataStore extends DataStore(null) {
   var dataVersion: String = null

@@ -41,7 +41,7 @@
         </dependency>
         <dependency>
             <groupId>cn.pandadb</groupId>
-            <artifactId>server</artifactId>
+            <artifactId>index-service</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

@@ -8,8 +8,9 @@ import cn.pandadb.configuration.Config
 import cn.pandadb.leadernode.{LeaderNodeHandler, LeaderNodeRpcEndPoint}
 import cn.pandadb.server.modules.LifecycleServerModule
 import cn.pandadb.cluster.{ClusterService, LeaderNodeChangedEvent, NodeRoleChangedEvent, NodeRoleChangedEventListener}
+import cn.pandadb.index.IndexService
 import cn.pandadb.server.PandaRpcHandler
-import cn.pandadb.server.Store.DataStore
+import cn.pandadb.store.local.DataStore
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc._
 import net.neoremind.kraps.rpc.netty.{HippoRpcEnv, HippoRpcEnvFactory}
@@ -18,7 +19,8 @@ import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.slf4j.Logger
 
 class PandaRpcServer(config: Config, clusterService: ClusterService,
-                     blobStore: BlobStorageService, localDataStore: DataStore) extends LifecycleServerModule {
+                     blobStore: BlobStorageService, localDataStore: DataStore,
+                     indexService: IndexService) extends LifecycleServerModule {
   val logger: Logger = config.getLogger(this.getClass)
 
   val dbFile = new File(localDataStore.graphStore.getAbsolutePath)
@@ -46,8 +48,8 @@ class PandaRpcServer(config: Config, clusterService: ClusterService,
   //  val blobStore = new LocalFileSystemBlobValueStorage(config)
 
   val pandaRpcHandler = new PandaRpcHandler(config, clusterService)
-  val dataNodeHandler = new DataNodeHandler(config, localNeo4jDB, localDataStore)
-  val leaderNodeHandler = new LeaderNodeHandler(config, clusterService, localNeo4jDB, blobStore)
+  val dataNodeHandler = new DataNodeHandler(config, localNeo4jDB, blobStore, indexService, localDataStore)
+  val leaderNodeHandler = new LeaderNodeHandler(config, clusterService, localNeo4jDB, blobStore, indexService, localDataStore)
   pandaRpcHandler.add(dataNodeHandler)
   pandaRpcHandler.add(leaderNodeHandler)
 

@@ -20,6 +20,7 @@ object SettingKeys {
   val localDataStorePath = "db.local.data.path"
 
   val regionfsZKAddress = "blob.regionfs.zk.address"
+  val bambooServerAddress = "index.bamboo.server.address"
 }
 
 class Config {
@@ -61,9 +62,9 @@ class Config {
   }
   def getNodeAddress(): String = {getListenHost + ":" + getRpcPort.toString}
 
-  def getLocalNeo4jDatabasePath(): String = {
-    getValueAsString(SettingKeys.localNeo4jDBPath, "/pandadb/db/graph.db")
-  }
+//  def getLocalNeo4jDatabasePath(): String = {
+//    getValueAsString(SettingKeys.localNeo4jDBPath, "/pandadb/db/graph.db")
+//  }
   def getRpcServerName(): String = {
     getValueAsString(SettingKeys.rpcServerName, "pandadb-server")
   }
@@ -80,6 +81,10 @@ class Config {
 
   def getRegionfsZkAddress(): String = {
     getValueAsString(SettingKeys.regionfsZKAddress, "127.0.0.1:2181")
+  }
+
+  def getBambooServerAddress(): String = {
+    getValueAsString(SettingKeys.bambooServerAddress, "127.0.0.1:11234")
   }
 
   def getLocalDataStorePath(): String = {
