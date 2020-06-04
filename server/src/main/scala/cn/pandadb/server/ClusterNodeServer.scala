@@ -3,7 +3,7 @@ package cn.pandadb.server
 import cn.pandadb.cluster.ClusterService
 import cn.pandadb.configuration.Config
 import cn.pandadb.leadernode.LeaderNodeDriver
-import cn.pandadb.server.Store.DataStore
+import cn.pandadb.store.local.DataStore
 import cn.pandadb.server.modules.LifecycleServerModule
 import cn.pandadb.util.CompressDbFileUtil
 import net.neoremind.kraps.RpcConf
