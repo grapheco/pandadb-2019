@@ -5,6 +5,7 @@ import cn.pandadb.configuration.Config
 import cn.pandadb.leadernode.LeaderNodeDriver
 import cn.pandadb.server.Store.DataStore
 import cn.pandadb.server.modules.LifecycleServerModule
+import cn.pandadb.util.CompressDbFileUtil
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.netty.HippoRpcEnvFactory
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
@@ -151,19 +152,25 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
   }
   def syncDataFromCluster(leaderNode: HostAndPort): Unit = {
     logger.info("syncDataFromCluster")
-      val dbDir = dataStore.graphStoreDirectory
+    val leaderDriver = new LeaderNodeDriver
+    val clientConfig = RpcEnvClientConfig(new RpcConf(), config.getRpcServerName())
+    val clientRpcEnv = HippoRpcEnvFactory.create(clientConfig)
 
-      val rpcServerName = config.getRpcServerName()
-      val LeaderNodeEndpointName = config.getLeaderNodeEndpointName()
-      val clientConfig = RpcEnvClientConfig(new RpcConf(), rpcServerName)
-      val clientRpcEnv = HippoRpcEnvFactory.create(clientConfig)
-      val leaderNodeEndpointRef = clientRpcEnv.setupEndpointRef(
-        new RpcAddress(leaderNode.getHostText, leaderNode.getPort), LeaderNodeEndpointName)
-      val leaderNodeDriver = new LeaderNodeDriver
-//      leaderNodeDriver.pullDbFileFromDataNode()
-      logger.info(s"syncDataFromCluster: pull data <fromVersion: ${dataStore.getDataVersion()}> to dir <$dbDir>")
-      logger.info("update local data version")
-      dataStore.setDataVersion(0)
+    val dbDir = dataStore.graphStoreDirectory
+    val downloadZipPath = dbDir
+    val zipFileName = "DB_FILES.zip"
+    val decompressTo = dbDir
+    val ref = leaderDriver.pullCompressedDbFileFromDataNode(
+      downloadZipPath, zipFileName, clientRpcEnv, clusterService, config
+    )
+    clientRpcEnv.stop(ref)
+    // deCompress
+    val compressUtil = new CompressDbFileUtil
+    compressUtil.decompress(downloadZipPath + zipFileName, decompressTo)
+
+    logger.info(s"syncDataFromCluster: pull data <fromVersion: ${dataStore.getDataVersion()}> to dir <$dbDir>")
+    logger.info("update local data version")
+    //dataStore.setDataVersion(0)
   }
 
   def participateInLeaderElection(): Unit = {
