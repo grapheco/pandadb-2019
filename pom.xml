@@ -20,6 +20,7 @@
         <module>zk-tools</module>
         <module>pandadb-client</module>
         <module>blob-service</module>
+        <module>packaging-build</module>
     </modules>
 
     <properties>
@@ -96,31 +97,6 @@
                 <version>3.0.0</version>
                 <scope>test</scope>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>info.debatty</groupId>-->
-<!--                <artifactId>java-string-similarity</artifactId>-->
-<!--                <version>RELEASE</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>com.google.code.findbugs</groupId>-->
-<!--                <artifactId>jsr305</artifactId>-->
-<!--                <version>3.0.0</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.reactivestreams</groupId>-->
-<!--                <artifactId>reactive-streams</artifactId>-->
-<!--                <version>1.0.2</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>io.projectreactor</groupId>-->
-<!--                <artifactId>reactor-core</artifactId>-->
-<!--                <version>3.2.6.RELEASE</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.springframework</groupId>-->
-<!--                <artifactId>spring-context</artifactId>-->
-<!--                <version>4.0.0.RELEASE</version>-->
-<!--            </dependency>-->
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
@@ -197,6 +173,11 @@
                 <groupId>org.grapheco</groupId>
                 <artifactId>regionfs</artifactId>
                 <version>0.9-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.pandadb</groupId>
+                <artifactId>bamboo</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
