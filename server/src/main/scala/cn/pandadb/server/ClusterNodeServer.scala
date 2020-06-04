@@ -159,7 +159,7 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     val dbDir = dataStore.graphStoreDirectory
     val downloadZipPath = dbDir
     val zipFileName = "DB_FILES.zip"
-    val decompressTo = dbDir
+    val decompressTo = dbDir.replace("graph.db", "")
     val ref = leaderDriver.pullCompressedDbFileFromDataNode(
       downloadZipPath, zipFileName, clientRpcEnv, clusterService, config
     )
@@ -169,6 +169,7 @@ class ClusterNodeServer(config: Config, clusterService: ClusterService, dataStor
     compressUtil.decompress(downloadZipPath + zipFileName, decompressTo)
 
     logger.info(s"syncDataFromCluster: pull data <fromVersion: ${dataStore.getDataVersion()}> to dir <$dbDir>")
+    logger.info(s"decompressTo: ${decompressTo}")
     logger.info("update local data version")
     //dataStore.setDataVersion(0)
   }
