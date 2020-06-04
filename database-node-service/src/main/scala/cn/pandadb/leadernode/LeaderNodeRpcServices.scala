@@ -37,11 +37,9 @@ case class LeaderSetRelationshipProperty(id: Long, propertyMap: Map[String, AnyR
 
 case class LeaderDeleteRelationshipProperties(id: Long, propertyArray: Array[String])
 
-case class LeaderDeleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: Direction.Value)
+case class LeaderDeleteNodeRelationship(startNodeId: Long, endNodeId: Long,
+                                        relationshipName: String, direction: Direction.Value)
 
-//case class LeaderGetAllDBNodes(chunkSize: Int)
-//case class LeaderGetAllDBRelationships(chunkSize: Int)
-//case class LeaderGetAllDBLabels(chunkSize:Int)
 
 //zk
 case class GetZkDataNodes()

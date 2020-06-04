@@ -27,11 +27,13 @@ case class DeleteNode(id: Long)
 case class RemoveNodeProperty(id: Long, property: String)
 
 // relationship
-case class CreateNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value)
+case class CreateNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long,
+                                  relationship: String, direction: PandaDirection.Value)
 
 case class GetNodeRelationships(id: Long)
 
-case class DeleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value)
+case class DeleteNodeRelationship(startNodeId: Long, endNodeId: Long,
+                                  relationshipName: String, direction: PandaDirection.Value)
 
 case class GetRelationshipByRelationId(id: Long)
 
@@ -46,3 +48,5 @@ case class GetAllDBRelationships(chunkSize: Int)
 case class GetAllDBLabels(chunkSize: Int)
 
 case class ReadDbFileRequest(name: String)
+
+case class ReadCompressedDbFileRequest(zipFileName: String)

@@ -3,21 +3,23 @@ package cn.pandadb.server
 import cn.pandadb.cluster.ClusterService
 import cn.pandadb.configuration.Config
 import cn.pandadb.datanode.DataNodeDriver
-import cn.pandadb.leadernode.{LeaderNodeDriver}
+import cn.pandadb.leadernode.LeaderNodeDriver
 import cn.pandadb.zk.ZKTools
 import net.neoremind.kraps.RpcConf
 import net.neoremind.kraps.rpc.{RpcAddress, RpcEnvClientConfig}
 import net.neoremind.kraps.rpc.netty.HippoRpcEnvFactory
 import org.junit.{After, Test}
 import cn.pandadb.driver.values.Direction
+import cn.pandadb.util.CompressDbFileUtil
+
 import scala.concurrent.duration.Duration
 
 class Client {
   val leaderDriver = new LeaderNodeDriver
   val dataNodeDriver = new DataNodeDriver
   val config = new Config
-//  val zkTools = new ZKTools(config)
-//  zkTools.init()
+  //  val zkTools = new ZKTools(config)
+  //  zkTools.init()
   val clusterService = new ClusterService(config)
   clusterService.init()
   val clientConfig = RpcEnvClientConfig(new RpcConf(), config.getRpcServerName())
@@ -45,7 +47,7 @@ class Client {
     // return ArrayBuffer of nodes
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.runCypher("match (n) return n", ref, Duration.Inf)
-//    res.records.foreach(println)
+    res.records.foreach(println)
     clientRpcEnv.stop(ref)
   }
 
@@ -53,10 +55,14 @@ class Client {
   def createNode(): Unit = {
     // return node or PandaReplyMessage.Failed
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val toCreate = Array(Map("aaa" -> 111), Map("bbb" -> 222), Map("ccc" -> 333), Map("ddd" -> 444), Map("eee" -> 555), Map("fff" -> 666))
+    val toCreate = Array(
+      Map("aaa" -> 111), Map("bbb" -> 222),
+      Map("ccc" -> 333), Map("ddd" -> 444),
+      Map("eee" -> 555), Map("fff" -> 666)
+    )
     for (i <- 0 to 5) {
       val res = leaderDriver.createNode(Array("514"), toCreate(i), ref, Duration.Inf)
-//      println(res)
+      println(res)
     }
     clientRpcEnv.stop(ref)
   }
@@ -66,7 +72,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.deleteNode(22L, ref, Duration.Inf)
-//    println(res)
+    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -75,7 +81,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.addNodeLabel(0L, "People", ref, Duration.Inf)
-//    println(res)
+    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -84,7 +90,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.removeNodeLabel(0L, "People", ref, Duration.Inf)
-//    println(res)
+    //    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -93,7 +99,7 @@ class Client {
     // return node
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getNodeById(0L, ref, Duration.Inf)
-//    println(res)
+    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -102,7 +108,7 @@ class Client {
     // return ArrayBuffer of nodes
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getNodesByProperty("514", Map("aaa" -> 111), ref, Duration.Inf)
-//    println(res.foreach(println))
+    println(res.foreach(println))
     clientRpcEnv.stop(ref)
   }
 
@@ -111,7 +117,7 @@ class Client {
     // return ArrayBuffer of nodes
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getNodesByLabel("514", ref, Duration.Inf)
-//    println(res.foreach(println))
+    println(res.foreach(println))
     clientRpcEnv.stop(ref)
   }
 
@@ -120,7 +126,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.setNodeProperty(0L, Map("a" -> 2, "b" -> 1), ref, Duration.Inf)
-//    println(res)
+    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -129,7 +135,7 @@ class Client {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.removeNodeProperty(0L, "b", ref, Duration.Inf)
-//    println(res)
+    println(res)
     clientRpcEnv.stop(ref)
   }
 
@@ -137,12 +143,18 @@ class Client {
   def createRelationship(): Unit = {
     // return relationship or PandaReplyMessage.Failed
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val res = leaderDriver.createNodeRelationship(0L, 20L, "QQQQ", Direction.BOTH, ref, Duration.Inf)
-    val res1 = leaderDriver.createNodeRelationship(1L, 2L, "OOOO", Direction.OUTGOING, ref, Duration.Inf)
-    val res2 = leaderDriver.createNodeRelationship(2L, 1L, "IIII", Direction.INCOMING, ref, Duration.Inf)
-//    println(res)
-//    println(res1)
-//    println(res2)
+    val res = leaderDriver.createNodeRelationship(
+      0L, 20L, "QQQQ", Direction.BOTH, ref, Duration.Inf
+    )
+    val res1 = leaderDriver.createNodeRelationship(
+      1L, 2L, "OOOO", Direction.OUTGOING, ref, Duration.Inf
+    )
+    val res2 = leaderDriver.createNodeRelationship(
+      2L, 1L, "IIII", Direction.INCOMING, ref, Duration.Inf
+    )
+    //    println(res)
+    //    println(res1)
+    //    println(res2)
     clientRpcEnv.stop(ref)
   }
 
@@ -151,7 +163,7 @@ class Client {
     // return relationship
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res = leaderDriver.getRelationshipByRelationId(0L, ref, Duration.Inf)
-//    println(res)
+    println(res)
   }
 
   @Test
@@ -160,7 +172,7 @@ class Client {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val propertyMap: Map[String, Any] = Map("relation" -> "qqq", "relation2" -> 777)
     val res = leaderDriver.setRelationshipProperty(0L, propertyMap, ref, Duration.Inf)
-//    println(res)
+    //    println(res)
   }
 
   @Test
@@ -169,7 +181,7 @@ class Client {
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val propertyArray: Array[String] = Array("relation2")
     val res = leaderDriver.deleteRelationshipProperties(0L, propertyArray, ref, Duration.Inf)
-//    println(res)
+    //    println(res)
   }
 
   @Test
@@ -177,7 +189,7 @@ class Client {
     // return ArrayBuffer of relationship
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
     val res1 = leaderDriver.getNodeRelationships(2L, ref, Duration.Inf)
-//    println(res1.foreach(println))
+    println(res1.foreach(println))
     clientRpcEnv.stop(ref)
   }
 
@@ -185,27 +197,27 @@ class Client {
   def deleteNodeRelationship(): Unit = {
     // return PandaReplyMessage.Value
     val ref = clientRpcEnv.setupEndpointRef(new RpcAddress(addr, port), config.getLeaderNodeEndpointName())
-    val res = leaderDriver.deleteNodeRelationship(0L, 20L, "TEST", Direction.BOTH, ref, Duration.Inf)
-//    println(res)
+    val res = leaderDriver.deleteNodeRelationship(
+      0L, 20L, "QQQQ", Direction.BOTH, ref, Duration.Inf
+    )
+    //    println(res)
     clientRpcEnv.stop(ref)
   }
 
   @Test
   def getAllDBNodes(): Unit = {
+    // stream
     val (res, dataNodeRef) = leaderDriver.pullAllNodes(10, clientRpcEnv, clusterService, config)
     while (res.hasNext) {
       val node = res.next()
       println(node)
-      val props = node.props
-      for (m <- props) {
-        println(m._2.asAny(), "----")
-      }
     }
     clientRpcEnv.stop(dataNodeRef)
   }
 
   @Test
   def getAllDBRelations(): Unit = {
+    // stream
     val (res, dataNodeRef) = leaderDriver.pullAllRelations(10, clientRpcEnv, clusterService, config)
     while (res.hasNext) {
       val r = res.next()
@@ -223,6 +235,7 @@ class Client {
 
   @Test
   def getAllDBLabels(): Unit = {
+    // stream
     val (res, dataNodeRef) = leaderDriver.pullAllLabels(10, clientRpcEnv, clusterService, config)
     while (res.hasNext) {
       val r = res.next()
@@ -234,11 +247,27 @@ class Client {
 
   @Test
   def pullDbFiles(): Unit = {
-    // this func transport file one by one , not be compressed
-    val localDbPath = "D:/DbTest/output1/db1" + "/"
+    // model 1: get file names from leader node then download file one by one from data node.
+    val localDbPath = "F:/CNIC/DbTest/"
     val dataNodeRef = leaderDriver.pullDbFileFromDataNode(localDbPath, clientRpcEnv, clusterService, config)
     clientRpcEnv.stop(dataNodeRef)
   }
+
+  @Test
+  def pullCompressedDbFile(): Unit = {
+    // model 2: random choose a data node, then data node compress Db files and send the compressed file.
+    val downloadZipPath = "F:/CNIC/DbTest/compressTest/"
+    val zipFileName = "DB_FILES.zip"
+    val decompressTo = "F:/CNIC/DbTest/decompress/"
+    val ref = leaderDriver.pullCompressedDbFileFromDataNode(
+      downloadZipPath, zipFileName, clientRpcEnv, clusterService, config
+    )
+    clientRpcEnv.stop(ref)
+    // deCompress
+    val compressUtil = new CompressDbFileUtil
+    compressUtil.decompress(downloadZipPath + zipFileName, decompressTo)
+  }
+
 
   @After
   def close(): Unit = {

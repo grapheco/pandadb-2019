@@ -9,9 +9,8 @@ import cn.pandadb.util.PandaReplyMessage
 import net.neoremind.kraps.rpc.netty.HippoEndpointRef
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{Await}
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class DataNodeDriver {
   val config = new Config
@@ -25,7 +24,8 @@ class DataNodeDriver {
   }
 
   // use hippo's getInputStream corresponding to PandaRpcHandler's openCompleteStream func
-  def pullFile(dbPath: String, fileNames: ArrayBuffer[String], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+  def pullFile(dbPath: String, fileNames: ArrayBuffer[String],
+               endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
     checkDirectorIsExist(dbPath)
     fileNames.foreach(name => {
       val filePath = dbPath + name
@@ -46,6 +46,17 @@ class DataNodeDriver {
     PandaReplyMessage.SUCCESS
   }
 
+  def pullCompressedFile(localPath: String, zipName: String,
+                         endpointRef: HippoEndpointRef, duration: Duration): Unit = {
+    checkDirectorIsExist(localPath)
+    val fis = endpointRef.getInputStream(ReadCompressedDbFileRequest(zipName), Duration.Inf)
+    val fos = new FileOutputStream(localPath + zipName)
+    val buffer = new Array[Byte](1024)
+    Stream.continually(fis.read(buffer)).takeWhile(_ != -1).foreach(fos.write(buffer, 0, _))
+    fos.close()
+    fis.close()
+  }
+
   def runCypher(cypher: String, endpointRef: HippoEndpointRef, duration: Duration): InternalRecords = {
     val res = Await.result(endpointRef.askWithBuffer[InternalRecords](RunCypher(cypher)), duration)
     res
@@ -56,13 +67,19 @@ class DataNodeDriver {
     res
   }
 
-  def createNode(id: Long, labels: Array[String], properties: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](CreateNode(id, labels, properties)), duration)
+  def createNode(id: Long, labels: Array[String], properties: Map[String, Any],
+                 endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[PandaReplyMessage.Value](CreateNode(id, labels, properties)), duration
+    )
     res
   }
 
-  def addNodeLabel(id: Long, label: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](AddNodeLabel(id, label)), duration)
+  def addNodeLabel(id: Long, label: String,
+                   endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[PandaReplyMessage.Value](AddNodeLabel(id, label)), duration
+    )
     res
   }
 
@@ -71,10 +88,13 @@ class DataNodeDriver {
     node
   }
 
-  def getNodesByProperty(label: String, propertiesMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[Node] = {
+  def getNodesByProperty(label: String, propertiesMap: Map[String, Any],
+                         endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[Node] = {
     implicit def any2Object(x: Map[String, Any]): Map[String, Object] = x.asInstanceOf[Map[String, Object]]
 
-    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[Node]](GetNodesByProperty(label, propertiesMap)), duration)
+    val res = Await.result(
+      endpointRef.askWithBuffer[ArrayBuffer[Node]](GetNodesByProperty(label, propertiesMap)), duration
+    )
     res
   }
 
@@ -83,13 +103,19 @@ class DataNodeDriver {
     res
   }
 
-  def setNodeProperty(id: Long, propertiesMap: Map[String, Any], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](SetNodeProperty(id, propertiesMap)), duration)
+  def setNodeProperty(id: Long, propertiesMap: Map[String, Any],
+                      endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[PandaReplyMessage.Value](SetNodeProperty(id, propertiesMap)), duration
+    )
     res
   }
 
-  def removeNodeLabel(id: Long, toDeleteLabel: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](RemoveNodeLabel(id, toDeleteLabel)), duration)
+  def removeNodeLabel(id: Long, toDeleteLabel: String,
+                      endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[PandaReplyMessage.Value](RemoveNodeLabel(id, toDeleteLabel)), duration
+    )
     res
   }
 
@@ -98,23 +124,39 @@ class DataNodeDriver {
     res
   }
 
-  def removeNodeProperty(id: Long, property: String, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](RemoveNodeProperty(id, property)), duration)
+  def removeNodeProperty(id: Long, property: String,
+                         endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[PandaReplyMessage.Value](RemoveNodeProperty(id, property)), duration
+    )
     res
   }
 
-  def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](CreateNodeRelationship(rId, id1, id2, relationship, direction)), duration)
+  def createNodeRelationship(rId: ArrayBuffer[Long], id1: Long, id2: Long,
+                             relationship: String, direction: PandaDirection.Value,
+                             endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[PandaReplyMessage.Value](
+        CreateNodeRelationship(rId, id1, id2, relationship, direction)
+      ), duration)
     res
   }
 
-  def getNodeRelationships(id: Long, endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[Relationship] = {
-    val res = Await.result(endpointRef.askWithBuffer[ArrayBuffer[Relationship]](GetNodeRelationships(id)), duration)
+  def getNodeRelationships(id: Long,
+                           endpointRef: HippoEndpointRef, duration: Duration): ArrayBuffer[Relationship] = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[ArrayBuffer[Relationship]](GetNodeRelationships(id)), duration
+    )
     res
   }
 
-  def deleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value, endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](DeleteNodeRelationship(startNodeId, endNodeId, relationshipName, direction)), duration)
+  def deleteNodeRelationship(startNodeId: Long, endNodeId: Long,
+                             relationshipName: String, direction: PandaDirection.Value,
+                             endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[PandaReplyMessage.Value](
+        DeleteNodeRelationship(startNodeId, endNodeId, relationshipName, direction)
+      ), duration)
     res
   }
 
@@ -123,7 +165,8 @@ class DataNodeDriver {
     res
   }
 
-  def getAllDBRelationships(chunkSize: Int, endpointRef: HippoEndpointRef, duration: Duration): Stream[Relationship] = {
+  def getAllDBRelationships(chunkSize: Int,
+                            endpointRef: HippoEndpointRef, duration: Duration): Stream[Relationship] = {
     val res = endpointRef.getChunkedStream[Relationship](GetAllDBRelationships(chunkSize), duration)
     res
   }
@@ -133,18 +176,30 @@ class DataNodeDriver {
     res
   }
 
-  def getRelationshipByRelationId(relationId: Long, endpointRef: HippoEndpointRef, duration: Duration): Relationship = {
-    val res = Await.result(endpointRef.askWithBuffer[Relationship](GetRelationshipByRelationId(relationId)), duration)
+  def getRelationshipByRelationId(relationId: Long,
+                                  endpointRef: HippoEndpointRef, duration: Duration): Relationship = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[Relationship](GetRelationshipByRelationId(relationId)), duration
+    )
     res
   }
 
-  def setRelationshipProperty(relationId: Long, propertyMap: Map[String, AnyRef], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](SetRelationshipProperty(relationId, propertyMap)), duration)
+  def setRelationshipProperty(relationId: Long, propertyMap: Map[String, AnyRef],
+                              endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[PandaReplyMessage.Value](
+        SetRelationshipProperty(relationId, propertyMap)
+      ), duration
+    )
     res
   }
 
-  def deleteRelationshipProperties(relationId: Long, propertyArray: Array[String], endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
-    val res = Await.result(endpointRef.askWithBuffer[PandaReplyMessage.Value](DeleteRelationshipProperties(relationId, propertyArray)), duration)
+  def deleteRelationshipProperties(relationId: Long, propertyArray: Array[String],
+                                   endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    val res = Await.result(
+      endpointRef.askWithBuffer[PandaReplyMessage.Value](
+        DeleteRelationshipProperties(relationId, propertyArray)
+      ), duration)
     res
   }
 

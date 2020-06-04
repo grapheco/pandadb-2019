@@ -38,13 +38,17 @@ trait DataNodeService {
 
   def removeNodeProperty(id: Long, property: String): PandaReplyMessage.Value
 
-  def createNodeRelationshipLeader(id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value): ArrayBuffer[Relationship]
+  def createNodeRelationshipLeader(id1: Long, id2: Long,
+                                   relationship: String, direction: PandaDirection.Value): ArrayBuffer[Relationship]
 
-  def createNodeRelationshipFollower(relationId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value): PandaReplyMessage.Value
+  def createNodeRelationshipFollower(relationId: ArrayBuffer[Long],
+                                     id1: Long, id2: Long,
+                                     relationship: String, direction: PandaDirection.Value): PandaReplyMessage.Value
 
   def getNodeRelationships(id: Long): ArrayBuffer[Relationship]
 
-  def deleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value): PandaReplyMessage.Value
+  def deleteNodeRelationship(startNodeId: Long, endNodeId: Long,
+                             relationshipName: String, direction: PandaDirection.Value): PandaReplyMessage.Value
 
   def getRelationshipById(id: Long): Relationship
 
@@ -121,7 +125,8 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     driverNode
   }
 
-  override def createNodeFollower(id: Long, labels: Array[String], properties: Map[String, Any]): PandaReplyMessage.Value = {
+  override def createNodeFollower(id: Long, labels: Array[String],
+                                  properties: Map[String, Any]): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val node = localDatabase.createNode(id)
     for (labelName <- labels) {
@@ -230,7 +235,9 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     PandaReplyMessage.SUCCESS
   }
 
-  override def createNodeRelationshipLeader(id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value): ArrayBuffer[Relationship] = {
+  override def createNodeRelationshipLeader(id1: Long, id2: Long,
+                                            relationship: String,
+                                            direction: PandaDirection.Value): ArrayBuffer[Relationship] = {
     val tx = localDatabase.beginTx()
     val dbNode1 = localDatabase.getNodeById(id1)
     val dbNode2 = localDatabase.getNodeById(id2)
@@ -263,7 +270,10 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     relationList
   }
 
-  override def createNodeRelationshipFollower(relationId: ArrayBuffer[Long], id1: Long, id2: Long, relationship: String, direction: PandaDirection.Value): PandaReplyMessage.Value = {
+  override def createNodeRelationshipFollower(relationId: ArrayBuffer[Long],
+                                              id1: Long, id2: Long,
+                                              relationship: String,
+                                              direction: PandaDirection.Value): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val dbNode1 = localDatabase.getNodeById(id1)
     val dbNode2 = localDatabase.getNodeById(id2)
@@ -300,7 +310,9 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     lst
   }
 
-  override def deleteNodeRelationship(startNodeId: Long, endNodeId: Long, relationshipName: String, direction: PandaDirection.Value): PandaReplyMessage.Value = {
+  override def deleteNodeRelationship(startNodeId: Long, endNodeId: Long,
+                                      relationshipName: String,
+                                      direction: PandaDirection.Value): PandaReplyMessage.Value = {
     val tx = localDatabase.beginTx()
     val db_node: DbNode = localDatabase.getNodeById(startNodeId)
     var resIter: java.util.Iterator[DbRelationship] = null
@@ -309,7 +321,9 @@ class DataNodeServiceImpl(localDatabase: GraphDatabaseService) extends DataNodeS
     direction match {
       case PandaDirection.BOTH => {
         resIter = db_node.getRelationships(RelationshipType.withName(relationshipName), Direction.BOTH).iterator()
-        resIter2 = localDatabase.getNodeById(endNodeId).getRelationships(RelationshipType.withName(relationshipName), Direction.BOTH).iterator()
+
+        resIter2 = localDatabase.getNodeById(endNodeId)
+          .getRelationships(RelationshipType.withName(relationshipName), Direction.BOTH).iterator()
       }
       case PandaDirection.INCOMING => {
         resIter = db_node.getRelationships(RelationshipType.withName(relationshipName), Direction.INCOMING).iterator()
