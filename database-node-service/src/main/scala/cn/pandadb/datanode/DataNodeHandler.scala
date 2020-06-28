@@ -8,7 +8,7 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.slf4j.Logger
 import cn.pandadb.configuration.{Config => PandaConfig}
 import cn.pandadb.index.IndexService
-import cn.pandadb.util.CompressDbFileUtil
+import cn.pandadb.util.{CompressDbFileUtil, PandaReplyMessage}
 import io.netty.buffer.Unpooled
 import org.grapheco.hippo.{ChunkedStream, CompleteStream, HippoRpcHandler, ReceiveContext}
 import cn.pandadb.store.local.DataStore
@@ -19,6 +19,7 @@ class DataNodeHandler(pandaConfig: PandaConfig,
   val logger: Logger = pandaConfig.getLogger(this.getClass)
 
   val dataNodeService = new DataNodeServiceImpl(localNeo4jDB)
+  val dataNodeTxService = new DataNodeTxServiceImpl(localNeo4jDB, pandaConfig)
 
   override def receiveWithBuffer(extraInput: ByteBuffer, context: ReceiveContext): PartialFunction[Any, Unit] = {
     case SayHello(msg) => {
@@ -91,6 +92,43 @@ class DataNodeHandler(pandaConfig: PandaConfig,
       context.reply(res)
     }
 
+    // tx
+    case BeginTransaction(txId: Long) => {
+      var res: PandaReplyMessage.Value = PandaReplyMessage.SUCCESS
+      try {
+        dataNodeTxService.beginTx(txId)
+      } catch {
+        case Exception => res = PandaReplyMessage.FAILED
+      }
+      context.reply(res)
+    }
+    case CommitTransaction(txId: Long, isSuccess: Boolean) => {
+      var res: PandaReplyMessage.Value = PandaReplyMessage.SUCCESS
+      try {
+        dataNodeTxService.commitTx(txId, isSuccess)
+      } catch {
+        case Exception => res = PandaReplyMessage.FAILED
+      }
+      context.reply(res)
+    }
+    case CloseTransaction(txId: Long) => {
+      var res: PandaReplyMessage.Value = PandaReplyMessage.SUCCESS
+      try {
+        dataNodeTxService.closeTx(txId)
+      } catch {
+        case Exception => res = PandaReplyMessage.FAILED
+      }
+      context.reply(res)
+    }
+    case CreateNodeInTx(txId: Long, id: Long, labels: Array[String], properties: Map[String, Any]) => {
+      var res: PandaReplyMessage.Value = PandaReplyMessage.SUCCESS
+      try {
+        dataNodeTxService.createNodeInTx(txId, id, labels, properties)
+      } catch {
+        case Exception => res = PandaReplyMessage.FAILED
+      }
+      context.reply(res)
+    }
   }
 
   override def openChunkedStream(): PartialFunction[Any, ChunkedStream] = {

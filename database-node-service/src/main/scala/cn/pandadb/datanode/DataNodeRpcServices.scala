@@ -54,7 +54,7 @@ case class ReadCompressedDbFileRequest(zipFileName: String)
 
 // tx
 case class BeginTransaction(txId: Long)
-case class CommitTransaction(txId: Long)
+case class CommitTransaction(txId: Long, isSuccess: Boolean)
 case class CloseTransaction(txId: Long)
 
 // node in tx

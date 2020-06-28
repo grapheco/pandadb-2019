@@ -1,6 +1,8 @@
 package cn.pandadb.datanode
 
-import java.util.concurrent.{BlockingQueue, Executors, LinkedBlockingQueue}
+import scala.collection.JavaConverters._
+
+import java.util.concurrent.{BlockingQueue, ConcurrentHashMap, Executors, LinkedBlockingQueue}
 
 import cn.pandadb.configuration.Config
 import cn.pandadb.driver.values.{Node => PandaNode}
@@ -41,8 +43,8 @@ trait DataNodeTxService {
 
 class DataNodeTxServiceImpl(localDatabase: GraphDatabaseService, config: Config) extends DataNodeTxService {
 
-  val txOperationsMap = HashMap[Long, LinkedBlockingQueue[OperationInTx]]()
-  val txOperationResultsMap = HashMap[Long, LinkedBlockingQueue[Any]]()
+  val txOperationsMap = (new ConcurrentHashMap[Long, LinkedBlockingQueue[OperationInTx]]()).asScala
+  val txOperationResultsMap = (new ConcurrentHashMap[Long, LinkedBlockingQueue[Any]]()).asScala
   val txHandlerThreadPool = Executors.newCachedThreadPool()
   val logger = config.getLogger(this.getClass)
 
@@ -97,6 +99,10 @@ class DataNodeTxServiceImpl(localDatabase: GraphDatabaseService, config: Config)
   }
 
   override def commitTx(txId: Long, isSuccess: Boolean = true): Boolean = {
+    if (!txOperationsMap.contains(txId)) {
+      return false
+    }
+
     // add operation to TxHandler Thread inputs
     if (isSuccess) {
       txOperationsMap(txId).put(SuccessInTx())
@@ -111,6 +117,10 @@ class DataNodeTxServiceImpl(localDatabase: GraphDatabaseService, config: Config)
   }
 
   override def closeTx(txId: Long): Boolean = {
+    if (!txOperationsMap.contains(txId)) {
+      return false
+    }
+
     txOperationsMap(txId).put(CloseInTx())
     val res = txOperationResultsMap(txId).take()
     assert(res.isInstanceOf[Boolean], "Expect Type of Boolean")

@@ -203,4 +203,26 @@ class DataNodeDriver {
     res
   }
 
+  // tx
+  def beginTransaction(txId: Long,
+                       endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    endpointRef.askWithRetry[PandaReplyMessage.Value](BeginTransaction(txId))
+  }
+
+  def commitTransaction(txId: Long, isSuccess: Boolean,
+                        endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    endpointRef.askWithRetry[PandaReplyMessage.Value](CommitTransaction(txId, isSuccess))
+  }
+
+  def closeTransaction(txId: Long,
+                       endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    endpointRef.askWithRetry[PandaReplyMessage.Value](CloseTransaction(txId))
+  }
+
+  def createNodeInTx(txId: Long, id: Long, labels: Array[String], properties: Map[String, Any],
+                     endpointRef: HippoEndpointRef, duration: Duration): PandaReplyMessage.Value = {
+    endpointRef.askWithRetry[PandaReplyMessage.Value](CreateNodeInTx(txId, id, labels, properties))
+  }
+
+
 }
