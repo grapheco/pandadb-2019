@@ -21,7 +21,7 @@ package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import org.neo4j.cypher.internal.runtime.interpreted.ExecutionContext
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
-import org.neo4j.values.virtual.{NodeValue, VirtualNodeValue}
+import org.neo4j.values.virtual.NodeValue
 
 case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
                               (val id: Id = Id.INVALID_ID) extends PredicatePushDownPipe  {
@@ -31,11 +31,11 @@ case class NodeByLabelScanPipe(ident: String, label: LazyLabel)
     label.getOptId(state.query) match {
       case Some(labelId) =>
         val baseContext = state.newExecutionContext(executionContextFactory)
-        var nodes: Option[Iterable[VirtualNodeValue]] = None
+        var nodes: Option[Iterable[NodeValue]] = None
         if (nodeStore.isDefined && fatherPipe != null) {
           nodes = fetchNodes(state, baseContext)
         }
-        val nodesIterator = nodes match {
+        val nodesIterator: Iterator[NodeValue] = nodes match {
           case Some(x) =>
             x.iterator
           case None =>

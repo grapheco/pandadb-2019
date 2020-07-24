@@ -6,8 +6,8 @@ import org.neo4j.cypher.internal.runtime.interpreted.commands.predicates._
 import org.neo4j.cypher.internal.runtime.interpreted.commands.values.KeyToken
 import org.neo4j.cypher.internal.runtime.interpreted.{NFPredicate, _}
 import org.neo4j.cypher.internal.v3_5.util.{Fby, Last, NonEmptyList}
-import org.neo4j.values.storable.{StringValue, Values}
-import org.neo4j.values.virtual.{NodeValue, VirtualNodeValue, VirtualValues}
+import org.neo4j.values.storable.StringValue
+import org.neo4j.values.virtual.NodeValue
 
 trait PredicatePushDownPipe extends Pipe{
 
@@ -75,22 +75,22 @@ trait PredicatePushDownPipe extends Pipe{
     }
   }
 
-  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Option[Iterable[VirtualNodeValue]] = {
+  def fetchNodes(state: QueryState, baseContext: ExecutionContext): Option[Iterable[NodeValue]] = {
     predicate match {
       case Some(p) =>
         val expr: NFPredicate = convertPredicate(p, state, baseContext)
         if (expr != null && (expr.isInstanceOf[NFAnd] || expr.isInstanceOf[NFOr] || expr.isInstanceOf[NFContainsWith])) {// only enable ppd when NFAnd, NFor
           fatherPipe.get.bypass()
           if (labelName != null) {
-            Some(nodeStore.get.getNodeBylabelAndFilter(labelName, expr).map(id => VirtualValues.node(id)))
+            Some(nodeStore.get.getNodeWithPropertiesBylabelAndFilter(labelName, expr).map(_.toNeo4jNodeValue()))
           }
           else {
-            Some(nodeStore.get.filterNodes(expr).map(id => VirtualValues.node(id)))
+            Some(nodeStore.get.filterNodesWithProperties(expr).map(_.toNeo4jNodeValue()))
           }
         }
         else {
           if (labelName != null) {
-            Some(nodeStore.get.getNodesByLabel(labelName).map(id => VirtualValues.node(id)))
+            Some(nodeStore.get.getNodesByLabel(labelName).map(_.toNeo4jNodeValue()))
           }
           else {
             None

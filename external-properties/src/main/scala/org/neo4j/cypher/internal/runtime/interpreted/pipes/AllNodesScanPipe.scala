@@ -2,13 +2,13 @@ package org.neo4j.cypher.internal.runtime.interpreted.pipes
 
 import org.neo4j.cypher.internal.runtime.interpreted._
 import org.neo4j.cypher.internal.v3_5.util.attribution.Id
-import org.neo4j.values.virtual.{NodeValue, VirtualNodeValue}
+import org.neo4j.values.virtual.NodeValue
 
 case class AllNodesScanPipe(ident: String)(val id: Id = Id.INVALID_ID) extends PredicatePushDownPipe {
 
   protected def internalCreateResults(state: QueryState): Iterator[ExecutionContext] = {
     val baseContext = state.newExecutionContext(executionContextFactory)
-    var nodes: Option[Iterable[VirtualNodeValue]] = None
+    var nodes: Option[Iterable[NodeValue]] = None
     if (nodeStore.isDefined && predicate.isDefined && fatherPipe != null) {
       nodes = fetchNodes(state, baseContext)
     }
