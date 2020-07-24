@@ -18,7 +18,8 @@ trait ExternalPropertyStoreFactory {
 trait CustomPropertyNodeReader {
   def filterNodes(expr: NFPredicate): Iterable[Long];
 
-  def getNodesByLabel(label: String): Iterable[Long];
+  @deprecated
+  def getNodesByLabel(label: String): Iterable[NodeWithProperties];
 
   def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[Long];
 

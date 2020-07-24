@@ -112,26 +112,24 @@ object InMemoryPropertyNodeStore extends CustomPropertyNodeStore {
   def getNodeWithPropertiesBylabelAndFilter(label: String, expr: NFPredicate): Iterable[NodeWithProperties] = {
     //val propName = SolrUtil.labelName
     //filterNodes(NFAnd(NFContainsWith(propName, label), expr))
-    getNodesWithPropertiesByLabel(label).toSet & filterNodesWithProperties(expr).toSet
+    getNodesByLabel(label).toSet & filterNodesWithProperties(expr).toSet
   }
 
   override def getNodeBylabelAndFilter(label: String, expr: NFPredicate): Iterable[Long] = {
     getNodeWithPropertiesBylabelAndFilter(label, expr).map(n => n.id)
   }
 
-  def getNodesWithPropertiesByLabel(label: String): Iterable[NodeWithProperties] = {
+  override def getNodesByLabel(label: String): Iterable[NodeWithProperties] = {
     val res = mutable.ArrayBuffer[NodeWithProperties]()
     nodes.map(n => {
       //println(n)
       if (n._2.labels.toArray.contains(label)) {
         res.append(n._2)
       }
-    })
-    res
-  }
 
-  override def getNodesByLabel(label: String): Iterable[Long] = {
-    getNodesWithPropertiesByLabel(label).map(n => n.id)
+    })
+
+    res
   }
 
   override def getNodeById(id: Long): Option[NodeWithProperties] = {
