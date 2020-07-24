@@ -200,7 +200,7 @@ class InSolrPropertyNodeStore(zkUrl: String, collectionName: String) extends Cus
     q.get
   }
 
-  def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
+  override def filterNodesWithProperties(expr: NFPredicate): Iterable[NodeWithProperties] = {
 
     var q: Option[String] = None;
     expr match {
