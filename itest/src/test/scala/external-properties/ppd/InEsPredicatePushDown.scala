@@ -23,7 +23,6 @@ class InEsPredicatePushDown extends QueryCase {
     val esScrollTime = props.getProperty("external.properties.store.es.scroll.time.minutes", "10").toInt
 
     val esNodeStore = new InElasticSearchPropertyNodeStore(esHost, esPort, esIndex, esType, esSchema, esScrollSize, esScrollTime)
-    ExternalPropertiesContext.bindCustomPropertyNodeStore(esNodeStore)
     esNodeStore.clearAll()
     buildDB(esNodeStore)
   }
