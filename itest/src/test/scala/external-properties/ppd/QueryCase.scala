@@ -15,7 +15,7 @@ trait QueryCase {
 
   def buildDB(store: CustomPropertyNodeStore): Unit = {
     if (db == null) {
-//      ExternalPropertiesContext.bindCustomPropertyNodeStore(store)
+      ExternalPropertiesContext.bindCustomPropertyNodeStore(store)
       GlobalContext.setLeaderNode(true)
       val dbFile: File = new File("./output/testdb")
       FileUtils.deleteRecursively(dbFile);
