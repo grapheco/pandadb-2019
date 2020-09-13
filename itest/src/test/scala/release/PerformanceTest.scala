@@ -205,6 +205,7 @@ class PandaDBPerformanceTest extends PerformanceTest {
 
 class MergePerformanceTest extends PandaDBPerformanceTest {
 
+  // just run test0, you will get both neo4j and panda test result
   @Test
   def test0(): Unit = {
     val list = List(2)
