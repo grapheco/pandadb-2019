@@ -1,0 +1,2 @@
+Match(n)-->(m1)-->(m2) where id(n)<5 return id(n),n.id,count(m2) order by count(m2) desc;
+Match(n) return distinct size(labels(n))
