@@ -1,2 +1,5 @@
-Match(n)-->(m1)-->(m2) where id(n)<5 return id(n),n.id,count(m2) order by count(m2) desc;
-Match(n) return distinct size(labels(n))
+Match (n) where id(n)<10 with n Match p=(n)-->(m1)-->(m2) return count(p)
+Match p=(m1)-->(n)<--(m2) where id(n)<10 return count(p)
+Match p=(m1)-->(n)<--(m2) where id(n)<10 and id(m1)>id(m2) return count(p)
+Match (n)-->(m) return distinct n.id, count(m) order by count(m) DESc limit 100
+Match (n)-->(m) return distinct m.id, count(n) order by count(n) DESc limit 100
