@@ -25,10 +25,10 @@ object DistributedDataRecoverTest {
     new ExponentialBackoffRetry(1000, 3));
   curator.start()
 
-  val node0 = "159.226.193.204:7684"
+  val node0 = "localhost"
   val zkMasterPath = ZKPathConfig.leaderNodePath + s"/${node0}"
 
-  val node1 = "159.226.193.204:7685";
+  val node1 = "localhost";
   val zkSlavePath = ZKPathConfig.ordinaryNodesPath + s"/${node1}"
 
   val neoDriver0 = GraphDatabase.driver(s"bolt://${node0}")
